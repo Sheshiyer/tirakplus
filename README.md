@@ -9,6 +9,7 @@ This repository contains the spec-kit planning baseline for Tirak Plus Customer 
 - `specs/001-tirakplus-customer-app/plan.md`: implementation plan.
 - `docs/issues/backlog-map.md`: repo-local issue-ready backlog.
 - `docs/payments/stripe.md`: Stripe payment-service decision and compliance gate.
+- `docs/payments/provider-alternatives.md`: Thailand/local and high-risk payment-provider research.
 
 ## GitHub Issues
 
@@ -18,4 +19,4 @@ Issue count in this repo: 140.
 
 ## Payment Provider
 
-Stripe is the named payment service. Live Stripe payment creation is disabled by default until Stripe approves the exact Tirak business model, jurisdiction, product wording, and merchant-account setup. API contracts and UI states should be implemented first through the PaymentProvider boundary.
+Stripe is the first adapter candidate, not a hard product dependency. Live payment creation is disabled by default until the selected provider approves the exact Tirak business model, jurisdiction, product wording, and merchant-account setup. API contracts and UI states should be implemented first through the PaymentProvider boundary so Stripe, KBank, SCB, 2C2P, Bangkok Bank, GB Prime Pay, or a specialist high-risk provider can be swapped without rewriting product flows.

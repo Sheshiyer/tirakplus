@@ -6,6 +6,8 @@ Stripe is the named payment service for Tirak Plus planning.
 
 Implementation must use a PaymentProvider boundary so customer and admin code depend on Tirak API contracts, not direct Stripe calls from UI components. Staged data may simulate Stripe-shaped states, but live Stripe payment creation remains disabled until the exact Tirak business model, jurisdiction, product wording, and merchant account setup are approved.
 
+Provider alternatives are tracked in docs/payments/provider-alternatives.md. Stripe should be treated as the first adapter candidate, not as a hard dependency in product flows.
+
 ## Current Policy Risk
 
 Official Stripe policy currently lists adult services, including escorts, under prohibited adult content and services. It also lists online dating and matchmaking as limited availability, with Thailand dating services specifically listed under jurisdiction-specific prohibited businesses. Source: https://stripe.com/en-ca/legal/restricted-businesses

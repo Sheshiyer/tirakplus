@@ -11,6 +11,7 @@ Shared source-of-truth documents:
 - docs/design/component-system.md
 - docs/design/asset-usage.md
 - docs/payments/stripe.md
+- docs/payments/provider-alternatives.md
 - docs/issues/backlog-map.md
 <!-- SPECKIT END -->
 
@@ -20,4 +21,4 @@ Shared source-of-truth documents:
 - Treat docs/issues/backlog-map.md and the linked GitHub issues as the implementation source.
 - Do not hardcode mock data in UI components; staged data must come through API-shaped rails.
 - Block cheap dating-app, red-light, objectifying, fake-urgency, and swipe-first patterns.
-- Payment service is Stripe, but live payment creation must stay behind the documented Stripe compliance gate until the exact business model and jurisdiction are approved.
+- Stripe is the first payment adapter candidate, not a hard product dependency. Keep provider alternatives in docs/payments/provider-alternatives.md behind the same compliance gate.
