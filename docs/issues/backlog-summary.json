@@ -1,0 +1,1408 @@
+{
+  "total": 140,
+  "track": "TP-CUST",
+  "repo": "Sheshiyer/tirakplus",
+  "generatedAt": "2026-05-08",
+  "issues": [
+    {
+      "id": "TP-CUST-001",
+      "tid": "T001",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: DESIGN.md token audit",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-002",
+      "tid": "T002",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: color token implementation",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-003",
+      "tid": "T003",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: type scale implementation",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-004",
+      "tid": "T004",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: button variants",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-005",
+      "tid": "T005",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: card and panel rules",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-006",
+      "tid": "T006",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: navigation rules",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-007",
+      "tid": "T007",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: profile card rules",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-008",
+      "tid": "T008",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: form field rules",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-009",
+      "tid": "T009",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: state components",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-010",
+      "tid": "T010",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: asset usage registry",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-011",
+      "tid": "T011",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: app icon handoff",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-012",
+      "tid": "T012",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: icon sheet extraction plan",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-013",
+      "tid": "T013",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: brand board staging guide",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-014",
+      "tid": "T014",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix home",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-015",
+      "tid": "T015",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix discovery",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-016",
+      "tid": "T016",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix profile",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-017",
+      "tid": "T017",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix onboarding",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-018",
+      "tid": "T018",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix auth",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-019",
+      "tid": "T019",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: responsive view matrix safety",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-020",
+      "tid": "T020",
+      "track": "customer",
+      "category": "Design system, responsive view matrix, and asset integration",
+      "title": "Customer: visual anti-pattern checklist",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-021",
+      "tid": "T021",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: public app shell",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-022",
+      "tid": "T022",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: logged-in traveller shell",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-023",
+      "tid": "T023",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: logged-in companion shell",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-024",
+      "tid": "T024",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: mobile bottom nav",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-025",
+      "tid": "T025",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: desktop nav rail",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-026",
+      "tid": "T026",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: auth start screen",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-027",
+      "tid": "T027",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: auth verify screen",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-028",
+      "tid": "T028",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: session endpoint contract",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-029",
+      "tid": "T029",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: expired session redirect",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-030",
+      "tid": "T030",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: role-aware route guard",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-031",
+      "tid": "T031",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: account switch state",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-032",
+      "tid": "T032",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: logout flow",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-033",
+      "tid": "T033",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: protected route loading",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-034",
+      "tid": "T034",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: auth error state",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-035",
+      "tid": "T035",
+      "track": "customer",
+      "category": "App shell, navigation, auth, roles, session states",
+      "title": "Customer: session smoke tests",
+      "priority": "P1",
+      "owner": "Cloud/backend agent",
+      "story": "US1"
+    },
+    {
+      "id": "TP-CUST-036",
+      "tid": "T036",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: home hero",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-037",
+      "tid": "T037",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: home trust band",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-038",
+      "tid": "T038",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: city overview Bangkok",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-039",
+      "tid": "T039",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: city overview Phuket",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-040",
+      "tid": "T040",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: city overview Koh Samui",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-041",
+      "tid": "T041",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: city overview Koh Phangan",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-042",
+      "tid": "T042",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: nightlife experience page",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-043",
+      "tid": "T043",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: island explorer experience page",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-044",
+      "tid": "T044",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: Muay Thai night page",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-045",
+      "tid": "T045",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: private dining placeholder",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-046",
+      "tid": "T046",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: local guidance page",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-047",
+      "tid": "T047",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: safety message band",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-048",
+      "tid": "T048",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: companion CTA band",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-049",
+      "tid": "T049",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: traveller CTA band",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-050",
+      "tid": "T050",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: home mobile composition",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-051",
+      "tid": "T051",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: home tablet composition",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-052",
+      "tid": "T052",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: home desktop composition",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-053",
+      "tid": "T053",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: public API home endpoint",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-054",
+      "tid": "T054",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: public empty/fallback states",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-055",
+      "tid": "T055",
+      "track": "customer",
+      "category": "Home, city pages, experience surfaces, trust/safety messaging",
+      "title": "Customer: public visual QA",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-056",
+      "tid": "T056",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery API contract",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-057",
+      "tid": "T057",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery filter model",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-058",
+      "tid": "T058",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: city filter control",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-059",
+      "tid": "T059",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: experience filter control",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-060",
+      "tid": "T060",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: availability filter control",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-061",
+      "tid": "T061",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: verified filter control",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-062",
+      "tid": "T062",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery result card",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-063",
+      "tid": "T063",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery empty state",
+      "priority": "P1",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-064",
+      "tid": "T064",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery loading skeleton",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-065",
+      "tid": "T065",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: discovery error state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-066",
+      "tid": "T066",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile route contract",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-067",
+      "tid": "T067",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile hero section",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-068",
+      "tid": "T068",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile verification panel",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-069",
+      "tid": "T069",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile availability panel",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-070",
+      "tid": "T070",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile experience fit panel",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-071",
+      "tid": "T071",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile safety note",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-072",
+      "tid": "T072",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile unavailable state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-073",
+      "tid": "T073",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile mobile layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-074",
+      "tid": "T074",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile tablet layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-075",
+      "tid": "T075",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: profile desktop layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-076",
+      "tid": "T076",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry form contract",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-077",
+      "tid": "T077",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry form fields",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-078",
+      "tid": "T078",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry validation errors",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-079",
+      "tid": "T079",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry loading state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-080",
+      "tid": "T080",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry success state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US2"
+    },
+    {
+      "id": "TP-CUST-081",
+      "tid": "T081",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry unavailable state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-082",
+      "tid": "T082",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry list endpoint",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-083",
+      "tid": "T083",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: inquiry detail screen",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-084",
+      "tid": "T084",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: traveller privacy copy",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-085",
+      "tid": "T085",
+      "track": "customer",
+      "category": "Traveller discovery, profile browsing, inquiry flow",
+      "title": "Customer: traveller flow smoke test",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-086",
+      "tid": "T086",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion onboarding contract",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-087",
+      "tid": "T087",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion welcome screen",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-088",
+      "tid": "T088",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: profile basics step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-089",
+      "tid": "T089",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: profile bio step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-090",
+      "tid": "T090",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: city and experience step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-091",
+      "tid": "T091",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: visibility settings step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-092",
+      "tid": "T092",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: verification explanation step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-093",
+      "tid": "T093",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: verification submit step",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-094",
+      "tid": "T094",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: onboarding progress state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-095",
+      "tid": "T095",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: onboarding resume state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-096",
+      "tid": "T096",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: onboarding mobile layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-097",
+      "tid": "T097",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: onboarding tablet layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-098",
+      "tid": "T098",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: onboarding desktop layout",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-099",
+      "tid": "T099",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion dashboard shell",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-100",
+      "tid": "T100",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: profile draft editor",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-101",
+      "tid": "T101",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: profile preview safe view",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-102",
+      "tid": "T102",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: visibility control panel",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-103",
+      "tid": "T103",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: availability contract",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-104",
+      "tid": "T104",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: availability calendar list",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-105",
+      "tid": "T105",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: availability city selector",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-106",
+      "tid": "T106",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: availability hidden state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-107",
+      "tid": "T107",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: availability save flow",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-108",
+      "tid": "T108",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: verification pending state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-109",
+      "tid": "T109",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: changes requested state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-110",
+      "tid": "T110",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: approved profile state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US3"
+    },
+    {
+      "id": "TP-CUST-111",
+      "tid": "T111",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: rejected profile state",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-112",
+      "tid": "T112",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion inquiry list",
+      "priority": "P2",
+      "owner": "UI/app implementation agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-113",
+      "tid": "T113",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion account settings",
+      "priority": "P3",
+      "owner": "UI/app implementation agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-114",
+      "tid": "T114",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion safety guidance",
+      "priority": "P3",
+      "owner": "UI/app implementation agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-115",
+      "tid": "T115",
+      "track": "customer",
+      "category": "Companion registration, profile management, availability",
+      "title": "Customer: companion flow smoke test",
+      "priority": "P3",
+      "owner": "UI/app implementation agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-116",
+      "tid": "T116",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: API route registry",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-117",
+      "tid": "T117",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: staged data provider contract",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-118",
+      "tid": "T118",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: data model schema draft",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-119",
+      "tid": "T119",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: error response shape",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-120",
+      "tid": "T120",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: request ID propagation",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-121",
+      "tid": "T121",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: Cloudflare worker boundary",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-122",
+      "tid": "T122",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: D1 persistence decision record",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-123",
+      "tid": "T123",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: R2 media reference contract",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-124",
+      "tid": "T124",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: KV config boundary",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-125",
+      "tid": "T125",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: public endpoint handlers",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-126",
+      "tid": "T126",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: traveller endpoint handlers",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-127",
+      "tid": "T127",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: companion endpoint handlers",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-128",
+      "tid": "T128",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: safety endpoint handlers",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-129",
+      "tid": "T129",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: account endpoint handlers",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-130",
+      "tid": "T130",
+      "track": "customer",
+      "category": "API contracts, stub-data rails, data model, Cloudflare monolith boundaries",
+      "title": "Customer: contract test harness",
+      "priority": "P3",
+      "owner": "Cloud/backend agent",
+      "story": "US4"
+    },
+    {
+      "id": "TP-CUST-131",
+      "tid": "T131",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: keyboard navigation customer",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-132",
+      "tid": "T132",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: screen reader labels customer",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-133",
+      "tid": "T133",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: color contrast audit",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-134",
+      "tid": "T134",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: mobile no-overflow audit",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-135",
+      "tid": "T135",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: tablet visual QA",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-136",
+      "tid": "T136",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: desktop visual QA",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-137",
+      "tid": "T137",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: privacy copy review",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-138",
+      "tid": "T138",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: security session review",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-139",
+      "tid": "T139",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: anti-pattern audit customer",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    },
+    {
+      "id": "TP-CUST-140",
+      "tid": "T140",
+      "track": "customer",
+      "category": "Accessibility, visual QA, security/privacy checks, smoke tests",
+      "title": "Customer: customer quickstart smoke test",
+      "priority": "P3",
+      "owner": "Validation agent",
+      "story": "US5"
+    }
+  ]
+}
