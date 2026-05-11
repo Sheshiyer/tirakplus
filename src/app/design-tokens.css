@@ -1,0 +1,78 @@
+:root {
+  /* Colors */
+  --color-porcelain-canvas: #FAF7F3;
+  --color-pearl-surface: #FFFFFF;
+  --color-charcoal-ink: #26232A;
+  --color-soft-slate: #5E5964;
+  --color-veil-border: rgba(38, 35, 42, 0.10);
+  --color-rose-bronze: #B96F7D;
+  --color-rose-bronze-active: #9F5D6A;
+  --color-blush-mark: #F4C4C6;
+  --color-lavender-mark: #B7A6D8;
+  --color-night-plum: #211B2C;
+  --color-trust-green: #657A66;
+  --color-warning-clay: #B16B45;
+  --color-risk-fig: #7E4257;
+
+  /* Typography Fonts */
+  --font-display: 'Satoshi', 'Cabinet Grotesk', 'Outfit', sans-serif;
+  --font-body: 'Geist', 'Satoshi', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+  /* Typography Scale - Mobile Default */
+  --text-hero-size: 36px;
+  --text-hero-line: 1.10;
+  --text-section-size: 28px;
+  --text-section-line: 1.18;
+  --text-screen-title-size: 24px;
+  --text-screen-title-line: 1.20;
+  --text-card-title-size: 17px;
+  --text-card-title-line: 1.30;
+  --text-body-size: 16px;
+  --text-body-line: 1.50;
+  --text-caption-size: 12px;
+  --text-caption-line: 1.35;
+  --text-mono-label-size: 12px;
+  --text-mono-label-line: 1.40;
+
+  /* Shadows */
+  --shadow-elevation: 0 24px 60px rgba(38, 35, 42, 0.08);
+}
+
+@media (min-width: 768px) { /* Tablet */
+  :root {
+    --text-hero-size: 44px;
+    --text-hero-line: 1.08;
+    --text-section-size: 34px;
+    --text-section-line: 1.15;
+    --text-screen-title-size: 26px;
+    --text-screen-title-line: 1.20;
+    --text-card-title-size: 18px;
+    --text-card-title-line: 1.30;
+    --text-body-size: 16px;
+    --text-body-line: 1.55;
+    --text-caption-size: 13px;
+    --text-caption-line: 1.40;
+    --text-mono-label-size: 12px;
+    --text-mono-label-line: 1.40;
+  }
+}
+
+@media (min-width: 1280px) { /* Desktop */
+  :root {
+    --text-hero-size: 56px;
+    --text-hero-line: 1.05;
+    --text-section-size: 40px;
+    --text-section-line: 1.12;
+    --text-screen-title-size: 28px;
+    --text-screen-title-line: 1.20;
+    --text-card-title-size: 18px;
+    --text-card-title-line: 1.30;
+    --text-body-size: 16px;
+    --text-body-line: 1.55;
+    --text-caption-size: 13px;
+    --text-caption-line: 1.40;
+    --text-mono-label-size: 12px;
+    --text-mono-label-line: 1.40;
+  }
+}
