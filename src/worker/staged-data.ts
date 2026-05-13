@@ -1,4 +1,4 @@
-import type { CitySummary, CompanionPreview, ExperienceSummary } from "../shared/contracts";
+import type { CitySummary, CompanionPreview, ExperienceSummary, HomeEntryPath, SafetyContent } from "../shared/contracts";
 
 export const cities: CitySummary[] = [
   {
@@ -33,7 +33,7 @@ export const experiences: ExperienceSummary[] = [
     city: "bangkok",
     title: "Bangkok Nightlife",
     summary: "A quieter concierge path through bars, lounges, and after-dark plans.",
-    safetyNote: "No public pressure, ratings, or online-now mechanics.",
+    safetyNote: "No public pressure cues or browse-volume mechanics.",
   },
   {
     slug: "muay-thai-night",
@@ -51,10 +51,24 @@ export const experiences: ExperienceSummary[] = [
   },
   {
     slug: "private-dining",
+    city: "phuket",
+    title: "Phuket Private Dining",
+    summary: "A composed dinner route for resort-area evenings and quieter plans.",
+    safetyNote: "Payment and booking states stay behind review gates.",
+  },
+  {
+    slug: "private-dining",
     city: "koh-samui",
     title: "Koh Samui Private Dining",
     summary: "A composed route for evenings built around restaurants and resorts.",
     safetyNote: "Payment and booking states stay behind review gates.",
+  },
+  {
+    slug: "island-explorer",
+    city: "koh-samui",
+    title: "Koh Samui Island Explorer",
+    summary: "Wellness pacing, beach clubs, and calmer island discovery.",
+    safetyNote: "Traveller and companion boundaries are shown before inquiry.",
   },
   {
     slug: "local-guidance",
@@ -62,6 +76,13 @@ export const experiences: ExperienceSummary[] = [
     title: "Koh Phangan Local Guidance",
     summary: "Nightlife and island rhythm without party-flyer energy.",
     safetyNote: "Discovery copy avoids objectifying or explicit framing.",
+  },
+  {
+    slug: "nightlife",
+    city: "koh-phangan",
+    title: "Koh Phangan Night Energy",
+    summary: "After-dark plans framed through boundaries, transport, and local rhythm.",
+    safetyNote: "Plans prioritize review context over public browse volume.",
   },
 ];
 
@@ -95,12 +116,29 @@ export const companions: CompanionPreview[] = [
   },
 ];
 
-export const safetyContent = {
+export const entryPaths: HomeEntryPath[] = [
+  {
+    role: "traveller",
+    label: "Traveller path",
+    heading: "Plan a discreet Thailand introduction.",
+    description: "Start with city and experience context, then send a private inquiry after reviewing safety guidance.",
+    href: "/traveller",
+  },
+  {
+    role: "companion",
+    label: "Companion path",
+    heading: "Register with visibility control.",
+    description: "Create a reviewed profile, set boundaries and availability, and stay hidden until verification clears.",
+    href: "/companion",
+  },
+];
+
+export const safetyContent: SafetyContent = {
   title: "Safety and discretion",
   principles: [
     "Profiles remain hidden until verification permits visibility.",
     "Inquiry review happens before any payment or introduction step.",
-    "No star ratings, hot-or-not mechanics, or fake online urgency.",
+    "No person-ranking mechanics, pressure cues, or browse-volume loops.",
     "Payment providers stay disabled until supportability is approved in writing.",
   ],
 };

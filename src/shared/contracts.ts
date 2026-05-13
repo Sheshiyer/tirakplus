@@ -12,6 +12,67 @@ export type ApiEnvelope<T> = {
   requestId: string;
 };
 
+export type UserRole = "traveller" | "companion" | "admin";
+
+export type SessionProfile = {
+  id: string;
+  email: string;
+  role: UserRole;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+};
+
+export type Session = {
+  id: string;
+  profile: SessionProfile;
+  expiresAt: string;
+};
+
+export type SessionState = {
+  session: Session | null;
+  status: "anonymous" | "active";
+  protectedRoutesEnabled: boolean;
+};
+
+export type AuthStartRequest = {
+  email: string;
+};
+
+export type AuthStartResponse = {
+  email: string;
+  status: "verification_pending";
+  delivery: "email";
+  nextStep: "verify_code";
+};
+
+export type AuthVerifyRequest = {
+  email: string;
+  code: string;
+  role?: Extract<UserRole, "traveller" | "companion">;
+};
+
+export type AuthVerifyResponse = {
+  session: Session;
+};
+
+export type RoleSwitchRequest = {
+  role: Extract<UserRole, "traveller" | "companion">;
+};
+
+export type HomeEntryPath = {
+  role: "traveller" | "companion";
+  label: string;
+  heading: string;
+  description: string;
+  href: string;
+};
+
+export type SafetyContent = {
+  title: string;
+  principles: string[];
+};
+
 export type CitySummary = {
   slug: CitySlug;
   name: string;

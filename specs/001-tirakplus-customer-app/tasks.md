@@ -33,38 +33,38 @@
 
 ## Phase 2: App shell, navigation, auth, roles, session states
 
-- [ ] T021 [P] [US1] Customer: public app shell. Issue: TP-CUST-021. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T022 [P] [US1] Customer: logged-in traveller shell. Issue: TP-CUST-022. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T023 [US1] Customer: logged-in companion shell. Issue: TP-CUST-023. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T024 [P] [US1] Customer: mobile bottom nav. Issue: TP-CUST-024. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T025 [P] [US1] Customer: desktop nav rail. Issue: TP-CUST-025. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T026 [US1] Customer: auth start screen. Issue: TP-CUST-026. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T027 [P] [US1] Customer: auth verify screen. Issue: TP-CUST-027. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T028 [P] [US1] Customer: session endpoint contract. Issue: TP-CUST-028. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T029 [US1] Customer: expired session redirect. Issue: TP-CUST-029. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T030 [P] [US1] Customer: role-aware route guard. Issue: TP-CUST-030. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T031 [P] [US1] Customer: account switch state. Issue: TP-CUST-031. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T032 [US1] Customer: logout flow. Issue: TP-CUST-032. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T033 [P] [US1] Customer: protected route loading. Issue: TP-CUST-033. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T034 [P] [US1] Customer: auth error state. Issue: TP-CUST-034. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T035 [US1] Customer: session smoke tests. Issue: TP-CUST-035. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T021 [P] [US1] Customer: public app shell. Issue: TP-CUST-021. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T022 [P] [US1] Customer: logged-in traveller shell. Issue: TP-CUST-022. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T023 [US1] Customer: logged-in companion shell. Issue: TP-CUST-023. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T024 [P] [US1] Customer: mobile bottom nav. Issue: TP-CUST-024. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T025 [P] [US1] Customer: desktop nav rail. Issue: TP-CUST-025. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T026 [US1] Customer: auth start screen. Issue: TP-CUST-026. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T027 [P] [US1] Customer: auth verify screen. Issue: TP-CUST-027. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T028 [P] [US1] Customer: session endpoint contract. Issue: TP-CUST-028. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T029 [US1] Customer: expired session redirect. Issue: TP-CUST-029. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T030 [P] [US1] Customer: role-aware route guard. Issue: TP-CUST-030. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T031 [P] [US1] Customer: account switch state. Issue: TP-CUST-031. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T032 [US1] Customer: logout flow. Issue: TP-CUST-032. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T033 [P] [US1] Customer: protected route loading. Issue: TP-CUST-033. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T034 [P] [US1] Customer: auth error state. Issue: TP-CUST-034. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T035 [US1] Customer: session smoke tests. Issue: TP-CUST-035. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
 
 ## Phase 3: Home, city pages, experience surfaces, trust/safety messaging
 
-- [ ] T036 [P] [US2] Customer: home hero. Issue: TP-CUST-036. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T037 [P] [US2] Customer: home trust band. Issue: TP-CUST-037. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T038 [US2] Customer: city overview Bangkok. Issue: TP-CUST-038. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T039 [P] [US2] Customer: city overview Phuket. Issue: TP-CUST-039. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T040 [P] [US2] Customer: city overview Koh Samui. Issue: TP-CUST-040. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T041 [US2] Customer: city overview Koh Phangan. Issue: TP-CUST-041. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T042 [P] [US2] Customer: nightlife experience page. Issue: TP-CUST-042. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T043 [P] [US2] Customer: island explorer experience page. Issue: TP-CUST-043. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T044 [US2] Customer: Muay Thai night page. Issue: TP-CUST-044. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T045 [P] [US2] Customer: private dining placeholder. Issue: TP-CUST-045. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T046 [P] [US2] Customer: local guidance page. Issue: TP-CUST-046. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T047 [US2] Customer: safety message band. Issue: TP-CUST-047. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T048 [P] [US2] Customer: companion CTA band. Issue: TP-CUST-048. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T049 [P] [US2] Customer: traveller CTA band. Issue: TP-CUST-049. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T036 [P] [US2] Customer: home hero. Issue: TP-CUST-036. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T037 [P] [US2] Customer: home trust band. Issue: TP-CUST-037. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T038 [US2] Customer: city overview Bangkok. Issue: TP-CUST-038. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T039 [P] [US2] Customer: city overview Phuket. Issue: TP-CUST-039. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T040 [P] [US2] Customer: city overview Koh Samui. Issue: TP-CUST-040. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T041 [US2] Customer: city overview Koh Phangan. Issue: TP-CUST-041. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T042 [P] [US2] Customer: nightlife experience page. Issue: TP-CUST-042. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T043 [P] [US2] Customer: island explorer experience page. Issue: TP-CUST-043. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T044 [US2] Customer: Muay Thai night page. Issue: TP-CUST-044. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T045 [P] [US2] Customer: private dining placeholder. Issue: TP-CUST-045. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T046 [P] [US2] Customer: local guidance page. Issue: TP-CUST-046. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T047 [US2] Customer: safety message band. Issue: TP-CUST-047. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T048 [P] [US2] Customer: companion CTA band. Issue: TP-CUST-048. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T049 [P] [US2] Customer: traveller CTA band. Issue: TP-CUST-049. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
 - [ ] T050 [US2] Customer: home mobile composition. Issue: TP-CUST-050. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
 - [ ] T051 [P] [US2] Customer: home tablet composition. Issue: TP-CUST-051. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
 - [ ] T052 [P] [US2] Customer: home desktop composition. Issue: TP-CUST-052. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.

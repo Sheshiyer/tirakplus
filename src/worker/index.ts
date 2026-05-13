@@ -1,10 +1,14 @@
 import { json, apiError } from "./http";
-import { cities, companions, experiences, safetyContent } from "./staged-data";
+import { cities, companions, entryPaths, experiences, safetyContent } from "./staged-data";
+import { routeAuth } from "./auth";
 import { createPaymentSession, paymentProviders } from "./payment-provider";
 
 async function routeApi(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const { pathname, searchParams } = url;
+
+  const authResponse = await routeAuth(request, pathname);
+  if (authResponse) return authResponse;
 
   if (request.method === "GET" && pathname === "/api/public/home") {
     return json({
@@ -14,20 +18,20 @@ async function routeApi(request: Request): Promise<Response> {
       },
       cities,
       highlights: ["Verified visibility", "Private inquiries", "Provider approval before payments"],
+      entryPaths,
     });
   }
 
   if (request.method === "GET" && pathname === "/api/public/experiences") {
     const city = searchParams.get("city");
-    return json(city ? experiences.filter((item) => item.city === city) : experiences);
-  }
-
-  if (request.method === "GET" && pathname === "/api/session") {
-    return json({
-      role: "traveller",
-      status: "staged",
-      protectedRoutesEnabled: true,
-    });
+    const category = searchParams.get("category");
+    return json(
+      experiences.filter((item) => {
+        const cityMatches = city ? item.city === city : true;
+        const categoryMatches = category ? item.slug === category : true;
+        return cityMatches && categoryMatches;
+      }),
+    );
   }
 
   if (request.method === "GET" && pathname === "/api/traveller/discovery") {
