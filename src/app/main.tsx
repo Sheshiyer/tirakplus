@@ -15,6 +15,12 @@ import { CompanionProfilePage } from "./pages/CompanionProfilePage";
 import { InquiryCreatePage } from "./pages/InquiryCreatePage";
 import { TravellerInquiriesPage } from "./pages/TravellerInquiriesPage";
 import { TravellerInquiryDetailPage } from "./pages/TravellerInquiryDetailPage";
+import { CompanionDashboardPage } from "./pages/CompanionDashboardPage";
+import { CompanionOnboardingPage } from "./pages/CompanionOnboardingPage";
+import { CompanionProfileManagerPage } from "./pages/CompanionProfileManagerPage";
+import { CompanionAvailabilityPage } from "./pages/CompanionAvailabilityPage";
+import { CompanionInboxPage } from "./pages/CompanionInboxPage";
+import { CompanionSafetyPage } from "./pages/CompanionSafetyPage";
 import { AuthProvider } from "./api/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import "./styles.css";
@@ -78,10 +84,13 @@ const router = createBrowserRouter([
         element: <CompanionShell />,
         children: [
           { index: true, element: <Navigate to="dashboard" replace /> },
-          { path: "dashboard", element: <PlaceholderPage title="Companion dashboard" description="Companion visibility, verification, and availability will stay controlled by reviewed state." /> },
-          { path: "inbox", element: <PlaceholderPage title="Companion inbox" description="Inbound inquiries will show review status before routing or payment decisions." /> },
-          { path: "plans", element: <PlaceholderPage title="Companion plans" description="Availability and city context will be editable without exposing unapproved public data." /> },
-          { path: "profile", element: <AccountSettings /> },
+          { path: "dashboard", element: <CompanionDashboardPage /> },
+          { path: "onboarding", element: <CompanionOnboardingPage /> },
+          { path: "inbox", element: <CompanionInboxPage /> },
+          { path: "plans", element: <CompanionAvailabilityPage /> },
+          { path: "profile", element: <CompanionProfileManagerPage /> },
+          { path: "safety", element: <CompanionSafetyPage /> },
+          { path: "account", element: <AccountSettings /> },
         ]
       }
     ],

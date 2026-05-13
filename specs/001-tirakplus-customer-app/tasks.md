@@ -107,36 +107,36 @@
 
 ## Phase 5: Companion registration, profile management, availability
 
-- [ ] T086 [P] [US3] Customer: companion onboarding contract. Issue: TP-CUST-086. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T087 [P] [US3] Customer: companion welcome screen. Issue: TP-CUST-087. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T088 [US3] Customer: profile basics step. Issue: TP-CUST-088. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T089 [P] [US3] Customer: profile bio step. Issue: TP-CUST-089. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T090 [P] [US3] Customer: city and experience step. Issue: TP-CUST-090. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T091 [US3] Customer: visibility settings step. Issue: TP-CUST-091. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T092 [P] [US3] Customer: verification explanation step. Issue: TP-CUST-092. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T093 [P] [US3] Customer: verification submit step. Issue: TP-CUST-093. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T094 [US3] Customer: onboarding progress state. Issue: TP-CUST-094. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T095 [P] [US3] Customer: onboarding resume state. Issue: TP-CUST-095. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T096 [P] [US3] Customer: onboarding mobile layout. Issue: TP-CUST-096. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T097 [US3] Customer: onboarding tablet layout. Issue: TP-CUST-097. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T098 [P] [US3] Customer: onboarding desktop layout. Issue: TP-CUST-098. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T099 [P] [US3] Customer: companion dashboard shell. Issue: TP-CUST-099. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T100 [US3] Customer: profile draft editor. Issue: TP-CUST-100. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T101 [P] [US3] Customer: profile preview safe view. Issue: TP-CUST-101. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T102 [P] [US3] Customer: visibility control panel. Issue: TP-CUST-102. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T103 [US3] Customer: availability contract. Issue: TP-CUST-103. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T104 [P] [US3] Customer: availability calendar list. Issue: TP-CUST-104. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T105 [P] [US3] Customer: availability city selector. Issue: TP-CUST-105. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T106 [US3] Customer: availability hidden state. Issue: TP-CUST-106. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T107 [P] [US3] Customer: availability save flow. Issue: TP-CUST-107. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T108 [P] [US3] Customer: verification pending state. Issue: TP-CUST-108. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T109 [US3] Customer: changes requested state. Issue: TP-CUST-109. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T110 [P] [US3] Customer: approved profile state. Issue: TP-CUST-110. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T111 [P] [US4] Customer: rejected profile state. Issue: TP-CUST-111. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T112 [US4] Customer: companion inquiry list. Issue: TP-CUST-112. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T113 [P] [US4] Customer: companion account settings. Issue: TP-CUST-113. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T114 [P] [US4] Customer: companion safety guidance. Issue: TP-CUST-114. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T115 [US4] Customer: companion flow smoke test. Issue: TP-CUST-115. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T086 [P] [US3] Customer: companion onboarding contract. Issue: TP-CUST-086. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-086.md.
+- [x] T087 [P] [US3] Customer: companion welcome screen. Issue: TP-CUST-087. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-087.md.
+- [x] T088 [US3] Customer: profile basics step. Issue: TP-CUST-088. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-088.md.
+- [x] T089 [P] [US3] Customer: profile bio step. Issue: TP-CUST-089. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-089.md.
+- [x] T090 [P] [US3] Customer: city and experience step. Issue: TP-CUST-090. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-090.md.
+- [x] T091 [US3] Customer: visibility settings step. Issue: TP-CUST-091. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-091.md.
+- [x] T092 [P] [US3] Customer: verification explanation step. Issue: TP-CUST-092. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-092.md.
+- [x] T093 [P] [US3] Customer: verification submit step. Issue: TP-CUST-093. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-093.md.
+- [x] T094 [US3] Customer: onboarding progress state. Issue: TP-CUST-094. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-094.md.
+- [x] T095 [P] [US3] Customer: onboarding resume state. Issue: TP-CUST-095. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-095.md.
+- [x] T096 [P] [US3] Customer: onboarding mobile layout. Issue: TP-CUST-096. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-096.md.
+- [x] T097 [US3] Customer: onboarding tablet layout. Issue: TP-CUST-097. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-097.md.
+- [x] T098 [P] [US3] Customer: onboarding desktop layout. Issue: TP-CUST-098. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-098.md.
+- [x] T099 [P] [US3] Customer: companion dashboard shell. Issue: TP-CUST-099. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-099.md.
+- [x] T100 [US3] Customer: profile draft editor. Issue: TP-CUST-100. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-100.md.
+- [x] T101 [P] [US3] Customer: profile preview safe view. Issue: TP-CUST-101. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-101.md.
+- [x] T102 [P] [US3] Customer: visibility control panel. Issue: TP-CUST-102. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-102.md.
+- [x] T103 [US3] Customer: availability contract. Issue: TP-CUST-103. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-103.md.
+- [x] T104 [P] [US3] Customer: availability calendar list. Issue: TP-CUST-104. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-104.md.
+- [x] T105 [P] [US3] Customer: availability city selector. Issue: TP-CUST-105. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-105.md.
+- [x] T106 [US3] Customer: availability hidden state. Issue: TP-CUST-106. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-106.md.
+- [x] T107 [P] [US3] Customer: availability save flow. Issue: TP-CUST-107. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-107.md.
+- [x] T108 [P] [US3] Customer: verification pending state. Issue: TP-CUST-108. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-108.md.
+- [x] T109 [US3] Customer: changes requested state. Issue: TP-CUST-109. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-109.md.
+- [x] T110 [P] [US3] Customer: approved profile state. Issue: TP-CUST-110. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-110.md.
+- [x] T111 [P] [US4] Customer: rejected profile state. Issue: TP-CUST-111. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-111.md.
+- [x] T112 [US4] Customer: companion inquiry list. Issue: TP-CUST-112. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-112.md.
+- [x] T113 [P] [US4] Customer: companion account settings. Issue: TP-CUST-113. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-113.md.
+- [x] T114 [P] [US4] Customer: companion safety guidance. Issue: TP-CUST-114. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-114.md.
+- [x] T115 [US4] Customer: companion flow smoke test. Issue: TP-CUST-115. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-115.md.
 
 ## Phase 6: API contracts, stub-data rails, data model, Cloudflare monolith boundaries
 

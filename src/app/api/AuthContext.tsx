@@ -6,7 +6,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: Error | null;
   login: (email: string) => Promise<void>;
-  verify: (email: string, code: string) => Promise<void>;
+  verify: (email: string, code: string, role?: Extract<UserRole, "traveller" | "companion">) => Promise<void>;
   logout: () => Promise<void>;
   switchRole: (role: Extract<UserRole, "traveller" | "companion">) => Promise<void>;
 }
@@ -44,11 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const verify = async (email: string, code: string) => {
+  const verify = async (email: string, code: string, role?: Extract<UserRole, "traveller" | "companion">) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await SessionService.verifyCode({ email, code });
+      const response = await SessionService.verifyCode({ email, code, role });
       setSession(response.session);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Verification failed"));

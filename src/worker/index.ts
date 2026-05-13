@@ -1,7 +1,11 @@
 import { json, apiError } from "./http";
 import {
   cities,
+  companionDraftProfile,
+  companionInquiries,
+  companionOptions,
   companionProfiles,
+  companionReviewStates,
   companions,
   discoveryFilterOptions,
   entryPaths,
@@ -12,7 +16,15 @@ import {
 import { routeAuth } from "./auth";
 import { createPaymentSession, paymentProviders } from "./payment-provider";
 import type {
+  AvailabilityWindow,
   CitySlug,
+  CompanionAvailabilityUpdateRequest,
+  CompanionDraftProfile,
+  CompanionOnboardingStep,
+  CompanionOnboardingState,
+  CompanionProfileUpdateRequest,
+  CompanionVerificationSubmitRequest,
+  CompanionVisibilityUpdateRequest,
   DiscoveryFilterSelection,
   ExperienceSlug,
   TravellerInquiryDetail,
@@ -139,6 +151,134 @@ async function routeApi(request: Request): Promise<Response> {
     return json(inquiry);
   }
 
+  if (request.method === "GET" && pathname === "/api/companion/onboarding") {
+    return json(createOnboardingState(companionDraftProfile));
+  }
+
+  if (request.method === "GET" && pathname === "/api/companion/dashboard") {
+    const onboarding = createOnboardingState(companionDraftProfile);
+    return json({
+      profile: companionDraftProfile,
+      progress: onboarding.progress,
+      reviewStates: companionReviewStates,
+      panels: [
+        {
+          title: "Profile draft",
+          description: "Edit public tone, private review fields, and safe preview details before submission.",
+          href: "/companion/profile",
+        },
+        {
+          title: "Availability",
+          description: "Keep city windows visibility-scoped; hidden windows do not appear in discovery.",
+          href: "/companion/plans",
+        },
+        {
+          title: "Private inquiries",
+          description: "Review incoming requests only after Tirak completes routing and safety checks.",
+          href: "/companion/inbox",
+        },
+      ],
+      safetyGuidance: companionSafetyGuidance,
+    });
+  }
+
+  if (request.method === "GET" && pathname === "/api/companion/inquiries") {
+    return json({
+      results: companionInquiries,
+      emptyState: {
+        title: "No routed inquiries yet.",
+        description: "Tirak only routes inquiries after review; no fake demand or online-now pressure is shown.",
+      },
+    });
+  }
+
+  if (request.method === "PATCH" && pathname === "/api/companion/profile") {
+    const body = await readJsonBody<CompanionProfileUpdateRequest>(request);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateCompanionProfileUpdate(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return apiError(422, "COMPANION_PROFILE_VALIDATION_FAILED", "Review the profile fields and try again.", fieldErrors);
+    }
+
+    const profile = mergeCompanionProfile(companionDraftProfile, body);
+    return json({
+      profile,
+      onboarding: createOnboardingState(profile),
+    });
+  }
+
+  if (request.method === "PATCH" && pathname === "/api/companion/visibility") {
+    const body = await readJsonBody<CompanionVisibilityUpdateRequest>(request);
+    if (body instanceof Response) return body;
+
+    const profile: CompanionDraftProfile = {
+      ...companionDraftProfile,
+      visibilitySettings: {
+        ...companionDraftProfile.visibilitySettings,
+        ...sanitizeVisibility(body),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    return json({
+      profile,
+      onboarding: createOnboardingState(profile),
+    });
+  }
+
+  if (request.method === "PATCH" && pathname === "/api/companion/availability") {
+    const body = await readJsonBody<CompanionAvailabilityUpdateRequest>(request);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateAvailabilityWindows(body.availabilityWindows);
+    if (Object.keys(fieldErrors).length > 0) {
+      return apiError(422, "COMPANION_AVAILABILITY_VALIDATION_FAILED", "Review availability windows and try again.", fieldErrors);
+    }
+
+    const profile: CompanionDraftProfile = {
+      ...companionDraftProfile,
+      availabilityWindows: body.availabilityWindows,
+      updatedAt: new Date().toISOString(),
+    };
+
+    return json({
+      profile,
+      onboarding: createOnboardingState(profile),
+    });
+  }
+
+  if (request.method === "POST" && pathname === "/api/companion/submit-verification") {
+    const body = await readJsonBody<CompanionVerificationSubmitRequest>(request);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateVerificationSubmit(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return apiError(422, "COMPANION_VERIFICATION_VALIDATION_FAILED", "Review the verification acknowledgements and try again.", fieldErrors);
+    }
+
+    const profile: CompanionDraftProfile = {
+      ...companionDraftProfile,
+      visibilitySettings: {
+        ...companionDraftProfile.visibilitySettings,
+        publicProfile: false,
+        acceptInquiries: false,
+      },
+      reviewStatus: "pending_verification",
+      reviewNote: "Verification has been submitted. Public visibility and inquiries remain paused until review clears.",
+      updatedAt: new Date().toISOString(),
+    };
+
+    return json(
+      {
+        profile,
+        submittedAt: profile.updatedAt,
+        nextStep: "Tirak review checks identity, public tone, visibility, availability, and safety before any traveller-facing profile appears.",
+      },
+      { status: 202 },
+    );
+  }
+
   if (request.method === "GET" && pathname === "/api/payments/providers") {
     return json(paymentProviders);
   }
@@ -157,6 +297,12 @@ async function routeApi(request: Request): Promise<Response> {
 
 const citySlugs: CitySlug[] = ["bangkok", "phuket", "koh-samui", "koh-phangan"];
 const experienceSlugs: ExperienceSlug[] = ["nightlife", "island-explorer", "muay-thai-night", "private-dining", "local-guidance"];
+const companionSafetyGuidance = [
+  "Public profile fields stay separate from private review fields.",
+  "Availability is planning context, not instant booking or public urgency.",
+  "Visibility can pause discovery, city, availability, and inquiries independently.",
+  "No payment, off-platform contact, or routing step happens before review clears.",
+];
 
 function parseDiscoveryFilters(searchParams: URLSearchParams): DiscoveryFilterSelection {
   const city = searchParams.get("city");
@@ -205,6 +351,185 @@ function validateInquiry(body: TravellerInquiryRequest): Record<string, string> 
     errors.privacyAcknowledged = "Acknowledge privacy and review before submitting.";
   }
   return errors;
+}
+
+function validateCompanionProfileUpdate(body: CompanionProfileUpdateRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (body.displayName !== undefined && body.displayName.trim().length < 2) {
+    errors.displayName = "Use a display name with at least two characters.";
+  }
+  if (body.legalName !== undefined && body.legalName.trim().length < 2) {
+    errors.legalName = "Add the private legal name for review.";
+  }
+  if (body.city !== undefined && !isCitySlug(body.city)) {
+    errors.city = "Choose a supported Tirak city.";
+  }
+  if (body.experienceTags !== undefined) {
+    if (!Array.isArray(body.experienceTags) || body.experienceTags.length === 0) {
+      errors.experienceTags = "Choose at least one experience context.";
+    } else if (body.experienceTags.some((value) => !isExperienceSlug(value))) {
+      errors.experienceTags = "Choose only supported experience contexts.";
+    }
+  }
+  if (body.bio !== undefined && body.bio.trim().length < 40) {
+    errors.bio = "Add a public bio with at least 40 respectful characters.";
+  }
+  if (body.profileTone !== undefined && body.profileTone.trim().length < 16) {
+    errors.profileTone = "Describe profile tone with practical, non-objectifying context.";
+  }
+  if (body.privateReviewNote !== undefined && body.privateReviewNote.trim().length < 20) {
+    errors.privateReviewNote = "Add private review context for safety and fit.";
+  }
+  if (body.verificationReferences !== undefined) {
+    if (!Array.isArray(body.verificationReferences) || body.verificationReferences.some((item) => typeof item !== "string")) {
+      errors.verificationReferences = "Verification references must be text entries.";
+    }
+  }
+  return errors;
+}
+
+function validateAvailabilityWindows(windows: unknown): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!Array.isArray(windows) || windows.length === 0) {
+    errors.availabilityWindows = "Add at least one availability window.";
+    return errors;
+  }
+
+  windows.forEach((window, index) => {
+    const prefix = `availabilityWindows.${index}`;
+    if (!isAvailabilityWindow(window)) {
+      errors[prefix] = "Each window must include city, label, status, and note.";
+      return;
+    }
+    if (window.label.trim().length < 4) {
+      errors[`${prefix}.label`] = "Add a practical window label.";
+    }
+    if (window.note.trim().length < 12) {
+      errors[`${prefix}.note`] = "Add a privacy-aware planning note.";
+    }
+  });
+
+  return errors;
+}
+
+function validateVerificationSubmit(body: CompanionVerificationSubmitRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (body.identityAcknowledged !== true) {
+    errors.identityAcknowledged = "Confirm identity review before submitting.";
+  }
+  if (body.visibilityAcknowledged !== true) {
+    errors.visibilityAcknowledged = "Confirm the profile remains hidden until approval.";
+  }
+  if (body.safetyAcknowledged !== true) {
+    errors.safetyAcknowledged = "Confirm safety and respectful-use requirements.";
+  }
+  return errors;
+}
+
+function mergeCompanionProfile(profile: CompanionDraftProfile, body: CompanionProfileUpdateRequest): CompanionDraftProfile {
+  return {
+    ...profile,
+    ...body,
+    displayName: body.displayName?.trim() ?? profile.displayName,
+    legalName: body.legalName?.trim() ?? profile.legalName,
+    bio: body.bio?.trim() ?? profile.bio,
+    profileTone: body.profileTone?.trim() ?? profile.profileTone,
+    privateReviewNote: body.privateReviewNote?.trim() ?? profile.privateReviewNote,
+    experienceTags: body.experienceTags ? uniqueExperienceTags(body.experienceTags) : profile.experienceTags,
+    verificationReferences: body.verificationReferences
+      ? body.verificationReferences.map((item) => item.trim()).filter(Boolean)
+      : profile.verificationReferences,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function createOnboardingState(profile: CompanionDraftProfile): CompanionOnboardingState {
+  const stepSeed = [
+    {
+      id: "welcome",
+      label: "Welcome",
+      description: "Understand review, visibility, and companion agency before profile work starts.",
+      complete: true,
+    },
+    {
+      id: "basics",
+      label: "Basics",
+      description: "Private legal name and public display name stay separated.",
+      complete: profile.displayName.trim().length >= 2 && profile.legalName.trim().length >= 2,
+    },
+    {
+      id: "bio",
+      label: "Profile tone",
+      description: "Public copy must stay premium, practical, and non-objectifying.",
+      complete: profile.bio.trim().length >= 40 && profile.profileTone.trim().length >= 16,
+    },
+    {
+      id: "city_experience",
+      label: "City and experiences",
+      description: "Choose the city and planning contexts that match reviewed availability.",
+      complete: isCitySlug(profile.city) && profile.experienceTags.length > 0,
+    },
+    {
+      id: "visibility",
+      label: "Visibility",
+      description: "Control discovery, city, availability, and inquiry exposure.",
+      complete: Object.values(profile.visibilitySettings).some(Boolean),
+    },
+    {
+      id: "verification",
+      label: "Verification",
+      description: "Submit private context for review before public visibility.",
+      complete: profile.verificationReferences.length > 0 && profile.privateReviewNote.trim().length >= 20,
+    },
+    {
+      id: "submitted",
+      label: "Submitted",
+      description: "Pending review state blocks public visibility and inquiries.",
+      complete: profile.reviewStatus !== "draft" && profile.reviewStatus !== "changes_requested",
+    },
+  ] as const;
+
+  const completed = stepSeed.filter((step) => step.complete).length;
+  const firstIncomplete = stepSeed.findIndex((step) => !step.complete);
+  const steps: CompanionOnboardingStep[] = stepSeed.map((step, index) => {
+    const status: CompanionOnboardingStep["status"] = step.complete
+      ? "complete"
+      : index === firstIncomplete
+        ? "active"
+        : "pending";
+    return {
+      id: step.id,
+      label: step.label,
+      description: step.description,
+      status,
+    };
+  });
+
+  return {
+    profile,
+    steps,
+    options: companionOptions,
+    progress: {
+      completed,
+      total: stepSeed.length,
+      label: `${completed} of ${stepSeed.length} onboarding checks complete`,
+    },
+    guidance: companionSafetyGuidance,
+    requiredActions: steps.filter((step) => step.status !== "complete").map((step) => step.label),
+  };
+}
+
+function sanitizeVisibility(body: CompanionVisibilityUpdateRequest): CompanionVisibilityUpdateRequest {
+  return {
+    ...(typeof body.publicProfile === "boolean" ? { publicProfile: body.publicProfile } : {}),
+    ...(typeof body.showCity === "boolean" ? { showCity: body.showCity } : {}),
+    ...(typeof body.showAvailability === "boolean" ? { showAvailability: body.showAvailability } : {}),
+    ...(typeof body.acceptInquiries === "boolean" ? { acceptInquiries: body.acceptInquiries } : {}),
+  };
+}
+
+function uniqueExperienceTags(values: ExperienceSlug[]): ExperienceSlug[] {
+  return [...new Set(values.filter(isExperienceSlug))];
 }
 
 function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName: string): TravellerInquiryDetail {
@@ -257,6 +582,18 @@ function isCitySlug(value: unknown): value is CitySlug {
 
 function isExperienceSlug(value: unknown): value is ExperienceSlug {
   return typeof value === "string" && experienceSlugs.includes(value as ExperienceSlug);
+}
+
+function isAvailabilityWindow(value: unknown): value is AvailabilityWindow {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const item = value as AvailabilityWindow;
+  return (
+    typeof item.id === "string" &&
+    isCitySlug(item.city) &&
+    typeof item.label === "string" &&
+    (item.status === "available" || item.status === "tentative" || item.status === "hidden") &&
+    typeof item.note === "string"
+  );
 }
 
 export default {

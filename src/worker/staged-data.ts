@@ -1,5 +1,8 @@
 import type {
   CitySummary,
+  CompanionDraftProfile,
+  CompanionInquirySummary,
+  CompanionOptionSet,
   CompanionPreview,
   CompanionProfile,
   DiscoveryFilterModel,
@@ -362,6 +365,116 @@ export const travellerInquiries: TravellerInquiryDetail[] = [
       note: "Live payment creation remains blocked until provider supportability is approved.",
     },
     privacyNote: "Inquiry details stay private and are not shown on public profile surfaces.",
+  },
+];
+
+export const companionDraftProfile: CompanionDraftProfile = {
+  id: "cmp-draft-maya",
+  displayName: "Maya",
+  legalName: "Maya S.",
+  city: "bangkok",
+  experienceTags: ["nightlife", "private-dining"],
+  bio: "Bangkok-based companion focused on composed evenings, private dining, and calm local planning.",
+  profileTone: "Warm, composed, hospitality-minded, and clear about boundaries.",
+  privateReviewNote: "Prefers reviewed evening plans, hotel-aware logistics, and no public-pressure presentation.",
+  verificationReferences: ["Government ID pending secure review", "Profile media pending review"],
+  visibilitySettings: {
+    publicProfile: false,
+    showCity: true,
+    showAvailability: false,
+    acceptInquiries: false,
+  },
+  availabilityWindows: [
+    {
+      id: "av-draft-maya-1",
+      city: "bangkok",
+      label: "Evening review window",
+      status: "tentative",
+      note: "Visible only to review until verification clears.",
+    },
+    {
+      id: "av-draft-maya-2",
+      city: "bangkok",
+      label: "Private dining context",
+      status: "hidden",
+      note: "Hidden from discovery until public visibility is approved.",
+    },
+  ],
+  reviewStatus: "draft",
+  reviewNote: "Complete profile basics, visibility settings, and verification acknowledgements before review.",
+  updatedAt: "2026-05-13T10:10:00.000Z",
+};
+
+export const companionOptions: CompanionOptionSet = {
+  cities: cities.map((city) => ({
+    value: city.slug,
+    label: city.name,
+    description: city.tone,
+  })),
+  experiences: [
+    { value: "nightlife", label: "Nightlife", description: "Private after-dark planning without pressure cues." },
+    { value: "island-explorer", label: "Island explorer", description: "Beach clubs, coves, resorts, and calmer routes." },
+    { value: "muay-thai-night", label: "Muay Thai night", description: "Fight-night context with respectful pacing." },
+    { value: "private-dining", label: "Private dining", description: "Composed dinner and resort-area plans." },
+    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and route context." },
+  ],
+};
+
+export const companionReviewStates = [
+  {
+    status: "draft",
+    label: "Draft",
+    description: "Profile details are private and editable before submission.",
+    action: "Complete basics, visibility, availability, and verification acknowledgements.",
+  },
+  {
+    status: "pending_verification",
+    label: "Pending verification",
+    description: "Public visibility and inquiries stay paused while review is active.",
+    action: "Wait for review or respond if the team asks for more detail.",
+  },
+  {
+    status: "changes_requested",
+    label: "Changes requested",
+    description: "Specific public fields or private review fields need revision.",
+    action: "Edit only the requested sections and resubmit for review.",
+  },
+  {
+    status: "approved",
+    label: "Approved",
+    description: "The reviewed profile can appear through visibility-controlled discovery.",
+    action: "Keep availability current and pause inquiries whenever needed.",
+  },
+  {
+    status: "rejected",
+    label: "Not approved",
+    description: "The profile remains hidden and cannot receive traveller inquiries.",
+    action: "Review the safety guidance and contact support before resubmission.",
+  },
+] as const;
+
+export const companionInquiries: CompanionInquirySummary[] = [
+  {
+    id: "cinq-staged-001",
+    travellerLabel: "Reviewed traveller inquiry",
+    city: "bangkok",
+    experience: "private-dining",
+    status: "under_review",
+    preferredWindow: "Evening review window",
+    receivedAt: "2026-05-13T11:00:00.000Z",
+    nextStep: "Tirak review checks safety, fit, and allowed routing before sharing direct details.",
+    privacyNote: "Traveller identity and contact details stay private until review clears.",
+  },
+  {
+    id: "cinq-staged-002",
+    travellerLabel: "Planning inquiry",
+    city: "phuket",
+    experience: "island-explorer",
+    status: "payment_review",
+    preferredWindow: "Resort-area evening",
+    receivedAt: "2026-05-12T15:20:00.000Z",
+    nextStep: "Payment remains disabled while provider supportability is checked.",
+    privacyNote: "No off-platform payment or pressure cue is shown to the companion.",
   },
 ];
 

@@ -1,20 +1,26 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuth } from "../api/AuthContext";
+import type { UserRole } from "../../shared/contracts";
 
 export function AuthStart() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login, isLoading, error } = useAuth();
+  const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const intendedRole: Extract<UserRole, "traveller" | "companion"> =
+    searchParams.get("role") === "companion" || fromPath?.startsWith("/companion") ? "companion" : "traveller";
 
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
       try {
         await login(email);
-        navigate("/auth/verify", { state: { email } });
+        navigate("/auth/verify", { state: { email, role: intendedRole, from: fromPath } });
       } catch (err) {
         // Handle error if needed (T034)
       }
@@ -26,7 +32,7 @@ export function AuthStart() {
       <div className="auth-panel">
         <div className="auth-heading">
           <h1>Welcome to Tirak</h1>
-          <p>Enter your email to sign in or create an account.</p>
+          <p>Enter your email to continue as a {intendedRole}.</p>
         </div>
 
         <form onSubmit={handleContinue} className="auth-form">

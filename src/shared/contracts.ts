@@ -215,6 +215,144 @@ export type TravellerInquiryCreateResponse = {
   inquiry: TravellerInquiryDetail;
 };
 
+export type CompanionReviewStatus =
+  | "draft"
+  | "pending_verification"
+  | "changes_requested"
+  | "approved"
+  | "rejected";
+
+export type CompanionOnboardingStepId =
+  | "welcome"
+  | "basics"
+  | "bio"
+  | "city_experience"
+  | "visibility"
+  | "verification"
+  | "submitted";
+
+export type CompanionOnboardingStep = {
+  id: CompanionOnboardingStepId;
+  label: string;
+  description: string;
+  status: "complete" | "active" | "pending";
+};
+
+export type CompanionVisibilitySettings = {
+  publicProfile: boolean;
+  showCity: boolean;
+  showAvailability: boolean;
+  acceptInquiries: boolean;
+};
+
+export type CompanionDraftProfile = {
+  id: string;
+  displayName: string;
+  legalName: string;
+  city: CitySlug;
+  experienceTags: ExperienceSlug[];
+  bio: string;
+  profileTone: string;
+  privateReviewNote: string;
+  verificationReferences: string[];
+  visibilitySettings: CompanionVisibilitySettings;
+  availabilityWindows: AvailabilityWindow[];
+  reviewStatus: CompanionReviewStatus;
+  reviewNote: string;
+  updatedAt: string;
+};
+
+export type CompanionOptionSet = {
+  cities: DiscoveryFilterOption<CitySlug>[];
+  experiences: DiscoveryFilterOption<ExperienceSlug>[];
+};
+
+export type CompanionOnboardingState = {
+  profile: CompanionDraftProfile;
+  steps: CompanionOnboardingStep[];
+  options: CompanionOptionSet;
+  progress: {
+    completed: number;
+    total: number;
+    label: string;
+  };
+  guidance: string[];
+  requiredActions: string[];
+};
+
+export type CompanionProfileUpdateRequest = Partial<{
+  displayName: string;
+  legalName: string;
+  city: CitySlug;
+  experienceTags: ExperienceSlug[];
+  bio: string;
+  profileTone: string;
+  privateReviewNote: string;
+  verificationReferences: string[];
+}>;
+
+export type CompanionProfileUpdateResponse = {
+  profile: CompanionDraftProfile;
+  onboarding: CompanionOnboardingState;
+};
+
+export type CompanionVisibilityUpdateRequest = Partial<CompanionVisibilitySettings>;
+
+export type CompanionAvailabilityUpdateRequest = {
+  availabilityWindows: AvailabilityWindow[];
+};
+
+export type CompanionVerificationSubmitRequest = {
+  identityAcknowledged: boolean;
+  visibilityAcknowledged: boolean;
+  safetyAcknowledged: boolean;
+};
+
+export type CompanionVerificationSubmitResponse = {
+  profile: CompanionDraftProfile;
+  submittedAt: string;
+  nextStep: string;
+};
+
+export type CompanionReviewStateCard = {
+  status: CompanionReviewStatus;
+  label: string;
+  description: string;
+  action: string;
+};
+
+export type CompanionDashboardResponse = {
+  profile: CompanionDraftProfile;
+  progress: CompanionOnboardingState["progress"];
+  reviewStates: CompanionReviewStateCard[];
+  panels: {
+    title: string;
+    description: string;
+    href: string;
+  }[];
+  safetyGuidance: string[];
+};
+
+export type CompanionInquirySummary = {
+  id: string;
+  travellerLabel: string;
+  city: CitySlug;
+  experience: ExperienceSlug;
+  status: InquiryStatus;
+  preferredWindow: string;
+  receivedAt: string;
+  nextStep: string;
+  privacyNote: string;
+};
+
+export type CompanionInquiryListResponse = {
+  results: CompanionInquirySummary[];
+  emptyState: {
+    title: string;
+    description: string;
+  };
+};
+
 export type PaymentProviderSummary = {
   id:
     | "stripe"

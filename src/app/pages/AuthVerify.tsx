@@ -3,12 +3,16 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Icons } from "../components/navigation/Icons";
 import { useAuth } from "../api/AuthContext";
+import type { UserRole } from "../../shared/contracts";
 
 export function AuthVerify() {
   const location = useLocation();
   const navigate = useNavigate();
   const { verify, isLoading, error } = useAuth();
   const email = location.state?.email || "your email";
+  const role: Extract<UserRole, "traveller" | "companion"> =
+    location.state?.role === "companion" ? "companion" : "traveller";
+  const fromPath = typeof location.state?.from === "string" ? location.state.from : undefined;
   
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -56,10 +60,8 @@ export function AuthVerify() {
     const fullCode = code.join("");
     if (fullCode.length === 6) {
       try {
-        await verify(email, fullCode);
-        // On success, redirect to destination
-        // For prototype, assuming traveller
-        navigate("/traveller");
+        await verify(email, fullCode, role);
+        navigate(fromPath || (role === "companion" ? "/companion" : "/traveller"));
       } catch (err) {
         // T034: Auth error state will be shown
         setCode(["", "", "", "", "", ""]);
@@ -92,7 +94,7 @@ export function AuthVerify() {
         <div className="auth-heading auth-heading-left">
           <h1>Check your email</h1>
           <p>
-            We sent a 6-digit verification code to <strong>{email}</strong>.
+            We sent a 6-digit verification code to <strong>{email}</strong> for the {role} path.
           </p>
         </div>
 

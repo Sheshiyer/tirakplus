@@ -1142,6 +1142,300 @@ p {
   padding: 22px;
 }
 
+.companion-page {
+  width: min(100% - 40px, 1240px);
+  margin: 0 auto;
+  padding: clamp(44px, 7vw, 88px) 0 112px;
+}
+
+.companion-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: end;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--color-veil-border);
+}
+
+.companion-hero h1 {
+  max-width: 780px;
+  margin-bottom: 18px;
+  font-size: var(--text-section-size);
+}
+
+.companion-hero p:not(.eyebrow),
+.companion-progress-panel p,
+.review-state-card p,
+.companion-action-card p,
+.companion-form-section p,
+.companion-step p,
+.safe-preview-panel p,
+.companion-inquiry-card p,
+.availability-hidden-note p,
+.companion-safety-card p {
+  color: var(--color-soft-slate);
+}
+
+.companion-progress-panel,
+.review-state-card,
+.companion-action-card,
+.companion-step-panel,
+.companion-form,
+.safe-preview-panel,
+.availability-form,
+.companion-inquiry-card,
+.companion-safety-card {
+  background: var(--color-pearl-surface);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 24px;
+}
+
+.companion-progress-panel,
+.review-state-card,
+.companion-action-card,
+.companion-form,
+.safe-preview-panel,
+.availability-form,
+.companion-inquiry-card,
+.companion-safety-card {
+  padding: 24px;
+}
+
+.companion-progress-panel h2,
+.review-state-card h2,
+.companion-action-card h2,
+.companion-form-section h2,
+.availability-toolbar h2,
+.availability-hidden-note h2,
+.companion-inquiry-card h2,
+.companion-safety-card h2 {
+  margin-bottom: 10px;
+  font-size: var(--text-screen-title-size);
+}
+
+.progress-label,
+.review-action,
+.companion-status-message {
+  margin-bottom: 0;
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: 600;
+}
+
+.companion-action-grid,
+.review-state-grid,
+.companion-safety-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.companion-action-card {
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.companion-section {
+  margin-top: 32px;
+}
+
+.companion-section-heading {
+  margin-bottom: 18px;
+}
+
+.review-state-card-pending_verification {
+  border-color: rgba(185, 111, 125, 0.38);
+}
+
+.review-state-card-changes_requested,
+.review-state-card-rejected {
+  border-color: rgba(126, 66, 87, 0.34);
+}
+
+.review-state-card-approved {
+  border-color: rgba(101, 122, 102, 0.42);
+}
+
+.companion-safety-band {
+  margin-top: 32px;
+  padding: clamp(28px, 5vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(280px, 1fr);
+  gap: 28px;
+  align-items: start;
+  background: var(--color-night-plum);
+  color: var(--color-pearl-surface);
+  border-radius: 24px;
+}
+
+.companion-safety-band h2,
+.companion-safety-band .eyebrow {
+  color: var(--color-pearl-surface);
+}
+
+.companion-safety-band ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.companion-safety-band li {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.companion-workflow-grid,
+.companion-editor-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.35fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.companion-editor-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+}
+
+.companion-step-panel {
+  position: sticky;
+  top: 104px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.companion-step {
+  padding: 16px;
+  background: var(--color-porcelain-canvas);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 16px;
+}
+
+.companion-step h3 {
+  margin-bottom: 6px;
+}
+
+.companion-step-active {
+  border-color: rgba(185, 111, 125, 0.45);
+}
+
+.companion-step-complete {
+  border-color: rgba(101, 122, 102, 0.38);
+}
+
+.companion-form,
+.availability-form {
+  display: grid;
+  gap: 24px;
+}
+
+.companion-form-section {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-veil-border);
+}
+
+.companion-form-section:last-of-type {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.form-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.safe-preview-panel {
+  position: sticky;
+  top: 104px;
+  display: grid;
+  gap: 18px;
+}
+
+.preview-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-meta-grid span {
+  padding: 6px 9px;
+  color: var(--color-charcoal-ink);
+  background: var(--color-porcelain-canvas);
+  border-radius: 999px;
+  font-size: var(--text-caption-size);
+  text-transform: capitalize;
+}
+
+.account-mini-panel {
+  padding-top: 18px;
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--color-veil-border);
+}
+
+.availability-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 18px;
+}
+
+.availability-editor-list,
+.companion-inquiry-list {
+  display: grid;
+  gap: 18px;
+}
+
+.availability-editor-card {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  background: var(--color-porcelain-canvas);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 18px;
+}
+
+.availability-editor-card-available {
+  border-color: rgba(101, 122, 102, 0.42);
+}
+
+.availability-editor-card-tentative {
+  border-color: rgba(177, 107, 69, 0.38);
+}
+
+.availability-editor-card-hidden {
+  border-style: dashed;
+}
+
+.availability-hidden-note {
+  padding: 20px;
+  background: rgba(38, 35, 42, 0.05);
+  border-radius: 18px;
+}
+
+.companion-inquiry-card {
+  display: grid;
+  gap: 18px;
+}
+
+.companion-safety-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .route-loading {
   min-height: 100dvh;
   display: grid;
@@ -1619,7 +1913,16 @@ p {
   .profile-detail-grid,
   .profile-safety-panel,
   .inquiry-timeline,
-  .inquiry-summary-card {
+  .inquiry-summary-card,
+  .companion-hero,
+  .companion-action-grid,
+  .review-state-grid,
+  .companion-safety-band,
+  .companion-workflow-grid,
+  .companion-editor-grid,
+  .form-two-column,
+  .choice-grid,
+  .companion-safety-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1662,7 +1965,8 @@ p {
   .placeholder-page,
   .traveller-discovery-page,
   .profile-page,
-  .inquiry-page {
+  .inquiry-page,
+  .companion-page {
     width: min(100% - 32px, 520px);
   }
 
@@ -1670,11 +1974,17 @@ p {
     position: static;
   }
 
+  .companion-step-panel,
+  .safe-preview-panel {
+    position: static;
+  }
+
   .discovery-results-grid {
     grid-template-columns: 1fr;
   }
 
-  .traveller-flow-footer {
+  .traveller-flow-footer,
+  .availability-toolbar {
     align-items: stretch;
     flex-direction: column;
   }
