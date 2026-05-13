@@ -1,4 +1,13 @@
-import type { CitySummary, CompanionPreview, ExperienceSummary, HomeEntryPath, SafetyContent } from "../shared/contracts";
+import type {
+  CitySummary,
+  CompanionPreview,
+  CompanionProfile,
+  DiscoveryFilterModel,
+  ExperienceSummary,
+  HomeEntryPath,
+  SafetyContent,
+  TravellerInquiryDetail,
+} from "../shared/contracts";
 
 export const cities: CitySummary[] = [
   {
@@ -86,15 +95,56 @@ export const experiences: ExperienceSummary[] = [
   },
 ];
 
-export const companions: CompanionPreview[] = [
+export const companionProfiles: CompanionProfile[] = [
   {
     id: "cmp-aura",
     displayName: "Aura",
     city: "bangkok",
     experienceTags: ["nightlife", "muay-thai-night"],
     verificationState: "approved",
+    availabilityStatus: "available",
     availabilitySummary: "Available for reviewed evening inquiries this week.",
     profileTone: "Confident, locally fluent, and hospitality-minded.",
+    visibilityState: "public",
+    bio: "Aura is a Bangkok-based companion with a polished hospitality background and calm familiarity with fight nights, rooftops, private bars, and late dinner pacing.",
+    verification: {
+      label: "Reviewed and visible",
+      reviewNote: "Identity, profile tone, and public visibility have cleared staged review.",
+    },
+    availabilityWindows: [
+      {
+        id: "av-aura-1",
+        city: "bangkok",
+        label: "Evening planning window",
+        status: "available",
+        note: "Best fit for reviewed nightlife or Muay Thai night inquiries.",
+      },
+      {
+        id: "av-aura-2",
+        city: "bangkok",
+        label: "Late dinner context",
+        status: "tentative",
+        note: "Requires human review before any routing decision.",
+      },
+    ],
+    experienceFit: [
+      {
+        slug: "nightlife",
+        title: "Bangkok nightlife",
+        fitNote: "Composed routes through lounges, rooftops, and after-dark plans without public pressure cues.",
+      },
+      {
+        slug: "muay-thai-night",
+        title: "Muay Thai night",
+        fitNote: "Fight-night context with respectful local pacing and clear transport boundaries.",
+      },
+    ],
+    safetyNote: "Inquiry review must complete before any routing, payment, or introduction step.",
+    inquiryGuidance: [
+      "Use specific city and experience context.",
+      "Keep the message respectful and practical.",
+      "Payment remains disabled until provider supportability is approved.",
+    ],
   },
   {
     id: "cmp-mali",
@@ -102,8 +152,49 @@ export const companions: CompanionPreview[] = [
     city: "phuket",
     experienceTags: ["island-explorer", "private-dining"],
     verificationState: "approved",
+    availabilityStatus: "available",
     availabilitySummary: "Open for resort-area plans after review.",
     profileTone: "Calm, polished, and island-aware.",
+    visibilityState: "public",
+    bio: "Mali is oriented around quieter island planning, resort-aware logistics, private dining, and daytime-to-evening Phuket routes.",
+    verification: {
+      label: "Reviewed and visible",
+      reviewNote: "Profile and public discovery fields have cleared staged review.",
+    },
+    availabilityWindows: [
+      {
+        id: "av-mali-1",
+        city: "phuket",
+        label: "Resort-area evening",
+        status: "available",
+        note: "Best fit for private dining and quieter nightlife context.",
+      },
+      {
+        id: "av-mali-2",
+        city: "phuket",
+        label: "Island day planning",
+        status: "tentative",
+        note: "Route details require review before confirmation.",
+      },
+    ],
+    experienceFit: [
+      {
+        slug: "island-explorer",
+        title: "Island explorer",
+        fitNote: "Beach clubs, coves, and logistics framed as composed itinerary support.",
+      },
+      {
+        slug: "private-dining",
+        title: "Private dining",
+        fitNote: "Dinner plans with hotel-aware timing, boundaries, and privacy context.",
+      },
+    ],
+    safetyNote: "Availability is planning context only and must not be treated as instant booking.",
+    inquiryGuidance: [
+      "Mention resort area and preferred timing.",
+      "Avoid explicit or objectifying requests.",
+      "Expect human review before any next step.",
+    ],
   },
   {
     id: "cmp-nara",
@@ -111,8 +202,166 @@ export const companions: CompanionPreview[] = [
     city: "koh-samui",
     experienceTags: ["private-dining", "local-guidance"],
     verificationState: "pending_verification",
+    availabilityStatus: "hidden",
     availabilitySummary: "Profile is not public until verification completes.",
     profileTone: "Pending review.",
+    visibilityState: "restricted",
+    bio: "This profile is still in review and is not available for traveller inquiry.",
+    verification: {
+      label: "Pending verification",
+      reviewNote: "Public profile details remain restricted until review completes.",
+    },
+    availabilityWindows: [
+      {
+        id: "av-nara-1",
+        city: "koh-samui",
+        label: "Hidden until review",
+        status: "hidden",
+        note: "Availability is not visible during verification.",
+      },
+    ],
+    experienceFit: [
+      {
+        slug: "private-dining",
+        title: "Private dining",
+        fitNote: "Fit notes remain hidden until verification completes.",
+      },
+    ],
+    safetyNote: "This profile cannot receive inquiries until verification clears.",
+    inquiryGuidance: [
+      "Return to discovery for currently visible profiles.",
+    ],
+  },
+  {
+    id: "cmp-sora",
+    displayName: "Sora",
+    city: "koh-phangan",
+    experienceTags: ["nightlife", "local-guidance"],
+    verificationState: "approved",
+    availabilityStatus: "planning_only",
+    availabilitySummary: "Planning-only inquiries for island nightlife context.",
+    profileTone: "Grounded, practical, and locally fluent.",
+    visibilityState: "public",
+    bio: "Sora supports calmer Koh Phangan nightlife and local-guidance planning with emphasis on transport, boundaries, and pace.",
+    verification: {
+      label: "Reviewed and visible",
+      reviewNote: "Profile is visible for planning-only inquiries in staged discovery.",
+    },
+    availabilityWindows: [
+      {
+        id: "av-sora-1",
+        city: "koh-phangan",
+        label: "Planning-only window",
+        status: "tentative",
+        note: "Human review is required before any next action.",
+      },
+    ],
+    experienceFit: [
+      {
+        slug: "nightlife",
+        title: "Koh Phangan night energy",
+        fitNote: "After-dark planning with clear transport, privacy, and safety context.",
+      },
+      {
+        slug: "local-guidance",
+        title: "Local guidance",
+        fitNote: "Island rhythm and quieter route planning without party-flyer energy.",
+      },
+    ],
+    safetyNote: "Planning-only status prevents instant booking or fake urgency mechanics.",
+    inquiryGuidance: [
+      "Describe the intended route and group context.",
+      "Keep the inquiry practical and respectful.",
+      "Await review before any routing decision.",
+    ],
+  },
+];
+
+export const companions: CompanionPreview[] = companionProfiles.map(
+  ({
+    id,
+    displayName,
+    city,
+    experienceTags,
+    verificationState,
+    availabilityStatus,
+    availabilitySummary,
+    profileTone,
+  }) => ({
+    id,
+    displayName,
+    city,
+    experienceTags,
+    verificationState,
+    availabilityStatus,
+    availabilitySummary,
+    profileTone,
+  }),
+);
+
+export const discoveryFilterOptions: DiscoveryFilterModel = {
+  cities: [
+    { value: "all", label: "All cities", description: "Bangkok, Phuket, Koh Samui, and Koh Phangan." },
+    ...cities.map((city) => ({
+      value: city.slug,
+      label: city.name,
+      description: city.tone,
+    })),
+  ],
+  experiences: [
+    { value: "all", label: "All experiences", description: "Nightlife, island routes, fight nights, dining, and guidance." },
+    { value: "nightlife", label: "Nightlife", description: "Private after-dark planning without pressure cues." },
+    { value: "island-explorer", label: "Island explorer", description: "Beach clubs, coves, resorts, and calmer routes." },
+    { value: "muay-thai-night", label: "Muay Thai night", description: "Fight-night context with respectful pacing." },
+    { value: "private-dining", label: "Private dining", description: "Composed dinner and resort-area plans." },
+    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and route context." },
+  ],
+  availability: [
+    { value: "any", label: "Any reviewed status", description: "Show visible planning contexts." },
+    { value: "available", label: "Reviewed availability", description: "Profiles open for reviewed inquiries." },
+    { value: "planning_only", label: "Planning only", description: "Profiles that require extra review before routing." },
+  ],
+  verified: [
+    { value: "approved", label: "Reviewed only", description: "Only profiles cleared for public discovery." },
+    { value: "all", label: "Include review states", description: "Includes restricted examples for unavailable-state testing." },
+  ],
+};
+
+export const travellerInquiries: TravellerInquiryDetail[] = [
+  {
+    id: "inq-staged-aura",
+    companionId: "cmp-aura",
+    companionDisplayName: "Aura",
+    city: "bangkok",
+    experience: "muay-thai-night",
+    status: "under_review",
+    createdAt: "2026-05-13T09:30:00.000Z",
+    updatedAt: "2026-05-13T09:35:00.000Z",
+    nextStep: "Human review is checking fit, safety, and provider supportability before routing.",
+    message: "A composed Muay Thai night with dinner context and clear transport boundaries.",
+    timeline: [
+      {
+        label: "Inquiry received",
+        status: "complete",
+        note: "Traveller context and requested experience were captured.",
+      },
+      {
+        label: "Private review",
+        status: "active",
+        note: "Tirak review checks safety, fit, and next allowed action.",
+      },
+      {
+        label: "Routing decision",
+        status: "pending",
+        note: "No payment or introduction is available before review clears.",
+      },
+    ],
+    paymentState: {
+      status: "disabled_for_compliance",
+      provider: "stripe",
+      note: "Live payment creation remains blocked until provider supportability is approved.",
+    },
+    privacyNote: "Inquiry details stay private and are not shown on public profile surfaces.",
   },
 ];
 

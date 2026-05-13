@@ -10,6 +10,11 @@ import { ExperiencePage } from "./pages/ExperiencePage";
 import { AuthStart } from "./pages/AuthStart";
 import { AuthVerify } from "./pages/AuthVerify";
 import { AccountSettings } from "./pages/AccountSettings";
+import { TravellerDiscovery } from "./pages/TravellerDiscovery";
+import { CompanionProfilePage } from "./pages/CompanionProfilePage";
+import { InquiryCreatePage } from "./pages/InquiryCreatePage";
+import { TravellerInquiriesPage } from "./pages/TravellerInquiriesPage";
+import { TravellerInquiryDetailPage } from "./pages/TravellerInquiryDetailPage";
 import { AuthProvider } from "./api/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import "./styles.css";
@@ -53,8 +58,12 @@ const router = createBrowserRouter([
         element: <TravellerShell />,
         children: [
           { index: true, element: <Navigate to="discovery" replace /> },
-          { path: "discovery", element: <PlaceholderPage title="Traveller discovery" description="Verified companion browsing will use the traveller discovery endpoint and controlled filters." /> },
-          { path: "inbox", element: <PlaceholderPage title="Traveller inbox" description="Inquiry messages will stay private, reviewed, and separated from public profile browsing." /> },
+          { path: "discovery", element: <TravellerDiscovery /> },
+          { path: "companions/:companionId", element: <CompanionProfilePage /> },
+          { path: "companions/:companionId/inquire", element: <InquiryCreatePage /> },
+          { path: "inbox", element: <TravellerInquiriesPage /> },
+          { path: "inbox/:inquiryId", element: <TravellerInquiryDetailPage /> },
+          { path: "inquiries/:inquiryId", element: <TravellerInquiryDetailPage /> },
           { path: "plans", element: <PlaceholderPage title="Traveller plans" description="Planning surfaces will connect city context, experience intent, and inquiry status." /> },
           { path: "account", element: <AccountSettings /> },
         ]

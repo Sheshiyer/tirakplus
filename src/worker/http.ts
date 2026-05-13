@@ -12,12 +12,18 @@ export function json<T>(data: T, init: ResponseInit = {}): Response {
   );
 }
 
-export function apiError(status: number, code: string, message: string): Response {
+export function apiError(
+  status: number,
+  code: string,
+  message: string,
+  fieldErrors?: Record<string, string>,
+): Response {
   return Response.json(
     {
       status,
       code,
       message,
+      ...(fieldErrors ? { fieldErrors } : {}),
       requestId: crypto.randomUUID(),
     },
     { status },

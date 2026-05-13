@@ -872,6 +872,276 @@ p {
   padding: clamp(52px, 9vw, 104px) 0 112px;
 }
 
+.traveller-discovery-page,
+.profile-page,
+.inquiry-page {
+  width: min(100% - 40px, 1240px);
+  margin: 0 auto;
+  padding: clamp(44px, 7vw, 88px) 0 112px;
+}
+
+.traveller-discovery-heading,
+.inquiry-heading {
+  max-width: 760px;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.traveller-discovery-heading h1,
+.profile-hero h1,
+.inquiry-heading h1,
+.inquiry-success-panel h1 {
+  max-width: none;
+  margin-bottom: 0;
+  font-size: var(--text-section-size);
+}
+
+.traveller-discovery-heading p:not(.eyebrow),
+.inquiry-heading p,
+.profile-bio,
+.profile-detail-panel p,
+.profile-verification-panel p,
+.profile-safety-panel li,
+.inquiry-success-panel p,
+.inquiry-summary-card p,
+.inquiry-detail-message p,
+.payment-state-panel p {
+  color: var(--color-soft-slate);
+}
+
+.discovery-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.filter-panel {
+  position: sticky;
+  top: 104px;
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  background: var(--color-pearl-surface);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 24px;
+}
+
+.skeleton-filter-panel {
+  min-height: 420px;
+  background: linear-gradient(90deg, rgba(38, 35, 42, 0.06), rgba(38, 35, 42, 0.12), rgba(38, 35, 42, 0.06));
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.filter-guidance {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-veil-border);
+}
+
+.filter-guidance p {
+  margin-bottom: 0;
+  color: var(--color-soft-slate);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.discovery-results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.discovery-card-link {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.discovery-card-link:focus-visible {
+  outline: 3px solid rgba(185, 111, 125, 0.35);
+  outline-offset: 4px;
+  border-radius: 24px;
+}
+
+.traveller-flow-footer {
+  margin-top: 32px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--color-pearl-surface);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 24px;
+}
+
+.traveller-flow-footer p {
+  margin-bottom: 0;
+  color: var(--color-soft-slate);
+}
+
+.profile-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.44fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: end;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--color-veil-border);
+}
+
+.profile-bio {
+  max-width: 760px;
+  margin-top: 18px;
+}
+
+.profile-verification-panel,
+.profile-detail-panel,
+.profile-safety-panel,
+.inquiry-success-panel,
+.inquiry-form,
+.inquiry-summary-card,
+.payment-state-panel,
+.inquiry-detail-message {
+  background: var(--color-pearl-surface);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 24px;
+}
+
+.profile-verification-panel {
+  padding: 28px;
+}
+
+.profile-verification-panel h2,
+.profile-detail-panel h2,
+.profile-safety-panel h2,
+.inquiry-summary-card h2,
+.inquiry-detail-message h2,
+.payment-state-panel h2 {
+  margin-bottom: 10px;
+  font-size: var(--text-screen-title-size);
+}
+
+.profile-detail-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.profile-detail-panel {
+  padding: 28px;
+}
+
+.availability-list,
+.experience-fit-list,
+.inquiry-card-list {
+  display: grid;
+  gap: 16px;
+}
+
+.availability-item,
+.experience-fit-item,
+.timeline-item {
+  padding: 18px;
+  background: var(--color-porcelain-canvas);
+  border: 1px solid var(--color-veil-border);
+  border-radius: 18px;
+}
+
+.availability-item-available {
+  border-color: rgba(101, 122, 102, 0.38);
+}
+
+.availability-item-tentative {
+  border-color: rgba(177, 107, 69, 0.38);
+}
+
+.profile-safety-panel {
+  margin-top: 24px;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1fr);
+  gap: 28px;
+  align-items: start;
+  background: var(--color-night-plum);
+  color: var(--color-pearl-surface);
+}
+
+.profile-safety-panel h2,
+.profile-safety-panel .eyebrow {
+  color: var(--color-pearl-surface);
+}
+
+.profile-safety-panel ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.inquiry-page {
+  width: min(100% - 40px, 860px);
+}
+
+.inquiry-form,
+.inquiry-success-panel {
+  padding: 28px;
+  display: grid;
+  gap: 22px;
+}
+
+.inquiry-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.timeline-item-active {
+  border-color: rgba(185, 111, 125, 0.45);
+}
+
+.timeline-item-complete {
+  border-color: rgba(101, 122, 102, 0.38);
+}
+
+.privacy-note {
+  padding-top: 18px;
+  border-top: 1px solid var(--color-veil-border);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.inquiry-summary-card {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.inquiry-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inquiry-summary-meta span {
+  padding: 5px 8px;
+  color: var(--color-charcoal-ink);
+  background: var(--color-porcelain-canvas);
+  border-radius: 999px;
+  font-size: var(--text-caption-size);
+  text-transform: capitalize;
+}
+
+.inquiry-detail-message,
+.payment-state-panel {
+  padding: 22px;
+}
+
 .route-loading {
   min-height: 100dvh;
   display: grid;
@@ -1343,7 +1613,13 @@ p {
   .split,
   .profile-grid,
   .provider-grid,
-  .city-section {
+  .city-section,
+  .discovery-layout,
+  .profile-hero,
+  .profile-detail-grid,
+  .profile-safety-panel,
+  .inquiry-timeline,
+  .inquiry-summary-card {
     grid-template-columns: 1fr;
   }
 
@@ -1383,7 +1659,23 @@ p {
 
   .auth-page,
   .account-page,
-  .placeholder-page {
+  .placeholder-page,
+  .traveller-discovery-page,
+  .profile-page,
+  .inquiry-page {
     width: min(100% - 32px, 520px);
+  }
+
+  .filter-panel {
+    position: static;
+  }
+
+  .discovery-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .traveller-flow-footer {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

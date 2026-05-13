@@ -94,8 +94,125 @@ export type CompanionPreview = {
   city: CitySlug;
   experienceTags: ExperienceSlug[];
   verificationState: "approved" | "pending_verification" | "changes_requested";
+  availabilityStatus: "available" | "planning_only" | "hidden";
   availabilitySummary: string;
   profileTone: string;
+};
+
+export type DiscoveryFilterSelection = {
+  city: CitySlug | "all";
+  experience: ExperienceSlug | "all";
+  availability: "any" | "available" | "planning_only";
+  verified: "approved" | "all";
+};
+
+export type DiscoveryFilterOption<TValue extends string> = {
+  value: TValue;
+  label: string;
+  description?: string;
+};
+
+export type DiscoveryFilterModel = {
+  cities: DiscoveryFilterOption<CitySlug | "all">[];
+  experiences: DiscoveryFilterOption<ExperienceSlug | "all">[];
+  availability: DiscoveryFilterOption<DiscoveryFilterSelection["availability"]>[];
+  verified: DiscoveryFilterOption<DiscoveryFilterSelection["verified"]>[];
+};
+
+export type DiscoveryResponse = {
+  filters: DiscoveryFilterSelection;
+  filterOptions: DiscoveryFilterModel;
+  results: CompanionPreview[];
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  guidance: string[];
+};
+
+export type AvailabilityWindow = {
+  id: string;
+  city: CitySlug;
+  label: string;
+  status: "available" | "tentative" | "hidden";
+  note: string;
+};
+
+export type ProfileExperienceFit = {
+  slug: ExperienceSlug;
+  title: string;
+  fitNote: string;
+};
+
+export type CompanionProfile = CompanionPreview & {
+  visibilityState: "public" | "restricted";
+  bio: string;
+  verification: {
+    label: string;
+    reviewNote: string;
+  };
+  availabilityWindows: AvailabilityWindow[];
+  experienceFit: ProfileExperienceFit[];
+  safetyNote: string;
+  inquiryGuidance: string[];
+};
+
+export type InquiryStatus =
+  | "draft"
+  | "submitted"
+  | "under_review"
+  | "payment_review"
+  | "routed"
+  | "accepted"
+  | "declined"
+  | "cancelled";
+
+export type TravellerInquiryRequest = {
+  companionId: string;
+  city: CitySlug;
+  experience: ExperienceSlug;
+  preferredWindow: string;
+  message: string;
+  privacyAcknowledged: boolean;
+};
+
+export type TravellerInquirySummary = {
+  id: string;
+  companionId: string;
+  companionDisplayName: string;
+  city: CitySlug;
+  experience: ExperienceSlug;
+  status: InquiryStatus;
+  createdAt: string;
+  updatedAt: string;
+  nextStep: string;
+};
+
+export type TravellerInquiryDetail = TravellerInquirySummary & {
+  message: string;
+  timeline: {
+    label: string;
+    status: "complete" | "active" | "pending";
+    note: string;
+  }[];
+  paymentState: {
+    status: "not_started" | "disabled_for_compliance" | "pending_review";
+    provider: PaymentProviderSummary["id"] | "none";
+    note: string;
+  };
+  privacyNote: string;
+};
+
+export type TravellerInquiryListResponse = {
+  results: TravellerInquirySummary[];
+  emptyState: {
+    title: string;
+    description: string;
+  };
+};
+
+export type TravellerInquiryCreateResponse = {
+  inquiry: TravellerInquiryDetail;
 };
 
 export type PaymentProviderSummary = {

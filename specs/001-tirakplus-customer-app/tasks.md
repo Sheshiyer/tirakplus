@@ -74,36 +74,36 @@
 
 ## Phase 4: Traveller discovery, profile browsing, inquiry flow
 
-- [ ] T056 [P] [US2] Customer: discovery API contract. Issue: TP-CUST-056. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T057 [P] [US2] Customer: discovery filter model. Issue: TP-CUST-057. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T058 [US2] Customer: city filter control. Issue: TP-CUST-058. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T059 [P] [US2] Customer: experience filter control. Issue: TP-CUST-059. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T060 [P] [US2] Customer: availability filter control. Issue: TP-CUST-060. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T061 [US2] Customer: verified filter control. Issue: TP-CUST-061. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T062 [P] [US2] Customer: discovery result card. Issue: TP-CUST-062. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T063 [P] [US2] Customer: discovery empty state. Issue: TP-CUST-063. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T064 [US2] Customer: discovery loading skeleton. Issue: TP-CUST-064. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T065 [P] [US2] Customer: discovery error state. Issue: TP-CUST-065. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T066 [P] [US2] Customer: profile route contract. Issue: TP-CUST-066. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T067 [US2] Customer: profile hero section. Issue: TP-CUST-067. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T068 [P] [US2] Customer: profile verification panel. Issue: TP-CUST-068. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T069 [P] [US2] Customer: profile availability panel. Issue: TP-CUST-069. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T070 [US2] Customer: profile experience fit panel. Issue: TP-CUST-070. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T071 [P] [US2] Customer: profile safety note. Issue: TP-CUST-071. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T072 [P] [US2] Customer: profile unavailable state. Issue: TP-CUST-072. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T073 [US2] Customer: profile mobile layout. Issue: TP-CUST-073. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T074 [P] [US2] Customer: profile tablet layout. Issue: TP-CUST-074. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T075 [P] [US2] Customer: profile desktop layout. Issue: TP-CUST-075. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T076 [US2] Customer: inquiry form contract. Issue: TP-CUST-076. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T077 [P] [US2] Customer: inquiry form fields. Issue: TP-CUST-077. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T078 [P] [US2] Customer: inquiry validation errors. Issue: TP-CUST-078. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T079 [US2] Customer: inquiry loading state. Issue: TP-CUST-079. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T080 [P] [US2] Customer: inquiry success state. Issue: TP-CUST-080. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T081 [P] [US3] Customer: inquiry unavailable state. Issue: TP-CUST-081. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T082 [US3] Customer: inquiry list endpoint. Issue: TP-CUST-082. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T083 [P] [US3] Customer: inquiry detail screen. Issue: TP-CUST-083. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T084 [P] [US3] Customer: traveller privacy copy. Issue: TP-CUST-084. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T085 [US3] Customer: traveller flow smoke test. Issue: TP-CUST-085. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T056 [P] [US2] Customer: discovery API contract. Issue: TP-CUST-056. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T057 [P] [US2] Customer: discovery filter model. Issue: TP-CUST-057. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T058 [US2] Customer: city filter control. Issue: TP-CUST-058. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T059 [P] [US2] Customer: experience filter control. Issue: TP-CUST-059. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T060 [P] [US2] Customer: availability filter control. Issue: TP-CUST-060. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T061 [US2] Customer: verified filter control. Issue: TP-CUST-061. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T062 [P] [US2] Customer: discovery result card. Issue: TP-CUST-062. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T063 [P] [US2] Customer: discovery empty state. Issue: TP-CUST-063. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T064 [US2] Customer: discovery loading skeleton. Issue: TP-CUST-064. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T065 [P] [US2] Customer: discovery error state. Issue: TP-CUST-065. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T066 [P] [US2] Customer: profile route contract. Issue: TP-CUST-066. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T067 [US2] Customer: profile hero section. Issue: TP-CUST-067. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T068 [P] [US2] Customer: profile verification panel. Issue: TP-CUST-068. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T069 [P] [US2] Customer: profile availability panel. Issue: TP-CUST-069. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T070 [US2] Customer: profile experience fit panel. Issue: TP-CUST-070. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T071 [P] [US2] Customer: profile safety note. Issue: TP-CUST-071. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T072 [P] [US2] Customer: profile unavailable state. Issue: TP-CUST-072. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T073 [US2] Customer: profile mobile layout. Issue: TP-CUST-073. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T074 [P] [US2] Customer: profile tablet layout. Issue: TP-CUST-074. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T075 [P] [US2] Customer: profile desktop layout. Issue: TP-CUST-075. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T076 [US2] Customer: inquiry form contract. Issue: TP-CUST-076. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T077 [P] [US2] Customer: inquiry form fields. Issue: TP-CUST-077. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T078 [P] [US2] Customer: inquiry validation errors. Issue: TP-CUST-078. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T079 [US2] Customer: inquiry loading state. Issue: TP-CUST-079. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T080 [P] [US2] Customer: inquiry success state. Issue: TP-CUST-080. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T081 [P] [US3] Customer: inquiry unavailable state. Issue: TP-CUST-081. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T082 [US3] Customer: inquiry list endpoint. Issue: TP-CUST-082. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T083 [P] [US3] Customer: inquiry detail screen. Issue: TP-CUST-083. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T084 [P] [US3] Customer: traveller privacy copy. Issue: TP-CUST-084. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T085 [US3] Customer: traveller flow smoke test. Issue: TP-CUST-085. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
 
 ## Phase 5: Companion registration, profile management, availability
 
