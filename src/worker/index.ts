@@ -1,25 +1,22 @@
-import { json, apiError } from "./http";
+import { json, apiError, createRequestId } from "./http";
 import {
-  cities,
-  companionDraftProfile,
-  companionInquiries,
-  companionOptions,
-  companionProfiles,
-  companionReviewStates,
-  companions,
-  discoveryFilterOptions,
-  entryPaths,
-  experiences,
-  safetyContent,
-  travellerInquiries,
-} from "./staged-data";
-import { routeAuth } from "./auth";
+  createStagedDataProvider,
+  isProviderAvailabilityWindow,
+  isProviderCity,
+  isProviderExperience,
+} from "./staged-provider";
+import { routeAuth, getSessionFromRequest } from "./auth";
 import { createPaymentSession, paymentProviders } from "./payment-provider";
+import { getRouteRegistry } from "./route-registry";
+import { storageBoundaryResponse } from "./storage-boundaries";
+import { dataModelSchema } from "./data-model-schema";
 import type {
+  AccountPrivacyUpdateRequest,
   AvailabilityWindow,
   CitySlug,
   CompanionAvailabilityUpdateRequest,
   CompanionDraftProfile,
+  CompanionOptionSet,
   CompanionOnboardingStep,
   CompanionOnboardingState,
   CompanionProfileUpdateRequest,
@@ -27,6 +24,7 @@ import type {
   CompanionVisibilityUpdateRequest,
   DiscoveryFilterSelection,
   ExperienceSlug,
+  SafetyReportRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
 } from "../shared/contracts";
@@ -34,37 +32,58 @@ import type {
 async function routeApi(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const { pathname, searchParams } = url;
+  const requestId = createRequestId(request);
+  const provider = createStagedDataProvider();
+  const ok = <T>(data: T, init: ResponseInit = {}) => json(data, { ...init, requestId });
+  const fail = (
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors?: Record<string, string>,
+    init: ResponseInit = {},
+  ) => apiError(status, code, message, fieldErrors, { ...init, requestId });
 
-  const authResponse = await routeAuth(request, pathname);
+  const authResponse = await routeAuth(request, pathname, requestId);
   if (authResponse) return authResponse;
 
+  if (request.method === "GET" && pathname === "/api/system/routes") {
+    return ok(getRouteRegistry());
+  }
+
+  if (request.method === "GET" && pathname === "/api/system/storage-boundaries") {
+    return ok(storageBoundaryResponse);
+  }
+
+  if (request.method === "GET" && pathname === "/api/system/data-model") {
+    return ok(dataModelSchema);
+  }
+
   if (request.method === "GET" && pathname === "/api/public/home") {
-    return json({
-      brand: {
-        name: "Tirak Plus",
-        promise: "Private Thailand companion concierge for reviewed adult travellers.",
-      },
-      cities,
-      highlights: ["Verified visibility", "Private inquiries", "Provider approval before payments"],
-      entryPaths,
-    });
+    return ok(provider.getHome());
   }
 
   if (request.method === "GET" && pathname === "/api/public/experiences") {
-    const city = searchParams.get("city");
-    const category = searchParams.get("category");
-    return json(
-      experiences.filter((item) => {
-        const cityMatches = city ? item.city === city : true;
-        const categoryMatches = category ? item.slug === category : true;
-        return cityMatches && categoryMatches;
+    return ok(
+      provider.listExperiences({
+        city: searchParams.get("city"),
+        category: searchParams.get("category"),
       }),
     );
   }
 
+  if (pathname.startsWith("/api/traveller/")) {
+    const roleError = requireCustomerRole(request, "traveller", fail);
+    if (roleError) return roleError;
+  }
+
+  if (pathname.startsWith("/api/companion/")) {
+    const roleError = requireCustomerRole(request, "companion", fail);
+    if (roleError) return roleError;
+  }
+
   if (request.method === "GET" && pathname === "/api/traveller/discovery") {
     const filters = parseDiscoveryFilters(searchParams);
-    const data = companions.filter((item) => {
+    const data = provider.listCompanionPreviews().filter((item) => {
       const cityMatches = filters.city === "all" ? true : item.city === filters.city;
       const experienceMatches = filters.experience === "all" ? true : item.experienceTags.includes(filters.experience);
       const availabilityMatches = filters.availability === "any" ? true : item.availabilityStatus === filters.availability;
@@ -72,9 +91,9 @@ async function routeApi(request: Request): Promise<Response> {
       return cityMatches && experienceMatches && availabilityMatches && verifiedMatches;
     });
 
-    return json({
+    return ok({
       filters,
-      filterOptions: discoveryFilterOptions,
+      filterOptions: provider.getDiscoveryFilterOptions(),
       results: data,
       emptyState: {
         title: "No reviewed profiles match these filters.",
@@ -90,12 +109,12 @@ async function routeApi(request: Request): Promise<Response> {
 
   const availabilityMatch = pathname.match(/^\/api\/traveller\/companions\/([^/]+)\/availability$/);
   if (request.method === "GET" && availabilityMatch) {
-    const profile = companionProfiles.find((item) => item.id === availabilityMatch[1]);
-    if (!profile) return apiError(404, "PROFILE_NOT_FOUND", "This profile is unavailable.");
+    const profile = provider.getCompanionProfile(availabilityMatch[1]);
+    if (!profile) return fail(404, "PROFILE_NOT_FOUND", "This profile is unavailable.");
     if (profile.visibilityState !== "public") {
-      return apiError(423, "PROFILE_UNAVAILABLE", "Availability is hidden while this profile is under review.");
+      return fail(423, "PROFILE_UNAVAILABLE", "Availability is hidden while this profile is under review.");
     }
-    return json({
+    return ok({
       companionId: profile.id,
       windows: profile.availabilityWindows,
       note: "Availability is planning context and must pass review before routing.",
@@ -104,29 +123,29 @@ async function routeApi(request: Request): Promise<Response> {
 
   const companionMatch = pathname.match(/^\/api\/traveller\/companions\/([^/]+)$/);
   if (request.method === "GET" && companionMatch) {
-    const profile = companionProfiles.find((item) => item.id === companionMatch[1]);
-    if (!profile) return apiError(404, "PROFILE_NOT_FOUND", "This profile is unavailable.");
+    const profile = provider.getCompanionProfile(companionMatch[1]);
+    if (!profile) return fail(404, "PROFILE_NOT_FOUND", "This profile is unavailable.");
     if (profile.visibilityState !== "public") {
-      return apiError(423, "PROFILE_UNAVAILABLE", "This profile is still under review and cannot receive inquiries.");
+      return fail(423, "PROFILE_UNAVAILABLE", "This profile is still under review and cannot receive inquiries.");
     }
-    return json(profile);
+    return ok(profile);
   }
 
   if (request.method === "POST" && pathname === "/api/traveller/inquiries") {
-    const body = await readJsonBody<TravellerInquiryRequest>(request);
+    const body = await readJsonBody<TravellerInquiryRequest>(request, requestId);
     if (body instanceof Response) return body;
 
     const fieldErrors = validateInquiry(body);
     if (Object.keys(fieldErrors).length > 0) {
-      return apiError(422, "INQUIRY_VALIDATION_FAILED", "Review the inquiry fields and try again.", fieldErrors);
+      return fail(422, "INQUIRY_VALIDATION_FAILED", "Review the inquiry fields and try again.", fieldErrors);
     }
 
-    const profile = companionProfiles.find((item) => item.id === body.companionId);
+    const profile = provider.getCompanionProfile(body.companionId);
     if (!profile || profile.visibilityState !== "public") {
-      return apiError(404, "PROFILE_NOT_FOUND", "This profile is unavailable for inquiry.");
+      return fail(404, "PROFILE_NOT_FOUND", "This profile is unavailable for inquiry.");
     }
 
-    return json(
+    return ok(
       {
         inquiry: createInquiryDetail(body, profile.displayName),
       },
@@ -135,8 +154,8 @@ async function routeApi(request: Request): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/traveller/inquiries") {
-    return json({
-      results: travellerInquiries.map(toInquirySummary),
+    return ok({
+      results: provider.listTravellerInquiries().map(toInquirySummary),
       emptyState: {
         title: "No private inquiries yet.",
         description: "Start from a reviewed profile and submit a respectful inquiry for human review.",
@@ -146,21 +165,22 @@ async function routeApi(request: Request): Promise<Response> {
 
   const inquiryMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)$/);
   if (request.method === "GET" && inquiryMatch) {
-    const inquiry = travellerInquiries.find((item) => item.id === inquiryMatch[1]);
-    if (!inquiry) return apiError(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
-    return json(inquiry);
+    const inquiry = provider.getTravellerInquiry(inquiryMatch[1]);
+    if (!inquiry) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    return ok(inquiry);
   }
 
   if (request.method === "GET" && pathname === "/api/companion/onboarding") {
-    return json(createOnboardingState(companionDraftProfile));
+    return ok(createOnboardingState(provider.getCompanionDraftProfile(), provider.getCompanionOptions()));
   }
 
   if (request.method === "GET" && pathname === "/api/companion/dashboard") {
-    const onboarding = createOnboardingState(companionDraftProfile);
-    return json({
-      profile: companionDraftProfile,
+    const profile = provider.getCompanionDraftProfile();
+    const onboarding = createOnboardingState(profile, provider.getCompanionOptions());
+    return ok({
+      profile,
       progress: onboarding.progress,
-      reviewStates: companionReviewStates,
+      reviewStates: provider.listCompanionReviewStates(),
       panels: [
         {
           title: "Profile draft",
@@ -183,8 +203,8 @@ async function routeApi(request: Request): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/companion/inquiries") {
-    return json({
-      results: companionInquiries,
+    return ok({
+      results: provider.listCompanionInquiries(),
       emptyState: {
         title: "No routed inquiries yet.",
         description: "Tirak only routes inquiries after review; no fake demand or online-now pressure is shown.",
@@ -193,74 +213,76 @@ async function routeApi(request: Request): Promise<Response> {
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {
-    const body = await readJsonBody<CompanionProfileUpdateRequest>(request);
+    const body = await readJsonBody<CompanionProfileUpdateRequest>(request, requestId);
     if (body instanceof Response) return body;
 
     const fieldErrors = validateCompanionProfileUpdate(body);
     if (Object.keys(fieldErrors).length > 0) {
-      return apiError(422, "COMPANION_PROFILE_VALIDATION_FAILED", "Review the profile fields and try again.", fieldErrors);
+      return fail(422, "COMPANION_PROFILE_VALIDATION_FAILED", "Review the profile fields and try again.", fieldErrors);
     }
 
-    const profile = mergeCompanionProfile(companionDraftProfile, body);
-    return json({
+    const profile = mergeCompanionProfile(provider.getCompanionDraftProfile(), body);
+    return ok({
       profile,
-      onboarding: createOnboardingState(profile),
+      onboarding: createOnboardingState(profile, provider.getCompanionOptions()),
     });
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/visibility") {
-    const body = await readJsonBody<CompanionVisibilityUpdateRequest>(request);
+    const body = await readJsonBody<CompanionVisibilityUpdateRequest>(request, requestId);
     if (body instanceof Response) return body;
 
+    const draftProfile = provider.getCompanionDraftProfile();
     const profile: CompanionDraftProfile = {
-      ...companionDraftProfile,
+      ...draftProfile,
       visibilitySettings: {
-        ...companionDraftProfile.visibilitySettings,
+        ...draftProfile.visibilitySettings,
         ...sanitizeVisibility(body),
       },
       updatedAt: new Date().toISOString(),
     };
 
-    return json({
+    return ok({
       profile,
-      onboarding: createOnboardingState(profile),
+      onboarding: createOnboardingState(profile, provider.getCompanionOptions()),
     });
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/availability") {
-    const body = await readJsonBody<CompanionAvailabilityUpdateRequest>(request);
+    const body = await readJsonBody<CompanionAvailabilityUpdateRequest>(request, requestId);
     if (body instanceof Response) return body;
 
     const fieldErrors = validateAvailabilityWindows(body.availabilityWindows);
     if (Object.keys(fieldErrors).length > 0) {
-      return apiError(422, "COMPANION_AVAILABILITY_VALIDATION_FAILED", "Review availability windows and try again.", fieldErrors);
+      return fail(422, "COMPANION_AVAILABILITY_VALIDATION_FAILED", "Review availability windows and try again.", fieldErrors);
     }
 
     const profile: CompanionDraftProfile = {
-      ...companionDraftProfile,
+      ...provider.getCompanionDraftProfile(),
       availabilityWindows: body.availabilityWindows,
       updatedAt: new Date().toISOString(),
     };
 
-    return json({
+    return ok({
       profile,
-      onboarding: createOnboardingState(profile),
+      onboarding: createOnboardingState(profile, provider.getCompanionOptions()),
     });
   }
 
   if (request.method === "POST" && pathname === "/api/companion/submit-verification") {
-    const body = await readJsonBody<CompanionVerificationSubmitRequest>(request);
+    const body = await readJsonBody<CompanionVerificationSubmitRequest>(request, requestId);
     if (body instanceof Response) return body;
 
     const fieldErrors = validateVerificationSubmit(body);
     if (Object.keys(fieldErrors).length > 0) {
-      return apiError(422, "COMPANION_VERIFICATION_VALIDATION_FAILED", "Review the verification acknowledgements and try again.", fieldErrors);
+      return fail(422, "COMPANION_VERIFICATION_VALIDATION_FAILED", "Review the verification acknowledgements and try again.", fieldErrors);
     }
 
+    const draftProfile = provider.getCompanionDraftProfile();
     const profile: CompanionDraftProfile = {
-      ...companionDraftProfile,
+      ...draftProfile,
       visibilitySettings: {
-        ...companionDraftProfile.visibilitySettings,
+        ...draftProfile.visibilitySettings,
         publicProfile: false,
         acceptInquiries: false,
       },
@@ -269,7 +291,7 @@ async function routeApi(request: Request): Promise<Response> {
       updatedAt: new Date().toISOString(),
     };
 
-    return json(
+    return ok(
       {
         profile,
         submittedAt: profile.updatedAt,
@@ -280,23 +302,78 @@ async function routeApi(request: Request): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/payments/providers") {
-    return json(paymentProviders);
+    return ok(paymentProviders);
   }
 
   const paymentMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)\/payment-session$/);
   if (request.method === "POST" && paymentMatch) {
-    return json(createPaymentSession("stripe"), { status: 409 });
+    return blockedPaymentResponse(fail);
+  }
+
+  const stripePaymentMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)\/stripe-checkout-session$/);
+  if (request.method === "POST" && stripePaymentMatch) {
+    return blockedPaymentResponse(fail);
+  }
+
+  const paymentDetailMatch = pathname.match(/^\/api\/traveller\/payments\/([^/]+)$/);
+  if (request.method === "GET" && paymentDetailMatch) {
+    return ok({
+      id: paymentDetailMatch[1],
+      provider: "stripe",
+      status: "disabled_for_compliance",
+      complianceState: "compliance_hold",
+      amount: null,
+      currency: "THB",
+      nextStep: "Payment detail is API-shaped, but live payment state remains blocked until provider approval.",
+    });
   }
 
   if (request.method === "GET" && pathname === "/api/safety/content") {
-    return json(safetyContent);
+    return ok(provider.getSafetyContent());
   }
 
-  return apiError(404, "API_ROUTE_NOT_FOUND", "No API route exists for this request.");
+  if (request.method === "POST" && pathname === "/api/safety/reports") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before submitting a safety report.");
+    }
+
+    const body = await readJsonBody<SafetyReportRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateSafetyReport(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "SAFETY_REPORT_VALIDATION_FAILED", "Review the safety report fields and try again.", fieldErrors);
+    }
+
+    return ok(provider.createSafetyReport(body), { status: 201 });
+  }
+
+  if (request.method === "GET" && pathname === "/api/account") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before viewing account settings.");
+    }
+    return ok(provider.getAccount(session));
+  }
+
+  if (request.method === "PATCH" && pathname === "/api/account/privacy") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before updating account privacy.");
+    }
+
+    const body = await readJsonBody<AccountPrivacyUpdateRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    return ok({
+      account: provider.updateAccountPrivacy(session, body),
+    });
+  }
+
+  return fail(404, "API_ROUTE_NOT_FOUND", "No API route exists for this request.");
 }
 
-const citySlugs: CitySlug[] = ["bangkok", "phuket", "koh-samui", "koh-phangan"];
-const experienceSlugs: ExperienceSlug[] = ["nightlife", "island-explorer", "muay-thai-night", "private-dining", "local-guidance"];
 const companionSafetyGuidance = [
   "Public profile fields stay separate from private review fields.",
   "Availability is planning context, not instant booking or public urgency.",
@@ -318,15 +395,15 @@ function parseDiscoveryFilters(searchParams: URLSearchParams): DiscoveryFilterSe
   };
 }
 
-async function readJsonBody<T>(request: Request): Promise<T | Response> {
+async function readJsonBody<T>(request: Request, requestId: string): Promise<T | Response> {
   try {
     const value = await request.json();
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
-      return apiError(400, "INVALID_BODY", "Request body must be a JSON object.");
+      return apiError(400, "INVALID_BODY", "Request body must be a JSON object.", undefined, { requestId });
     }
     return value as T;
   } catch {
-    return apiError(400, "INVALID_JSON", "Request body must be valid JSON.");
+    return apiError(400, "INVALID_JSON", "Request body must be valid JSON.", undefined, { requestId });
   }
 }
 
@@ -351,6 +428,43 @@ function validateInquiry(body: TravellerInquiryRequest): Record<string, string> 
     errors.privacyAcknowledged = "Acknowledge privacy and review before submitting.";
   }
   return errors;
+}
+
+function requireCustomerRole(
+  request: Request,
+  role: "traveller" | "companion",
+  fail: (
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors?: Record<string, string>,
+    init?: ResponseInit,
+  ) => Response,
+): Response | null {
+  const session = getSessionFromRequest(request);
+  if (!session) {
+    return fail(401, "SESSION_REQUIRED", "Sign in before using this API route.");
+  }
+  if (session.profile.role !== role) {
+    return fail(403, "ROLE_NOT_ALLOWED", `Switch to ${role} context before using this API route.`);
+  }
+  return null;
+}
+
+function blockedPaymentResponse(
+  fail: (
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors?: Record<string, string>,
+    init?: ResponseInit,
+  ) => Response,
+): Response {
+  const result = createPaymentSession("stripe");
+  if (result.status === "blocked") {
+    return fail(409, result.code, result.message);
+  }
+  return fail(409, "PAYMENT_PROVIDER_NOT_APPROVED", "Live payment creation is disabled.");
 }
 
 function validateCompanionProfileUpdate(body: CompanionProfileUpdateRequest): Record<string, string> {
@@ -426,6 +540,38 @@ function validateVerificationSubmit(body: CompanionVerificationSubmitRequest): R
   return errors;
 }
 
+function validateSafetyReport(body: SafetyReportRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (
+    body.targetType !== "profile" &&
+    body.targetType !== "inquiry" &&
+    body.targetType !== "payment" &&
+    body.targetType !== "account" &&
+    body.targetType !== "other"
+  ) {
+    errors.targetType = "Choose a supported report target.";
+  }
+  if (
+    body.reasonCategory !== "privacy" &&
+    body.reasonCategory !== "unsafe_request" &&
+    body.reasonCategory !== "payment_pressure" &&
+    body.reasonCategory !== "profile_accuracy" &&
+    body.reasonCategory !== "other"
+  ) {
+    errors.reasonCategory = "Choose a supported report reason.";
+  }
+  if (body.targetId !== undefined && typeof body.targetId !== "string") {
+    errors.targetId = "Target id must be text when provided.";
+  }
+  if (typeof body.summary !== "string" || body.summary.trim().length < 24) {
+    errors.summary = "Add a practical safety summary with at least 24 characters.";
+  }
+  if (typeof body.contactAllowed !== "boolean") {
+    errors.contactAllowed = "Choose whether safe follow-up contact is allowed.";
+  }
+  return errors;
+}
+
 function mergeCompanionProfile(profile: CompanionDraftProfile, body: CompanionProfileUpdateRequest): CompanionDraftProfile {
   return {
     ...profile,
@@ -443,7 +589,7 @@ function mergeCompanionProfile(profile: CompanionDraftProfile, body: CompanionPr
   };
 }
 
-function createOnboardingState(profile: CompanionDraftProfile): CompanionOnboardingState {
+function createOnboardingState(profile: CompanionDraftProfile, companionOptions: CompanionOptionSet): CompanionOnboardingState {
   const stepSeed = [
     {
       id: "welcome",
@@ -577,23 +723,15 @@ function toInquirySummary(inquiry: TravellerInquiryDetail) {
 }
 
 function isCitySlug(value: unknown): value is CitySlug {
-  return typeof value === "string" && citySlugs.includes(value as CitySlug);
+  return isProviderCity(value);
 }
 
 function isExperienceSlug(value: unknown): value is ExperienceSlug {
-  return typeof value === "string" && experienceSlugs.includes(value as ExperienceSlug);
+  return isProviderExperience(value);
 }
 
 function isAvailabilityWindow(value: unknown): value is AvailabilityWindow {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-  const item = value as AvailabilityWindow;
-  return (
-    typeof item.id === "string" &&
-    isCitySlug(item.city) &&
-    typeof item.label === "string" &&
-    (item.status === "available" || item.status === "tentative" || item.status === "hidden") &&
-    typeof item.note === "string"
-  );
+  return isProviderAvailabilityWindow(value);
 }
 
 export default {

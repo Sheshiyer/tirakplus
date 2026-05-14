@@ -7,6 +7,7 @@
     "build": "vite build",
     "cf:types": "wrangler types",
     "check": "npm run cf:types && tsc --noEmit && npm run build",
+    "contract:smoke": "node scripts/contract-smoke.mjs",
     "dev": "npm run build && wrangler dev --local --port 8787 --inspector-port 9237",
     "deploy": "npm run check && wrangler deploy"
   },

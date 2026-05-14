@@ -140,21 +140,21 @@
 
 ## Phase 6: API contracts, stub-data rails, data model, Cloudflare monolith boundaries
 
-- [ ] T116 [P] [US4] Customer: API route registry. Issue: TP-CUST-116. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T117 [P] [US4] Customer: staged data provider contract. Issue: TP-CUST-117. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T118 [US4] Customer: data model schema draft. Issue: TP-CUST-118. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T119 [P] [US4] Customer: error response shape. Issue: TP-CUST-119. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T120 [P] [US4] Customer: request ID propagation. Issue: TP-CUST-120. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T121 [US4] Customer: Cloudflare worker boundary. Issue: TP-CUST-121. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T122 [P] [US4] Customer: D1 persistence decision record. Issue: TP-CUST-122. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T123 [P] [US4] Customer: R2 media reference contract. Issue: TP-CUST-123. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T124 [US4] Customer: KV config boundary. Issue: TP-CUST-124. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T125 [P] [US4] Customer: public endpoint handlers. Issue: TP-CUST-125. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T126 [P] [US4] Customer: traveller endpoint handlers. Issue: TP-CUST-126. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T127 [US4] Customer: companion endpoint handlers. Issue: TP-CUST-127. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T128 [P] [US4] Customer: safety endpoint handlers. Issue: TP-CUST-128. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T129 [P] [US4] Customer: account endpoint handlers. Issue: TP-CUST-129. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
-- [ ] T130 [US4] Customer: contract test harness. Issue: TP-CUST-130. Evidence: Responsive screenshot/contract proof plus anti-pattern checklist evidence.
+- [x] T116 [P] [US4] Customer: API route registry. Issue: TP-CUST-116. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-116.md.
+- [x] T117 [P] [US4] Customer: staged data provider contract. Issue: TP-CUST-117. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-117.md.
+- [x] T118 [US4] Customer: data model schema draft. Issue: TP-CUST-118. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-118.md.
+- [x] T119 [P] [US4] Customer: error response shape. Issue: TP-CUST-119. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-119.md.
+- [x] T120 [P] [US4] Customer: request ID propagation. Issue: TP-CUST-120. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-120.md.
+- [x] T121 [US4] Customer: Cloudflare worker boundary. Issue: TP-CUST-121. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-121.md.
+- [x] T122 [P] [US4] Customer: D1 persistence decision record. Issue: TP-CUST-122. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-122.md.
+- [x] T123 [P] [US4] Customer: R2 media reference contract. Issue: TP-CUST-123. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-123.md.
+- [x] T124 [US4] Customer: KV config boundary. Issue: TP-CUST-124. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-124.md.
+- [x] T125 [P] [US4] Customer: public endpoint handlers. Issue: TP-CUST-125. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-125.md.
+- [x] T126 [P] [US4] Customer: traveller endpoint handlers. Issue: TP-CUST-126. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-126.md.
+- [x] T127 [US4] Customer: companion endpoint handlers. Issue: TP-CUST-127. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-127.md.
+- [x] T128 [P] [US4] Customer: safety endpoint handlers. Issue: TP-CUST-128. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-128.md.
+- [x] T129 [P] [US4] Customer: account endpoint handlers. Issue: TP-CUST-129. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-129.md.
+- [x] T130 [US4] Customer: contract test harness. Issue: TP-CUST-130. Evidence: specs/001-tirakplus-customer-app/evidence/TP-CUST-130.md.
 
 ## Phase 7: Accessibility, visual QA, security/privacy checks, smoke tests
 

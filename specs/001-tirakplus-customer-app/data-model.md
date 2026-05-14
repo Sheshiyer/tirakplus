@@ -58,3 +58,9 @@
 
 - id, reporterUserId, targetType, targetId, reasonCategory, summary, status, createdAt.
 - States: submitted, triaged, investigating, resolved, escalated.
+
+### AuditEvent
+
+- id, actorUserId, eventType, target, requestId, createdAt.
+- States: recorded.
+- Validation: requestId must match the API response/header used for the action.

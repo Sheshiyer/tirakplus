@@ -12,6 +12,83 @@ export type ApiEnvelope<T> = {
   requestId: string;
 };
 
+export type ApiErrorEnvelope = {
+  status: number;
+  code: string;
+  message: string;
+  requestId: string;
+  fieldErrors?: Record<string, string>;
+};
+
+export type ApiRouteMethod = "GET" | "POST" | "PATCH";
+
+export type ApiRouteAudience =
+  | "public"
+  | "auth"
+  | "traveller"
+  | "companion"
+  | "payment"
+  | "safety"
+  | "account"
+  | "system";
+
+export type ApiRouteDefinition = {
+  method: ApiRouteMethod;
+  path: string;
+  audience: ApiRouteAudience;
+  handler: string;
+  requestContract?: string;
+  responseContract: string;
+  auth: "anonymous" | "session" | "role:traveller" | "role:companion";
+  stagedProvider: string;
+  productionTarget: "D1" | "R2" | "KV" | "payment-provider" | "worker";
+  notes: string;
+};
+
+export type ApiRouteRegistryResponse = {
+  routes: ApiRouteDefinition[];
+  requestIdHeader: "X-Request-Id";
+  contractVersion: string;
+};
+
+export type StorageBoundaryKind = "D1" | "R2" | "KV";
+
+export type StorageBoundary = {
+  kind: StorageBoundaryKind;
+  binding: string;
+  status: "planned" | "staged-contract" | "production-required";
+  owns: string[];
+  mustNotStore: string[];
+  migrationNote: string;
+};
+
+export type StorageBoundaryResponse = {
+  boundaries: StorageBoundary[];
+  complianceGate: string;
+};
+
+export type DataModelField = {
+  name: string;
+  type: string;
+  required: boolean;
+  private: boolean;
+  note: string;
+};
+
+export type DataModelEntity = {
+  name: string;
+  storageTarget: StorageBoundaryKind;
+  fields: DataModelField[];
+  relationships: string[];
+  states: string[];
+};
+
+export type DataModelSchemaResponse = {
+  version: string;
+  entities: DataModelEntity[];
+  migrationOrder: string[];
+};
+
 export type UserRole = "traveller" | "companion" | "admin";
 
 export type SessionProfile = {
@@ -60,6 +137,29 @@ export type RoleSwitchRequest = {
   role: Extract<UserRole, "traveller" | "companion">;
 };
 
+export type AccountPrivacySettings = {
+  showEmailInAccount: boolean;
+  allowRoleSwitch: boolean;
+  receiveSafetyUpdates: boolean;
+  receiveInquiryUpdates: boolean;
+};
+
+export type AccountResponse = {
+  profile: SessionProfile;
+  privacy: AccountPrivacySettings;
+  safetyState: {
+    reportingAvailable: boolean;
+    paymentComplianceGate: "active";
+    note: string;
+  };
+};
+
+export type AccountPrivacyUpdateRequest = Partial<AccountPrivacySettings>;
+
+export type AccountPrivacyUpdateResponse = {
+  account: AccountResponse;
+};
+
 export type HomeEntryPath = {
   role: "traveller" | "companion";
   label: string;
@@ -71,6 +171,20 @@ export type HomeEntryPath = {
 export type SafetyContent = {
   title: string;
   principles: string[];
+};
+
+export type SafetyReportRequest = {
+  targetType: "profile" | "inquiry" | "payment" | "account" | "other";
+  targetId?: string;
+  reasonCategory: "privacy" | "unsafe_request" | "payment_pressure" | "profile_accuracy" | "other";
+  summary: string;
+  contactAllowed: boolean;
+};
+
+export type SafetyReportResponse = {
+  reportId: string;
+  status: "submitted";
+  nextStep: string;
 };
 
 export type CitySummary = {

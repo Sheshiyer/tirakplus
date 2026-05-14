@@ -3,6 +3,14 @@
 
 All endpoints return staged data first and production data later without changing the UI contract.
 
+All success responses return `{ data, requestId }` and the same request id in the `X-Request-Id` response header. All error responses return `status`, `code`, `message`, `requestId`, and optional `fieldErrors`.
+
+## System Contracts
+
+- GET /api/system/routes -> route registry, handler ownership, auth posture, staged provider, and production target.
+- GET /api/system/storage-boundaries -> D1, R2, and KV ownership rules.
+- GET /api/system/data-model -> implementation-ready data model schema draft.
+
 ## Public
 
 - GET /api/public/home -> brand, city summaries, trust highlights, entry paths, hero asset references.
@@ -30,6 +38,7 @@ All endpoints return staged data first and production data later without changin
 ## Payments - Stripe
 
 - POST /api/traveller/inquiries/:id/stripe-checkout-session -> creates a Stripe Checkout Session only for Stripe-approved products and jurisdictions; otherwise returns a compliance hold error.
+- POST /api/traveller/inquiries/:id/payment-session -> compatibility alias for staged payment-session checks; returns the same compliance hold error.
 - GET /api/traveller/payments/:id -> payment state, inquiry reference, provider, amount, currency, and next allowed action.
 - POST /api/webhooks/stripe -> verifies Stripe signature, deduplicates by Stripe event ID, updates PaymentRecord state, and writes audit context.
 
@@ -43,6 +52,8 @@ Payment contract rules:
 ## Companion
 
 - GET /api/companion/onboarding -> current onboarding state.
+- GET /api/companion/dashboard -> companion dashboard state, review states, panels, and safety guidance.
+- GET /api/companion/inquiries -> companion-visible routed inquiry list.
 - PATCH /api/companion/profile -> update draft profile fields.
 - PATCH /api/companion/visibility -> update visibility settings.
 - PATCH /api/companion/availability -> update availability windows.
