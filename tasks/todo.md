@@ -533,3 +533,17 @@ Started on 2026-05-19:
 - Extended `workers/muse-rag/src/types.ts` with response v2, pain-point, and eval result contracts.
 - Added `scripts/muse-eval.mjs` and wired `npm run muse:eval` into `npm run quality:release` and CI.
 - Verification passed: `npm run muse:eval`, `npm run copy:audit`, `npm run check`, `npm run quality:release`, `npm run contract:smoke`, and a local `/api/muse/chat` probe.
+
+# Vercel Web Deployment Setup
+
+Started on 2026-05-19:
+
+- [x] Add Vercel project configuration for Vite build output, SPA deep links, and `/api/*` same-origin proxying to the Cloudflare customer Worker.
+- [x] Verify local build and release checks after Vercel config.
+- [ ] Commit, push, PR, and merge the deployment config to `main` so GitHub-connected Vercel builds have the right routing.
+- [ ] Create or link the Vercel project under the team account and connect it to `Sheshiyer/tirakplus`.
+- [ ] Trigger a production deployment and verify the deployment URL loads the app plus API routes without CORS breakage.
+
+## Review
+
+- Pending.
