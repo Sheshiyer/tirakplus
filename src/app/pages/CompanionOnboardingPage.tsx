@@ -7,10 +7,12 @@ import type {
   ExperienceSlug,
 } from "../../shared/contracts";
 import { CompanionApiError, CompanionService } from "../api/companion";
+import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { Checkbox } from "../components/ui/Checkbox";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { Input } from "../components/ui/Input";
+import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Select } from "../components/ui/Select";
 import { SkeletonCard } from "../components/ui/Skeleton";
 import { Textarea } from "../components/ui/Textarea";
@@ -173,6 +175,8 @@ export function CompanionOnboardingPage() {
           </p>
         </div>
         <div className="companion-progress-panel">
+          <MusePoseImage variant="companion" label="Muse presenting companion onboarding guidance" className="companion-assist-muse" />
+          <MuseChartPanel chart={data.chart} compact />
           <p className="meta">Progress</p>
           <h2>{data.progress.label}</h2>
           <p>{draft.reviewNote}</p>

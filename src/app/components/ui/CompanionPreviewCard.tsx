@@ -1,4 +1,5 @@
 import type { CompanionPreview } from "../../../shared/contracts";
+import { AssetRegistry } from "../../registry/assets";
 import { Card, CardContent } from "./Card";
 
 export interface CompanionPreviewCardProps {
@@ -17,6 +18,13 @@ export function CompanionPreviewCard({ profile }: CompanionPreviewCardProps) {
   return (
     <Card className="companion-preview-card">
       <CardContent className="companion-preview-content">
+        <div className="companion-preview-media" aria-hidden="true">
+          <img
+            src={AssetRegistry.resolveAsset("profile", profile.avatarUrl)}
+            alt=""
+            loading="lazy"
+          />
+        </div>
         <div>
           <div className="companion-preview-header">
             <p className={`companion-verification companion-verification-${stateClass}`}>

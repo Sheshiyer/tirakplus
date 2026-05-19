@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { CitySlug, CompanionDraftProfile, CompanionOnboardingState, ExperienceSlug } from "../../shared/contracts";
 import { useAuth } from "../api/AuthContext";
 import { CompanionApiError, CompanionService } from "../api/companion";
+import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { Checkbox } from "../components/ui/Checkbox";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -142,6 +143,7 @@ export function CompanionProfileManagerPage() {
           </p>
         </div>
         <div className="companion-progress-panel">
+          <MuseChartPanel chart={data.chart} compact />
           <p className="meta">Review state</p>
           <h2>{draft.reviewStatus.replace(/_/g, " ")}</h2>
           <p>{draft.reviewNote}</p>

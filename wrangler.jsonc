@@ -10,9 +10,23 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
+  "kv_namespaces": [
+    {
+      "binding": "MUSE_AGENT_CONFIG",
+      "id": "5c914cc2d3094278bfe2b6516739a9c7"
+    }
+  ],
+  "services": [
+    {
+      "binding": "MUSE_RAG",
+      "service": "tirakplus-muse-rag"
+    }
+  ],
   "vars": {
     "ENVIRONMENT": "staging",
-    "PAYMENT_PROVIDER_MODE": "compliance_hold"
+    "PAYMENT_PROVIDER_MODE": "compliance_hold",
+    "MUSE_AGENT_MODE": "external",
+    "MUSE_AGENT_CONFIG_KEY": "muse:agent-config"
   },
   "observability": {
     "enabled": true,

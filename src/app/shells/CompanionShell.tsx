@@ -23,14 +23,15 @@ export function CompanionShell() {
 
   return (
     <div className="app-shell member-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <TopNav
-        logo={<Link to="/companion/dashboard" className="brand-link">TP Companion</Link>}
+        logo={<Link to="/companion/dashboard" className="brand-link">Tirak Plus</Link>}
         links={navLinks}
-        theme="porcelain"
+        theme="night"
       />
       <BottomNav items={mobileNavItems} />
       
-      <main className="member-main">
+      <main id="main-content" className="member-main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

@@ -87,14 +87,14 @@ export function AuthVerify() {
         className="auth-back-link"
       >
         <Icons.ChevronLeft />
-        <span>Back to login</span>
+        <span>Back to sign in</span>
       </Link>
 
       <div className="auth-panel">
         <div className="auth-heading auth-heading-left">
-          <h1>Check your email</h1>
+          <h1>Confirm your private entry</h1>
           <p>
-            We sent a 6-digit verification code to <strong>{email}</strong> for the {role} path.
+            We sent a 6-digit code to <strong>{email}</strong>. This keeps the {role} path tied to a reviewed account.
           </p>
         </div>
 

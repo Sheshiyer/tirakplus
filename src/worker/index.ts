@@ -5,6 +5,7 @@ import {
   isProviderCity,
   isProviderExperience,
 } from "./staged-provider";
+import { companionMuseChart, travellerMuseChart } from "./staged-data";
 import { routeAuth, getSessionFromRequest } from "./auth";
 import { createPaymentSession, paymentProviders } from "./payment-provider";
 import { getRouteRegistry } from "./route-registry";
@@ -24,12 +25,26 @@ import type {
   CompanionVisibilityUpdateRequest,
   DiscoveryFilterSelection,
   ExperienceSlug,
+  MuseChatRequest,
+  MuseChatResponse,
+  MuseConversationStage,
+  MuseProfileSignals,
   SafetyReportRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
+  TravellerSessionDetail,
 } from "../shared/contracts";
 
-async function routeApi(request: Request): Promise<Response> {
+type WorkerEnv = Env & {
+  MUSE_AGENT_API_KEY?: string;
+  MUSE_AGENT_CONFIG?: KVNamespace;
+  MUSE_AGENT_CONFIG_KEY?: string;
+  MUSE_AGENT_MODE?: "staged" | "external";
+  MUSE_RAG?: Fetcher;
+  SELEMENE_ENGINE_API_KEY?: string;
+};
+
+async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   const url = new URL(request.url);
   const { pathname, searchParams } = url;
   const requestId = createRequestId(request);
@@ -71,6 +86,18 @@ async function routeApi(request: Request): Promise<Response> {
     );
   }
 
+  if (request.method === "POST" && pathname === "/api/muse/chat") {
+    const body = await readJsonBody<MuseChatRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateMuseChatRequest(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "MUSE_CHAT_VALIDATION_FAILED", "Muse needs a short message to continue.", fieldErrors);
+    }
+
+    return ok(await createMuseChatResponse(body, env));
+  }
+
   if (pathname.startsWith("/api/traveller/")) {
     const roleError = requireCustomerRole(request, "traveller", fail);
     if (roleError) return roleError;
@@ -79,6 +106,27 @@ async function routeApi(request: Request): Promise<Response> {
   if (pathname.startsWith("/api/companion/")) {
     const roleError = requireCustomerRole(request, "companion", fail);
     if (roleError) return roleError;
+  }
+
+  if (request.method === "GET" && pathname === "/api/traveller/dashboard") {
+    return ok(provider.getTravellerDashboard());
+  }
+
+  if (request.method === "GET" && pathname === "/api/traveller/sessions") {
+    return ok({
+      results: provider.listTravellerSessions().map(toSessionSummary),
+      emptyState: {
+        title: "No reviewed sessions yet.",
+        description: "Start with Muse or send a private inquiry from a reviewed profile.",
+      },
+    });
+  }
+
+  const travellerSessionMatch = pathname.match(/^\/api\/traveller\/sessions\/([^/]+)$/);
+  if (request.method === "GET" && travellerSessionMatch) {
+    const session = provider.getTravellerSession(travellerSessionMatch[1]);
+    if (!session) return fail(404, "SESSION_NOT_FOUND", "This session is unavailable.");
+    return ok(session);
   }
 
   if (request.method === "GET" && pathname === "/api/traveller/discovery") {
@@ -95,6 +143,7 @@ async function routeApi(request: Request): Promise<Response> {
       filters,
       filterOptions: provider.getDiscoveryFilterOptions(),
       results: data,
+      chart: travellerMuseChart,
       emptyState: {
         title: "No reviewed profiles match these filters.",
         description: "Adjust the city, experience, or availability context. Tirak does not create fake scarcity or online-now pressure.",
@@ -180,6 +229,7 @@ async function routeApi(request: Request): Promise<Response> {
     return ok({
       profile,
       progress: onboarding.progress,
+      chart: companionMuseChart,
       reviewStates: provider.listCompanionReviewStates(),
       panels: [
         {
@@ -210,6 +260,13 @@ async function routeApi(request: Request): Promise<Response> {
         description: "Tirak only routes inquiries after review; no fake demand or online-now pressure is shown.",
       },
     });
+  }
+
+  const companionSessionMatch = pathname.match(/^\/api\/companion\/inquiries\/([^/]+)$/);
+  if (request.method === "GET" && companionSessionMatch) {
+    const session = provider.getCompanionSession(companionSessionMatch[1]);
+    if (!session) return fail(404, "COMPANION_INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
+    return ok(session);
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {
@@ -380,6 +437,345 @@ const companionSafetyGuidance = [
   "Visibility can pause discovery, city, availability, and inquiries independently.",
   "No payment, off-platform contact, or routing step happens before review clears.",
 ];
+
+const museSystemContract = {
+  name: "Muse",
+  product: "Tirak Plus",
+  tone: "witty, discreet, premium, emotionally intelligent, and practical",
+  userFacingLanguage:
+    "Use timing, temperament, rhythm, boundaries, privacy, city mood, and attraction patterns. Do not mention zodiac, astrology, vimshottari, charts, houses, or matching-engine internals.",
+  safety:
+    "No explicit sexual copy, no red-light framing, no fake urgency, no off-platform payment/contact pressure, and no objectifying companion language.",
+};
+
+function validateMuseChatRequest(body: MuseChatRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (typeof body.message !== "string" || body.message.trim().length === 0) {
+    errors.message = "Send a message for Muse.";
+  }
+  if (typeof body.message === "string" && body.message.length > 1200) {
+    errors.message = "Keep the message under 1,200 characters.";
+  }
+  if (body.stage !== undefined && !isMuseConversationStage(body.stage)) {
+    errors.stage = "Use a supported Muse conversation stage.";
+  }
+  return errors;
+}
+
+async function createMuseChatResponse(body: MuseChatRequest, env: WorkerEnv): Promise<MuseChatResponse> {
+  const external = await callExternalMuseAgent(body, env);
+  if (external) return external;
+  return createStagedMuseChatResponse(body);
+}
+
+async function callExternalMuseAgent(body: MuseChatRequest, env: WorkerEnv): Promise<MuseChatResponse | null> {
+  const apiKey = env.MUSE_AGENT_API_KEY?.trim();
+  const selemeneApiKey = env.SELEMENE_ENGINE_API_KEY?.trim();
+  if (!env.MUSE_RAG || !apiKey || env.MUSE_AGENT_MODE !== "external") {
+    console.warn("Muse external agent skipped", {
+      mode: env.MUSE_AGENT_MODE ?? "unset",
+      hasServiceBinding: Boolean(env.MUSE_RAG),
+      hasApiKey: Boolean(apiKey),
+    });
+    return null;
+  }
+
+  try {
+    const configKey = env.MUSE_AGENT_CONFIG_KEY ?? "muse:agent-config";
+    const kvConfig = env.MUSE_AGENT_CONFIG ? await env.MUSE_AGENT_CONFIG.get(configKey, "json") : null;
+    const headers = new Headers({
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-API-Key": apiKey,
+    });
+    if (selemeneApiKey) {
+      headers.set("X-SeleMene-Engine-Key", selemeneApiKey);
+    }
+
+    const payload = JSON.stringify({
+        contract: museSystemContract,
+        config: kvConfig,
+        input: body,
+        messages: [
+          {
+            role: "system",
+            content: `${museSystemContract.tone}. ${museSystemContract.userFacingLanguage} ${museSystemContract.safety}`,
+          },
+          {
+            role: "user",
+            content: body.message,
+          },
+        ],
+      });
+    const response = await env.MUSE_RAG.fetch(new Request("https://muse-rag.internal/v1/chat", { method: "POST", headers, body: payload }));
+    if (!response.ok) {
+      console.warn("Muse external agent non-OK response", { status: response.status });
+      return null;
+    }
+
+    const value = await response.json();
+    if (isMuseChatResponse(value)) {
+      return {
+        ...value,
+        chart: value.chart ?? createMuseChartFromSignals(value.profileSignals),
+        agentMode: "external",
+      };
+    }
+    const externalReply = extractExternalMuseReply(value);
+    if (externalReply) {
+      return {
+        ...createStagedMuseChatResponse(body),
+        reply: {
+          id: `msg_${crypto.randomUUID()}`,
+          role: "muse",
+          content: sanitizeMuseReply(externalReply),
+          createdAt: new Date().toISOString(),
+        },
+        agentMode: "external",
+      };
+    }
+    console.warn("Muse external agent schema fallback", {
+      shape: typeof value === "object" && value ? Object.keys(value).slice(0, 8) : typeof value,
+    });
+  } catch {
+    console.warn("Muse external agent fetch failed");
+    return null;
+  }
+
+  return null;
+}
+
+function createStagedMuseChatResponse(body: MuseChatRequest): MuseChatResponse {
+  const message = body.message.trim();
+  const signals = inferMuseProfileSignals(message);
+  const stage = inferNextMuseStage(body.stage ?? "arrival", signals, message);
+  const conversationId = body.conversationId?.trim() || `muse_${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+  const reply = selectStagedMuseReply(stage, signals, message);
+
+  return {
+    conversationId,
+    stage,
+    reply: {
+      id: `msg_${crypto.randomUUID()}`,
+      role: "muse",
+      content: reply,
+      createdAt: now,
+    },
+    suggestedPrompts: selectMusePrompts(stage),
+    profileSignals: signals,
+    nextAction: selectMuseNextAction(stage, signals),
+    agentMode: "staged",
+    chart: createMuseChartFromSignals(signals),
+  };
+}
+
+function inferMuseProfileSignals(message: string): MuseProfileSignals {
+  const lower = message.toLowerCase();
+  const city = (["bangkok", "phuket", "koh-samui", "koh-phangan"] as CitySlug[]).find((item) =>
+    lower.includes(item.replace("-", " ")) || lower.includes(item),
+  );
+  const experienceHints = (["nightlife", "island-explorer", "muay-thai-night", "private-dining", "local-guidance"] as ExperienceSlug[]).filter(
+    (experience) => lower.includes(experience.replaceAll("-", " ")) || lower.includes(experience),
+  );
+  const dateMatch = message.match(/\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b/);
+  const timeMatch = message.match(/\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s?(?:am|pm)?\b/i);
+  const placeMatch = message.match(/\b(?:born in|birth place is|from)\s+([a-zA-Z\s-]{3,40})/i);
+  const desireVector = [
+    lower.includes("private") || lower.includes("discreet") ? "privacy-led" : "",
+    lower.includes("warm") || lower.includes("kind") ? "warmth" : "",
+    lower.includes("witty") || lower.includes("funny") ? "playful conversation" : "",
+    lower.includes("premium") || lower.includes("classy") ? "polished atmosphere" : "",
+    lower.includes("calm") || lower.includes("quiet") ? "low-noise planning" : "",
+  ].filter(Boolean);
+  const boundarySignals = [
+    lower.includes("safe") || lower.includes("safety") ? "safety explicit" : "",
+    lower.includes("no pressure") || lower.includes("slow") ? "low-pressure pace" : "",
+    lower.includes("private") || lower.includes("discreet") ? "discretion required" : "",
+  ].filter(Boolean);
+
+  return {
+    birthContext: {
+      ...(dateMatch ? { date: dateMatch[0] } : {}),
+      ...(timeMatch ? { time: timeMatch[0] } : {}),
+      ...(placeMatch ? { place: placeMatch[1].trim() } : {}),
+      confidence: dateMatch && timeMatch && placeMatch ? "complete" : dateMatch || timeMatch || placeMatch ? "partial" : "none",
+    },
+    travelContext: {
+      ...(city ? { city } : {}),
+      timeframe: lower.includes("tonight") ? "tonight" : lower.includes("weekend") ? "weekend" : undefined,
+      experienceHints,
+    },
+    desireVector,
+    boundarySignals,
+    routingHints: {
+      nextRoute: stageRouteHint(city, experienceHints),
+      requiresAuth: false,
+      suggestedRole: lower.includes("profile") || lower.includes("bio") || lower.includes("services") ? "companion" : "traveller",
+    },
+  };
+}
+
+function inferNextMuseStage(
+  currentStage: MuseConversationStage,
+  signals: MuseProfileSignals,
+  message: string,
+): MuseConversationStage {
+  const lower = message.toLowerCase();
+  if (lower.includes("profile") || lower.includes("bio") || lower.includes("services")) return "desire_mapping";
+  if (signals.birthContext.confidence === "none") return "birth_context";
+  if (!signals.travelContext.city && signals.travelContext.experienceHints.length === 0) return "travel_context";
+  if (signals.desireVector.length === 0) return "desire_mapping";
+  if (signals.boundarySignals.length === 0) return "safety_boundaries";
+  if (currentStage === "safety_boundaries") return "recommendation_ready";
+  return currentStage === "arrival" ? "birth_context" : currentStage;
+}
+
+function selectStagedMuseReply(stage: MuseConversationStage, signals: MuseProfileSignals, message: string): string {
+  if (stage === "birth_context") {
+    return "I can start there. Give me your birth date, birth place, and if you know it, the time. I will keep the details private and turn it into a useful read, not a lecture.";
+  }
+  if (stage === "travel_context") {
+    return "Good. Now tell me where Thailand enters the story: Bangkok, Phuket, Samui, Phangan, or a moving target? Add the window too. I am looking for rhythm, not a checklist.";
+  }
+  if (stage === "desire_mapping") {
+    return "I am picking up the shape of it. Say the quiet part plainly: do you want warmth, wit, calm privacy, sharp nightlife energy, local guidance, or someone who can make the evening feel less improvised?";
+  }
+  if (stage === "safety_boundaries") {
+    return "Before I route anything, give me the guardrails. What should feel absolutely off-limits, what pace feels comfortable, and how visible do you want this to be?";
+  }
+  if (stage === "recommendation_ready") {
+    const city = signals.travelContext.city ? signals.travelContext.city.replace("-", " ") : "your first city";
+    return `I have enough to sketch a discreet path for ${city}. I will keep it private, filter for tone and safety first, then show options only when the fit is clean.`;
+  }
+  return `Tell me what brings you here in one line. I will make the next question sharper than "${message.slice(0, 48)}" deserves.`;
+}
+
+function selectMusePrompts(stage: MuseConversationStage): string[] {
+  if (stage === "birth_context") return ["Born 14/08/1992 in London, time unknown", "I know my date and city but not the time"];
+  if (stage === "travel_context") return ["Bangkok this weekend, private but warm", "Phuket for a quiet premium evening"];
+  if (stage === "desire_mapping") return ["Witty, calm, discreet, no chaos", "Local guidance with polished nightlife"];
+  if (stage === "safety_boundaries") return ["Keep it private and slow paced", "No off-platform pressure or public visibility"];
+  return ["Show me the private path", "Help me refine the fit first"];
+}
+
+function selectMuseNextAction(stage: MuseConversationStage, signals: MuseProfileSignals): MuseChatResponse["nextAction"] {
+  if (stage !== "recommendation_ready") {
+    return { label: "Continue with Muse", href: "/", kind: "continue" };
+  }
+  if (signals.routingHints.suggestedRole === "companion") {
+    return { label: "Open companion assist", href: "/auth/login", kind: "auth" };
+  }
+  return { label: "Review private discovery", href: "/auth/login", kind: "auth" };
+}
+
+function createMuseChartFromSignals(signals: MuseProfileSignals) {
+  const hasBirthContext = signals.birthContext.confidence !== "none";
+  const city = signals.travelContext.city?.replace("-", " ") ?? "open city";
+  const desire = signals.desireVector[0] ?? "private fit";
+  const boundary = signals.boundarySignals[0] ?? "ask first";
+
+  return {
+    ...travellerMuseChart,
+    summary: hasBirthContext
+      ? "Muse has enough birth context to shape the read without exposing the private method."
+      : "Muse is still waiting for birth date, place, and optional time before sharpening the read.",
+    axes: [
+      { label: "Birth read", value: hasBirthContext ? signals.birthContext.confidence : "needed", tone: "lavender" as const },
+      { label: "City", value: city, tone: "pearl" as const },
+      { label: "Mood", value: desire, tone: "rose" as const },
+      { label: "Boundary", value: boundary, tone: "green" as const },
+    ],
+    cues: [
+      hasBirthContext ? "Translate the read into plain language" : "Collect date, place, and optional time",
+      signals.travelContext.city ? "Use city rhythm" : "Ask for the first city",
+      signals.boundarySignals.length > 0 ? "Respect stated limits" : "Clarify what should stay off-limits",
+    ],
+    nextPrompt: hasBirthContext
+      ? "Tell Muse the city, mood, and visibility boundary."
+      : "Share birth date, birth place, and time if you know it.",
+  };
+}
+
+function stageRouteHint(city: CitySlug | undefined, experienceHints: ExperienceSlug[]): string | undefined {
+  if (experienceHints[0]) return `/experiences/${experienceHints[0]}`;
+  if (city) return `/cities/${city}`;
+  return undefined;
+}
+
+function sanitizeMuseReply(value: string): string {
+  return value
+    .replace(/\b(?:zodiac|astrology|vimshottari|dasha|houses?|nakshatra|birth chart)\b/gi, "pattern")
+    .slice(0, 1400);
+}
+
+function extractExternalMuseReply(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (typeof value !== "object" || value === null) return null;
+
+  const record = value as Record<string, unknown>;
+  const directKeys = ["reply", "message", "content", "output_text", "text", "answer", "response"];
+  for (const key of directKeys) {
+    if (typeof record[key] === "string") return record[key];
+  }
+
+  const data = record.data;
+  if (typeof data === "object" && data !== null) {
+    const nested = extractExternalMuseReply(data);
+    if (nested) return nested;
+  }
+
+  const choices = record.choices;
+  if (Array.isArray(choices)) {
+    const first = choices[0] as Record<string, unknown> | undefined;
+    if (first) {
+      const message = first.message;
+      if (typeof message === "object" && message !== null) {
+        const content = (message as Record<string, unknown>).content;
+        if (typeof content === "string") return content;
+      }
+      if (typeof first.text === "string") return first.text;
+    }
+  }
+
+  const output = record.output;
+  if (Array.isArray(output)) {
+    for (const item of output) {
+      const nested = extractExternalMuseReply(item);
+      if (nested) return nested;
+    }
+  }
+
+  return null;
+}
+
+function isMuseConversationStage(value: unknown): value is MuseConversationStage {
+  return (
+    value === "arrival" ||
+    value === "birth_context" ||
+    value === "travel_context" ||
+    value === "desire_mapping" ||
+    value === "safety_boundaries" ||
+    value === "recommendation_ready"
+  );
+}
+
+function isMuseChatResponse(value: unknown): value is MuseChatResponse {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<MuseChatResponse>;
+  return (
+    typeof candidate.conversationId === "string" &&
+    isMuseConversationStage(candidate.stage) &&
+    typeof candidate.reply === "object" &&
+    candidate.reply !== null &&
+    candidate.reply.role === "muse" &&
+    typeof candidate.reply.content === "string" &&
+    Array.isArray(candidate.suggestedPrompts) &&
+    typeof candidate.profileSignals === "object" &&
+    candidate.profileSignals !== null
+  );
+}
 
 function parseDiscoveryFilters(searchParams: URLSearchParams): DiscoveryFilterSelection {
   const city = searchParams.get("city");
@@ -662,6 +1058,7 @@ function createOnboardingState(profile: CompanionDraftProfile, companionOptions:
     },
     guidance: companionSafetyGuidance,
     requiredActions: steps.filter((step) => step.status !== "complete").map((step) => step.label),
+    chart: companionMuseChart,
   };
 }
 
@@ -722,6 +1119,19 @@ function toInquirySummary(inquiry: TravellerInquiryDetail) {
   return summary;
 }
 
+function toSessionSummary(session: TravellerSessionDetail) {
+  const {
+    museRead: _museRead,
+    itinerary: _itinerary,
+    messageThread: _messageThread,
+    safetyNotes: _safetyNotes,
+    paymentState: _paymentState,
+    privacyNote: _privacyNote,
+    ...summary
+  } = session;
+  return summary;
+}
+
 function isCitySlug(value: unknown): value is CitySlug {
   return isProviderCity(value);
 }
@@ -738,7 +1148,7 @@ export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
-      return routeApi(request);
+      return routeApi(request, env);
     }
 
     return env.ASSETS.fetch(request);

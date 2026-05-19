@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { CompanionDashboardResponse, CompanionReviewStatus } from "../../shared/contracts";
 import { CompanionService } from "../api/companion";
+import { MuseChartPanel } from "../components/muse/MuseChartPanel";
+import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -71,6 +73,8 @@ export function CompanionDashboardPage() {
           </p>
         </div>
         <div className={`review-state-card review-state-card-${profile.reviewStatus}`}>
+          <MusePoseImage variant="companion" label="Muse presenting the companion workspace" className="companion-assist-muse" />
+          <MuseChartPanel chart={loadState.data.chart} compact />
           <p className="meta">Current state</p>
           <h2>{activeReviewState?.label || statusLabel(profile.reviewStatus)}</h2>
           <p>{profile.reviewNote}</p>

@@ -6,6 +6,7 @@ import { CityOverview } from "../components/home/CityOverview";
 import { HomeHero } from "../components/home/HomeHero";
 import { HomeTrustBand } from "../components/home/HomeTrustBand";
 import { SafetyMessageBand } from "../components/home/SafetyMessageBand";
+import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 
 type HomeData = {
@@ -51,10 +52,12 @@ export function PublicHome() {
     return (
       <div className="public-home">
         <section className="home-loading" aria-label="Loading home content">
-          <div className="loading-line loading-line-short" />
-          <div className="loading-line loading-line-title" />
-          <div className="loading-line" />
-          <div className="loading-panel" />
+          <MusePoseImage variant="thinking" label="Muse thinking while home content loads" className="home-loading-muse" />
+          <div className="home-loading-copy">
+            <div className="loading-line loading-line-short" />
+            <div className="loading-line loading-line-title" />
+            <div className="loading-line" />
+          </div>
         </section>
       </div>
     );

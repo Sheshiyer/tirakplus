@@ -1,3 +1,5 @@
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap');
+
 :root {
   /* Colors */
   --color-porcelain-canvas: #FAF7F3;
@@ -15,8 +17,8 @@
   --color-risk-fig: #7E4257;
 
   /* Typography Fonts */
-  --font-display: 'Satoshi', 'Cabinet Grotesk', 'Outfit', sans-serif;
-  --font-body: 'Geist', 'Satoshi', sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Satoshi', 'Outfit', sans-serif;
+  --font-body: 'Satoshi', 'Geist', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   /* Typography Scale - Mobile Default */

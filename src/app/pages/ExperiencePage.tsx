@@ -20,9 +20,9 @@ const experienceLabels: Record<ExperienceSlug, { title: string; eyebrow: string;
     description: "Respectful local fight-night planning with clear itinerary context before any private inquiry.",
   },
   "private-dining": {
-    title: "Private dining placeholder",
+    title: "Private dining experience",
     eyebrow: "Dining route",
-    description: "A staged route for composed restaurant and resort-area evenings while booking/payment rails remain under review.",
+    description: "Composed restaurant and resort-area evenings with timing, privacy, and review context set before any next step.",
   },
   "local-guidance": {
     title: "Local guidance experience",

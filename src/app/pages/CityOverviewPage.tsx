@@ -81,6 +81,14 @@ export function CityOverviewPage({ citySlug }: CityOverviewPageProps) {
 
   return (
     <div className="city-page">
+      <section className="city-page-hero" aria-labelledby={`${state.city.slug}-page-title`}>
+        <p className="eyebrow">City context</p>
+        <h1 id={`${state.city.slug}-page-title`}>{state.city.name}, shaped before discovery.</h1>
+        <p className="lede">
+          Start with the local rhythm, route boundaries, and experience context. Muse keeps the first read private
+          before any protected profile surface opens.
+        </p>
+      </section>
       <CityOverview city={state.city} experiences={state.experiences} />
       {state.experiences.length === 0 ? (
         <section className="empty-panel">

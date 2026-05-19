@@ -1,6 +1,7 @@
 {
   "name": "tirakplus",
   "version": "0.1.0",
+  "description": "Muse-led private Thailand discovery web app for reviewed traveller and companion flows.",
   "private": true,
   "type": "module",
   "scripts": {

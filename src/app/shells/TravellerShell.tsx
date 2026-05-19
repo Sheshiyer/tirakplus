@@ -1,11 +1,12 @@
 import { Outlet, Link } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
-import { CompassIcon, CalendarIcon, MailIcon, UserIcon } from "../components/navigation/Icons";
+import { LayoutDashboardIcon, CompassIcon, CalendarIcon, MailIcon, UserIcon } from "../components/navigation/Icons";
 
 export function TravellerShell() {
   // Navigation for a logged-in traveller
   const navLinks = [
+    { href: "/traveller/dashboard", label: "Board" },
     { href: "/traveller/discovery", label: "Discovery" },
     { href: "/traveller/inbox", label: "Inbox" },
     { href: "/traveller/plans", label: "Plans" },
@@ -13,6 +14,7 @@ export function TravellerShell() {
   ];
 
   const mobileNavItems = [
+    { id: "dashboard", label: "Board", href: "/traveller/dashboard", icon: <LayoutDashboardIcon /> },
     { id: "discovery", label: "Discovery", href: "/traveller/discovery", icon: <CompassIcon /> },
     { id: "plans", label: "Plans", href: "/traveller/plans", icon: <CalendarIcon /> },
     { id: "inbox", label: "Inbox", href: "/traveller/inbox", icon: <MailIcon /> },
@@ -21,14 +23,15 @@ export function TravellerShell() {
 
   return (
     <div className="app-shell member-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <TopNav
-        logo={<Link to="/traveller/discovery" className="brand-link">TP</Link>}
+        logo={<Link to="/traveller/dashboard" className="brand-link">Tirak Plus</Link>}
         links={navLinks}
-        theme="porcelain"
+        theme="night"
       />
       <BottomNav items={mobileNavItems} />
       
-      <main className="member-main">
+      <main id="main-content" className="member-main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

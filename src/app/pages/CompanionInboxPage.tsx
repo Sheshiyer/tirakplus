@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { CompanionInquiryListResponse } from "../../shared/contracts";
 import { CompanionService } from "../api/companion";
+import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
 
@@ -86,6 +88,9 @@ export function CompanionInboxPage() {
                 <span>{inquiry.preferredWindow}</span>
               </div>
               <p className="privacy-note">{inquiry.privacyNote}</p>
+              <Button as={Link} to={`/companion/inbox/${inquiry.id}`} variant="secondary">
+                Review
+              </Button>
             </article>
           ))}
         </div>

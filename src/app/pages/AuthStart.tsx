@@ -10,7 +10,7 @@ export function AuthStart() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { login, isLoading, error } = useAuth();
+  const { login, verify, isLoading, error } = useAuth();
   const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
   const intendedRole: Extract<UserRole, "traveller" | "companion"> =
     searchParams.get("role") === "companion" || fromPath?.startsWith("/companion") ? "companion" : "traveller";
@@ -27,12 +27,22 @@ export function AuthStart() {
     }
   };
 
+  const handleDevAccess = async (role: Extract<UserRole, "traveller" | "companion">) => {
+    const devEmail = role === "traveller" ? "dev.traveller@tirakplus.local" : "dev.companion@tirakplus.local";
+    await verify(devEmail, "123456", role);
+    navigate(role === "traveller" ? "/traveller/dashboard" : "/companion/dashboard", { replace: true });
+  };
+
   return (
     <section className="auth-page">
       <div className="auth-panel">
         <div className="auth-heading">
-          <h1>Welcome to Tirak</h1>
-          <p>Enter your email to continue as a {intendedRole}.</p>
+          <h1>Continue with Tirak Plus</h1>
+          <p>
+            {intendedRole === "companion"
+              ? "Create or manage a reviewed companion profile with visibility controls."
+              : "Enter the private traveller path after Muse has shaped the route."}
+          </p>
         </div>
 
         <form onSubmit={handleContinue} className="auth-form">
@@ -64,8 +74,21 @@ export function AuthStart() {
         </form>
 
         <p className="auth-terms">
-          By continuing, you agree to our <Link to="/safety">Terms of Service</Link> and recognize our commitment to a <Link to="/safety">respectful community</Link>.
+          By continuing, you accept the safety and privacy rules that keep introductions reviewed, respectful, and visibility-aware.
+          {" "}<Link to="/safety">Review them before continuing</Link>.
         </p>
+
+        <div className="auth-dev-panel" aria-label="Development access">
+          <p className="meta">Development access</p>
+          <div className="auth-dev-actions">
+            <Button type="button" variant="secondary" onClick={() => void handleDevAccess("traveller")} disabled={isLoading}>
+              Traveller QA
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => void handleDevAccess("companion")} disabled={isLoading}>
+              Companion QA
+            </Button>
+          </div>
+        </div>
       </div>
     </section>
   );

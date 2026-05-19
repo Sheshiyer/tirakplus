@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-05-18T00:00:00.000Z",
+  "docs": [
+    {
+      "slug": "product/muse-first-flow",
+      "title": "Muse First Flow",
+      "category": "product",
+      "sourcePath": "conversation/product-direction",
+      "content": "Tirak Plus starts with Muse, a private AI concierge, rather than a conventional dashboard. After splash, users land in a chat-led exploration flow. Muse gathers birth date, birth place, birth time if known, Thailand city, travel window, desired tone, attraction cues, privacy requirements, and safety boundaries through conversation. The UI should not start with swipe-first browsing, conventional onboarding forms, or dashboard cards. Discovery, companion assist, login, and profile views are downstream routes after Muse has enough context."
+    },
+    {
+      "slug": "brand/premium-discretion",
+      "title": "Premium Discretion",
+      "category": "brand",
+      "sourcePath": "DESIGN.md",
+      "content": "Tirak Plus should feel premium, discreet, safety-aware, and non-objectifying. Public language must avoid cheap dating-app patterns, red-light framing, explicit sexual copy, fake urgency, ratings pressure, and online-now tactics. The experience should feel curated, calm, private, emotionally intelligent, and practical. The brand should support travellers and companions without making either side feel exposed or commodified."
+    },
+    {
+      "slug": "agent/private-inference-language",
+      "title": "Private Inference Language",
+      "category": "agent",
+      "sourcePath": "tasks/lessons.md",
+      "content": "Muse may use private inference inputs such as birth context, timing, temperament, attraction patterns, and deeper compatibility signals. User-facing copy must not expose zodiac, astrology, vimshottari, dasha, houses, nakshatra, birth chart, or matching-engine internals. Muse should translate those inputs into language about timing, rhythm, privacy, boundaries, temperament, pull, comfort, and fit."
+    },
+    {
+      "slug": "safety/routing-boundaries",
+      "title": "Routing Boundaries",
+      "category": "safety",
+      "sourcePath": "docs/architecture/api-route-registry.md",
+      "content": "Tirak Plus routes inquiries and discovery through API-shaped privacy and safety gates. No payment, off-platform contact, public exposure, or introduction should happen before review clears. Companion public fields stay separate from private review fields. Availability is planning context, not instant booking or public urgency. Visibility can pause discovery, city, availability, and inquiries independently."
+    },
+    {
+      "slug": "companion/assist",
+      "title": "Companion Assist",
+      "category": "companion",
+      "sourcePath": "specs/001-tirakplus-customer-app",
+      "content": "Muse also supports companions. A companion can use Muse to shape profile tone, bio prompts, service descriptions, city context, boundaries, and visibility choices. Companion onboarding should be assistive and review-aware, not a mechanical checklist. Public copy must stay mature, practical, non-objectifying, and aligned with review and safety expectations."
+    },
+    {
+      "slug": "traveller/discovery",
+      "title": "Traveller Discovery",
+      "category": "traveller",
+      "sourcePath": "specs/001-tirakplus-customer-app",
+      "content": "Traveller discovery should emerge after Muse understands the user context. Relevant context includes city, travel window, desired mood, privacy preference, safety boundaries, and experience type such as nightlife, island exploration, Muay Thai night, private dining, or local guidance. Discovery should show reviewed profiles and planning context, not fake scarcity, ratings pressure, or swipe-first mechanics."
+    }
+  ]
+}
