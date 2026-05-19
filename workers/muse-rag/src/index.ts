@@ -1,8 +1,14 @@
 import { getAppConfig, getDefaults, isAuthorizedRequest, type Env } from "./config";
+import { createEvolutionCandidate } from "./evolution";
+import { detectPromptInjection, extractMessage, inferRoleIntent, inferSignals } from "./intent";
+import { nextAction } from "./next-action";
 import { createChatCompletion } from "./nvidia";
-import { evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, sanitizeMuseCopy } from "./policy";
+import { evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, refusalForSafety, sanitizeMuseCopy } from "./policy";
 import { formatContext, ingestCorpus, searchCorpus } from "./retrieve";
-import type { CorpusFile, MuseChatRequest, MuseConversationStage, SearchResult } from "./types";
+import { classifySafety } from "./safety";
+import { inferStage, suggestedPrompts } from "./stage";
+import type { CorpusFile, MuseChatRequest, MuseConversationStage, MuseRoleIntent, SearchResult } from "./types";
+import { fallbackAnswer, normalizeMuseVoice, voicePass } from "./voice";
 
 const DEFAULT_APP_ID = "tirakplus-muse";
 
@@ -41,13 +47,17 @@ async function handleIngest(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleSearch(request: Request, env: Env): Promise<Response> {
-  const body = await request.json() as { appId?: string; query?: string; topK?: number };
+  const body = await request.json() as { appId?: string; query?: string; topK?: number; roleIntent?: MuseRoleIntent; categories?: string[] };
   const appId = body.appId?.trim() || DEFAULT_APP_ID;
   if (!body.query?.trim()) return json({ error: "query is required" }, 400);
   if (!(await isAuthorizedRequest(env, request, appId))) return json({ error: "Unauthorized" }, 401);
 
   const appConfig = await getEnabledAppConfig(env, appId);
-  const results = await searchCorpus(env, appConfig, body.query, body.topK);
+  const results = await searchCorpus(env, appConfig, body.query, {
+    topK: body.topK,
+    roleIntent: body.roleIntent ?? inferRoleIntent(body.query),
+    categories: body.categories,
+  });
   return json({ appId, corpusId: appConfig.corpusId, results });
 }
 
@@ -59,17 +69,37 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
   if (!(await isAuthorizedRequest(env, request, appId))) return json({ error: "Unauthorized" }, 401);
 
   const appConfig = await getEnabledAppConfig(env, appId);
-  const context = await searchCorpus(env, appConfig, message, body.responseMode === "fast" ? 4 : appConfig.searchTopK);
+  const roleIntent = body.roleIntent ?? body.input?.roleIntent ?? inferRoleIntent(message);
+  const safetyDecision = classifySafety(message);
+  const promptInjection = detectPromptInjection(message);
+  const context = await searchCorpus(env, appConfig, message, {
+    topK: body.responseMode === "fast" ? 4 : appConfig.searchTopK,
+    roleIntent,
+    minScore: 0.12,
+  });
   const signals = inferSignals(message);
-  const stage = inferStage(body.stage ?? body.input?.stage ?? "arrival", signals);
-  const answer = await buildMuseAnswer(env, appConfig.chatModel, message, stage, context);
+  const stage = inferStage(body.stage ?? body.input?.stage ?? "arrival", signals, roleIntent, message);
+  const answer = safetyDecision.allowed && !promptInjection
+    ? await buildMuseAnswer(env, appConfig.chatModel, message, stage, roleIntent, context)
+    : refusalForSafety(safetyDecision.category ?? "prompt_injection");
   const conversationId = body.conversationId ?? body.input?.conversationId ?? `muse_${crypto.randomUUID()}`;
-  const content = sanitizeMuseCopy(answer);
+  const content = sanitizeMuseCopy(normalizeMuseVoice(answer || fallbackAnswer(stage, roleIntent, signals)));
   const qualityResult = evaluateMuseCopy(content);
+  const traceId = `trace_${crypto.randomUUID()}`;
+  const qualityNotes = [...qualityResult.blockedTerms, ...qualityResult.unsafeTerms, ...qualityResult.mechanicalPhrases];
+  const evolutionCandidate = qualityNotes.length
+    ? createEvolutionCandidate(roleIntent, {
+      category: qualityResult.blockedTerms.length ? "leakage_risk" : qualityResult.unsafeTerms.length ? "safety_boundary" : "tone_drift",
+      severity: qualityResult.blockedTerms.length || qualityResult.unsafeTerms.length ? "high" : "medium",
+      signal: qualityNotes.join(", "),
+      suggestedAction: "eval_candidate",
+    })
+    : undefined;
 
   return json({
     conversationId,
     stage,
+    roleIntent,
     contractVersion: "muse-response-v2",
     policyVersion: MUSE_POLICY_VERSION,
     reply: {
@@ -78,17 +108,30 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
       content,
       createdAt: new Date().toISOString(),
     },
-    suggestedPrompts: suggestedPrompts(stage),
+    suggestedPrompts: suggestedPrompts(stage, roleIntent),
     profileSignals: signals,
-    nextAction: nextAction(stage, signals),
+    nextAction: nextAction(stage, signals, roleIntent),
     agentMode: "external",
     retrievedContext: context,
     quality: {
       leakagePass: qualityResult.blockedTerms.length === 0,
-      safetyPass: qualityResult.unsafeTerms.length === 0,
-      voicePass: qualityResult.mechanicalPhrases.length === 0,
-      notes: [...qualityResult.blockedTerms, ...qualityResult.unsafeTerms, ...qualityResult.mechanicalPhrases],
+      safetyPass: safetyDecision.allowed && qualityResult.unsafeTerms.length === 0,
+      voicePass: voicePass(content) && qualityResult.mechanicalPhrases.length === 0,
+      retrievalPass: context.length > 0,
+      injectionPass: !promptInjection,
+      safetyCategory: safetyDecision.category,
+      notes: qualityNotes,
     },
+    observability: {
+      traceId,
+      policyVersion: MUSE_POLICY_VERSION,
+      stage,
+      roleIntent,
+      retrievedCount: context.length,
+      blockedBySafety: !safetyDecision.allowed || promptInjection,
+      createdAt: new Date().toISOString(),
+    },
+    ...(evolutionCandidate ? { evolutionCandidates: [evolutionCandidate] } : {}),
   });
 }
 
@@ -103,13 +146,14 @@ async function buildMuseAnswer(
   model: string,
   message: string,
   stage: MuseConversationStage,
+  roleIntent: MuseRoleIntent,
   context: SearchResult[],
 ): Promise<string> {
   const contextText = formatContext(context);
   const generated = await createChatCompletion(env, model, [
     {
       role: "system",
-      content: museSystemInstructions(stage),
+      content: museSystemInstructions(stage, roleIntent),
     },
     {
       role: "user",
@@ -117,94 +161,7 @@ async function buildMuseAnswer(
     },
   ], { maxTokens: 260, temperature: 0.35 });
 
-  if (generated) return generated;
-  return fallbackAnswer(message, stage, context);
-}
-
-function extractMessage(body: MuseChatRequest): string {
-  return (body.message ?? body.query ?? body.input?.message ?? "").trim();
-}
-
-function fallbackAnswer(message: string, stage: MuseConversationStage, context: SearchResult[]): string {
-  if (stage === "birth_context") {
-    return "Give me your birth date, birth place, and time if you know it. I will keep the engine private and translate it into timing, temperament, and fit.";
-  }
-  if (stage === "travel_context") {
-    return "Now place Thailand on the map for me: city, dates, and the kind of evening or guidance you want. I am looking for rhythm, not a checklist.";
-  }
-  if (stage === "safety_boundaries") {
-    return "Before I route anything, give me the privacy and comfort lines. The product is designed to slow down unsafe routing, pressure, and public exposure.";
-  }
-  const source = context[0];
-  return source
-    ? `I am reading this through Tirak Plus's ${source.metadata.title} context. Tell me one more thing: should this feel warm, witty, calm, private, or more locally guided?`
-    : `I can start with that. Tell me the date/place context and what kind of private Thailand experience you want.`;
-}
-
-function inferSignals(message: string) {
-  const lower = message.toLowerCase();
-  const city = ["bangkok", "phuket", "koh-samui", "koh-phangan"].find((item) =>
-    lower.includes(item) || lower.includes(item.replace("-", " ")),
-  ) as "bangkok" | "phuket" | "koh-samui" | "koh-phangan" | undefined;
-  const date = message.match(/\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b/)?.[0];
-  const time = message.match(/\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s?(?:am|pm)?\b/i)?.[0];
-  const place = message.match(/\b(?:born in|birth place is|from)\s+([a-zA-Z\s-]{3,40})/i)?.[1]?.trim();
-
-  const desireVector = [
-    lower.includes("private") || lower.includes("discreet") ? "privacy-led" : "",
-    lower.includes("warm") || lower.includes("kind") ? "warmth" : "",
-    lower.includes("witty") || lower.includes("funny") ? "playful conversation" : "",
-    lower.includes("calm") || lower.includes("quiet") ? "low-noise planning" : "",
-    lower.includes("nightlife") ? "polished nightlife" : "",
-  ].filter(Boolean);
-  const boundarySignals = [
-    lower.includes("safe") || lower.includes("safety") ? "safety explicit" : "",
-    lower.includes("slow") || lower.includes("no pressure") ? "low-pressure pace" : "",
-    lower.includes("private") || lower.includes("discreet") ? "discretion required" : "",
-  ].filter(Boolean);
-
-  return {
-    birthContext: {
-      ...(date ? { date } : {}),
-      ...(time ? { time } : {}),
-      ...(place ? { place } : {}),
-      confidence: date && time && place ? "complete" : date || time || place ? "partial" : "none",
-    },
-    travelContext: {
-      ...(city ? { city } : {}),
-      timeframe: lower.includes("weekend") ? "weekend" : lower.includes("tonight") ? "tonight" : undefined,
-      experienceHints: lower.includes("nightlife") ? ["nightlife"] : lower.includes("dining") ? ["private-dining"] : [],
-    },
-    desireVector,
-    boundarySignals,
-    routingHints: {
-      nextRoute: city ? `/cities/${city}` : undefined,
-      requiresAuth: false,
-      suggestedRole: lower.includes("profile") || lower.includes("bio") || lower.includes("services") ? "companion" : "traveller",
-    },
-  };
-}
-
-function inferStage(currentStage: MuseConversationStage, signals: ReturnType<typeof inferSignals>): MuseConversationStage {
-  if (signals.birthContext.confidence === "none") return "birth_context";
-  if (!signals.travelContext.city) return "travel_context";
-  if (signals.desireVector.length === 0) return "desire_mapping";
-  if (signals.boundarySignals.length === 0) return "safety_boundaries";
-  return currentStage === "safety_boundaries" ? "recommendation_ready" : currentStage;
-}
-
-function suggestedPrompts(stage: MuseConversationStage): string[] {
-  if (stage === "birth_context") return ["Born 14/08/1992 in London, time unknown", "I know my date and city but not time"];
-  if (stage === "travel_context") return ["Bangkok this weekend, private but warm", "Phuket for a quiet premium evening"];
-  if (stage === "desire_mapping") return ["Witty, calm, discreet, no chaos", "Local guidance with polished nightlife"];
-  if (stage === "safety_boundaries") return ["Keep it private and slow paced", "No off-platform pressure or public visibility"];
-  return ["Show me the private path", "Help me refine the fit first"];
-}
-
-function nextAction(stage: MuseConversationStage, signals: ReturnType<typeof inferSignals>) {
-  if (stage !== "recommendation_ready") return { label: "Continue with Muse", href: "/", kind: "continue" as const };
-  if (signals.routingHints.suggestedRole === "companion") return { label: "Open companion assist", href: "/auth/login", kind: "auth" as const };
-  return { label: "Review private discovery", href: "/auth/login", kind: "auth" as const };
+  return generated || "";
 }
 
 function json(body: Record<string, unknown>, status = 200): Response {

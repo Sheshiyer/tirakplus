@@ -101,6 +101,7 @@ export type MuseConversationStage =
   | "recommendation_ready";
 
 export type MuseChatRole = "user" | "muse";
+export type MuseRoleIntent = "traveller" | "companion" | "unknown";
 
 export type MuseChatMessage = {
   id: string;
@@ -116,7 +117,7 @@ export type MuseChatRequest = {
   clientContext?: {
     timezone?: string;
     route?: string;
-    roleIntent?: "traveller" | "companion";
+    roleIntent?: MuseRoleIntent;
   };
 };
 
@@ -161,6 +162,9 @@ export type MuseChartSignature = {
 export type MuseChatResponse = {
   conversationId: string;
   stage: MuseConversationStage;
+  roleIntent?: MuseRoleIntent;
+  contractVersion?: "muse-response-v2";
+  policyVersion?: string;
   reply: MuseChatMessage;
   suggestedPrompts: string[];
   profileSignals: MuseProfileSignals;
@@ -171,6 +175,24 @@ export type MuseChatResponse = {
   };
   agentMode: "staged" | "external";
   chart: MuseChartSignature;
+  quality?: {
+    leakagePass: boolean;
+    safetyPass: boolean;
+    voicePass: boolean;
+    retrievalPass?: boolean;
+    injectionPass?: boolean;
+    safetyCategory?: string;
+    notes: string[];
+  };
+  observability?: {
+    traceId: string;
+    policyVersion: string;
+    stage: MuseConversationStage;
+    roleIntent: MuseRoleIntent;
+    retrievedCount: number;
+    blockedBySafety: boolean;
+    createdAt: string;
+  };
 };
 
 export type SessionProfile = {

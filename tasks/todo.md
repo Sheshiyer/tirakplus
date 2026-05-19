@@ -258,6 +258,31 @@
 - `npm run check` passed after Phase 1 closeout evidence was added.
 - Closed GitHub issues `#1` through `#141`; open issue count is now `0`.
 
+# Muse RAG Hardening Completion Wave
+
+## Issues #202-#235
+
+- [x] Wire prompt-policy profiles for Muse base, traveller onboarding, companion onboarding, refusal/reframe, banned language, voice, and prompt-injection handling.
+- [x] Expand the RAG corpus into traveller, companion, safety, policy, eval, and operations categories with verification coverage.
+- [x] Integrate intent parsing, stage resolution, safety classification, leakage sanitization, voice normalization, next-action selection, and response-quality tracing into the Worker chat pipeline.
+- [x] Add golden traveller, companion, leakage, tone, safety, and prompt-injection eval fixtures and run them in CI.
+- [x] Document auto-evolution capture, candidate queue, experiment log, and promotion gates.
+- [x] Add KV/config versioning and observability guidance for the Muse RAG Worker.
+- [x] Update shared frontend contracts for role intent and quality metadata without exposing internal inference language in UI.
+- [x] Run release verification, contract smoke, and local traveller/companion Muse probes.
+- [x] Close GitHub issues `#202` through `#235` with evidence comments.
+
+## Review
+
+- Added Muse prompt policy profiles, refusal/reframe rules, banned/meta language handling, voice guide, and prompt-injection handling in the Muse Worker policy.
+- Expanded the Muse corpus to 16 categorized docs across product, brand, policy, safety, traveller, companion, eval, and ops with audience/sensitivity metadata.
+- Added response pipeline modules for intent, stage, safety, voice, next action, and auto-evolution candidates, then wired them into `/v1/chat`.
+- Added corpus verification, expanded Muse eval fixtures to 12 cases, and wired `muse:corpus` plus `muse:eval` into CI and `quality:release`.
+- Added docs for prompt policy, KV versioning, observability, auto-evolution, promotion gates, and an experiment log.
+- Verification passed: `npm run quality:release`, `npm run contract:smoke`, `npm exec -- wrangler deploy --dry-run --config workers/muse-rag/wrangler.jsonc`.
+- Local dedicated Muse Worker probe passed with `npx wrangler@4.93.0 dev` after ingesting the corpus: traveller, companion, and prompt-injection paths returned `muse-response-v2`, `2026-05-19-mrh-complete`, quality flags, and observability metadata.
+- GitHub issues `#202` through `#235` are closed; open issue list is empty.
+
 # Public Website Flow Pause Before New Issues
 
 Started on 2026-05-19:

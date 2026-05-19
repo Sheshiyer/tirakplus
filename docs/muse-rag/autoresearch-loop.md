@@ -17,6 +17,12 @@ Muse should improve through a reviewed keep-or-discard loop, not by freely rewri
 
 `id | question | baseline | change | metric | result | decision | notes`
 
+The active lightweight log lives at `docs/muse-rag/experiment-log.tsv`. Add a row for every prompt, corpus, retrieval, sanitizer, or eval change that is intended to influence production behavior.
+
+## Candidate Queue
+
+Conversation traces and eval failures can create improvement candidates, but they do not edit prompts directly. Each candidate should identify role intent, stage, pain-point category, severity, signal, and suggested action. Candidates move through `queued`, `testing`, `kept`, or `discarded`.
+
 ## Promotion Gate
 
 A candidate can ship only when:

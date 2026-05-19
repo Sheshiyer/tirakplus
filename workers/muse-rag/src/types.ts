@@ -6,23 +6,49 @@ export type MuseConversationStage =
   | "safety_boundaries"
   | "recommendation_ready";
 
+export type MuseRoleIntent = "traveller" | "companion" | "unknown";
+
+export type MuseProfileSignals = {
+  birthContext: {
+    date?: string;
+    time?: string;
+    place?: string;
+    confidence: "none" | "partial" | "complete";
+  };
+  travelContext: {
+    city?: "bangkok" | "phuket" | "koh-samui" | "koh-phangan";
+    timeframe?: string;
+    experienceHints: string[];
+  };
+  desireVector: string[];
+  boundarySignals: string[];
+  routingHints: {
+    nextRoute?: string;
+    requiresAuth: boolean;
+    suggestedRole?: "traveller" | "companion";
+  };
+};
+
 export type MuseChatRequest = {
   conversationId?: string;
   message?: string;
   query?: string;
   stage?: MuseConversationStage;
+  roleIntent?: MuseRoleIntent;
   appId?: string;
   responseMode?: "fast" | "best";
   input?: {
     conversationId?: string;
     message?: string;
     stage?: MuseConversationStage;
+    roleIntent?: MuseRoleIntent;
   };
 };
 
 export type MuseChatResponse = {
   conversationId: string;
   stage: MuseConversationStage;
+  roleIntent: MuseRoleIntent;
   contractVersion?: "muse-response-v2";
   policyVersion?: string;
   reply: {
@@ -32,26 +58,7 @@ export type MuseChatResponse = {
     createdAt: string;
   };
   suggestedPrompts: string[];
-  profileSignals: {
-    birthContext: {
-      date?: string;
-      time?: string;
-      place?: string;
-      confidence: "none" | "partial" | "complete";
-    };
-    travelContext: {
-      city?: "bangkok" | "phuket" | "koh-samui" | "koh-phangan";
-      timeframe?: string;
-      experienceHints: string[];
-    };
-    desireVector: string[];
-    boundarySignals: string[];
-    routingHints: {
-      nextRoute?: string;
-      requiresAuth: boolean;
-      suggestedRole?: "traveller" | "companion";
-    };
-  };
+  profileSignals: MuseProfileSignals;
   nextAction?: {
     label: string;
     href: string;
@@ -63,7 +70,19 @@ export type MuseChatResponse = {
     leakagePass: boolean;
     safetyPass: boolean;
     voicePass: boolean;
+    retrievalPass?: boolean;
+    injectionPass?: boolean;
+    safetyCategory?: string;
     notes: string[];
+  };
+  observability?: {
+    traceId: string;
+    policyVersion: string;
+    stage: MuseConversationStage;
+    roleIntent: MuseRoleIntent;
+    retrievedCount: number;
+    blockedBySafety: boolean;
+    createdAt: string;
   };
 };
 
@@ -99,6 +118,9 @@ export type CorpusFile = {
     title: string;
     category: string;
     sourcePath: string;
+    audience?: MuseRoleIntent[];
+    tags?: string[];
+    sensitivity?: "public" | "guardrail" | "private-method";
     content: string;
   }>;
 };
@@ -109,6 +131,9 @@ export type ChunkRecord = {
   title: string;
   category: string;
   sourcePath: string;
+  audience?: MuseRoleIntent[];
+  tags?: string[];
+  sensitivity?: "public" | "guardrail" | "private-method";
   chunkIndex: number;
   text: string;
   embedding?: number[];
@@ -123,6 +148,9 @@ export type SearchResult = {
     title: string;
     category: string;
     sourcePath: string;
+    audience?: MuseRoleIntent[];
+    tags?: string[];
+    sensitivity?: "public" | "guardrail" | "private-method";
     chunkIndex: number;
   };
 };
