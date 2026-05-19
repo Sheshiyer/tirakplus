@@ -1,0 +1,2 @@
+date	policy_version	change_type	role_intent	hypothesis	gate_result	decision	notes
+2026-05-19	2026-05-19-mrh-complete	baseline	traveller+companion	Harden Muse prompt policy, retrieval scope, and eval coverage without leaking private method language.	pending	pending	Created during issue batch #202-#235.

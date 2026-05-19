@@ -6,13 +6,15 @@
 - `policyVersion`: prompt and sanitization policy version.
 - `conversationId`: stable conversation id.
 - `stage`: current Muse stage.
+- `roleIntent`: traveller, companion, or unknown intent inferred from the request or supplied by the client.
 - `reply`: user-facing Muse message.
 - `suggestedPrompts`: safe follow-up prompts.
 - `profileSignals`: structured private signals for product routing.
 - `nextAction`: route/auth/continue handoff.
 - `agentMode`: external or staged source.
 - `retrievedContext`: debug context from RAG worker; do not expose in UI copy.
-- `quality`: private quality checks for leakage, safety, and voice.
+- `quality`: private quality checks for leakage, safety, voice, retrieval confidence, and prompt-injection handling.
+- `observability`: private trace metadata for QA and Worker logs; never render it directly in UI.
 
 ## Pain-Point Contract
 

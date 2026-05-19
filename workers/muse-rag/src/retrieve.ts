@@ -1,9 +1,17 @@
 import type { AppConfig, Env } from "./config";
 import { createEmbeddings } from "./nvidia";
-import type { ChunkRecord, CorpusFile, SearchResult } from "./types";
+import type { ChunkRecord, CorpusFile, MuseRoleIntent, SearchResult } from "./types";
 
 const CHUNK_SIZE = 1200;
 const CHUNK_OVERLAP = 180;
+const DEFAULT_MIN_SCORE = 0.12;
+
+export type SearchOptions = {
+  topK?: number;
+  minScore?: number;
+  roleIntent?: MuseRoleIntent;
+  categories?: string[];
+};
 
 export async function ingestCorpus(env: Env, appConfig: AppConfig, corpus: CorpusFile): Promise<{ count: number }> {
   const chunks = corpus.docs.flatMap((doc) => splitIntoChunks(normalizeText(doc.content)).map((text, chunkIndex) => ({
@@ -12,6 +20,9 @@ export async function ingestCorpus(env: Env, appConfig: AppConfig, corpus: Corpu
     title: doc.title,
     category: doc.category,
     sourcePath: doc.sourcePath,
+    audience: doc.audience,
+    tags: doc.tags,
+    sensitivity: doc.sensitivity,
     chunkIndex,
     text,
   })));
@@ -26,12 +37,19 @@ export async function ingestCorpus(env: Env, appConfig: AppConfig, corpus: Corpu
   return { count: records.length };
 }
 
-export async function searchCorpus(env: Env, appConfig: AppConfig, query: string, topK?: number): Promise<SearchResult[]> {
+export async function searchCorpus(
+  env: Env,
+  appConfig: AppConfig,
+  query: string,
+  optionsOrTopK?: SearchOptions | number,
+): Promise<SearchResult[]> {
   const stored = await env.APP_INDEX.get<ChunkRecord[]>(indexKey(appConfig.appId), "json");
   if (!stored?.length) return [];
 
+  const options = typeof optionsOrTopK === "number" ? { topK: optionsOrTopK } : optionsOrTopK ?? {};
   const queryEmbedding = await createEmbeddings(env, [query], appConfig.embeddingModel, "query");
-  const scored = stored.map((chunk) => ({
+  const scoped = stored.filter((chunk) => matchesScope(chunk, options));
+  const scored = scoped.map((chunk) => ({
     id: chunk.id,
     score: queryEmbedding?.[0] && chunk.embedding
       ? cosineSimilarity(queryEmbedding[0], chunk.embedding)
@@ -42,11 +60,18 @@ export async function searchCorpus(env: Env, appConfig: AppConfig, query: string
       title: chunk.title,
       category: chunk.category,
       sourcePath: chunk.sourcePath,
+      audience: chunk.audience,
+      tags: chunk.tags,
+      sensitivity: chunk.sensitivity,
       chunkIndex: chunk.chunkIndex,
     },
   }));
 
-  return scored.sort((a, b) => b.score - a.score).slice(0, topK ?? appConfig.searchTopK);
+  const minScore = options.minScore ?? DEFAULT_MIN_SCORE;
+  return scored
+    .filter((result) => result.score >= minScore)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, options.topK ?? appConfig.searchTopK);
 }
 
 export function formatContext(results: SearchResult[]): string {
@@ -74,6 +99,12 @@ function splitIntoChunks(text: string): string[] {
 
 function normalizeText(text: string): string {
   return text.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function matchesScope(chunk: ChunkRecord, options: SearchOptions): boolean {
+  if (options.categories?.length && !options.categories.includes(chunk.category)) return false;
+  if (!options.roleIntent || options.roleIntent === "unknown") return true;
+  return !chunk.audience?.length || chunk.audience.includes(options.roleIntent) || chunk.audience.includes("unknown");
 }
 
 function lexicalScore(query: string, text: string, title: string): number {
