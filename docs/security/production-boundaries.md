@@ -6,7 +6,11 @@ The current staged cookie is acceptable only for development. Production should 
 
 ## Request Protection
 
-State-changing routes need CSRF protection, payload validation, and body size limits. Auth, Muse chat, inquiries, safety reports, and account updates also need rate limits.
+The staged Worker now issues a per-session CSRF token and requires `X-Tirak-CSRF` on cookie-authenticated state-changing routes. Auth start/verify and Muse chat remain available without the token. Production should move token/session state to a server-side store and add explicit body size limits.
+
+Auth, Muse chat, inquiries, safety reports, and account/companion mutations also have staged in-memory rate limits. Production should move these limits to Durable Objects, KV with careful consistency expectations, or another approved shared limiter.
+
+Payload validation exists at the route boundary for current staged contracts. Production should keep those validations close to the Worker/API boundary and add schema-driven validation before persistence.
 
 ## Storage
 

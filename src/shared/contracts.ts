@@ -186,12 +186,14 @@ export type Session = {
   id: string;
   profile: SessionProfile;
   expiresAt: string;
+  csrfToken?: string;
 };
 
 export type SessionState = {
   session: Session | null;
   status: "anonymous" | "active";
   protectedRoutesEnabled: boolean;
+  csrfToken?: string | null;
 };
 
 export type AuthStartRequest = {
@@ -213,6 +215,7 @@ export type AuthVerifyRequest = {
 
 export type AuthVerifyResponse = {
   session: Session;
+  csrfToken?: string;
 };
 
 export type RoleSwitchRequest = {

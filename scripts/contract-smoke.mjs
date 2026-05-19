@@ -61,8 +61,10 @@ async function createSession(role) {
   assertEnvelope(result, `auth verify ${role}`);
   const setCookie = result.response.headers.get("set-cookie");
   assert(setCookie, `auth verify ${role}: missing Set-Cookie`);
+  const csrfToken = result.payload.data?.csrfToken || result.payload.data?.session?.csrfToken;
+  assert(csrfToken, `auth verify ${role}: missing CSRF token`);
   results.push({ label: `auth verify ${role}`, status: result.response.status });
-  return setCookie.split(";")[0];
+  return { cookie: setCookie.split(";")[0], csrfToken };
 }
 
 const routes = await expectOk("route registry", "/api/system/routes");
@@ -83,16 +85,31 @@ await expectOk("safety content", "/api/safety/content");
 await expectOk("payment providers", "/api/payments/providers");
 
 await expectError("traveller discovery unauthorized", "/api/traveller/discovery", 401);
-const travellerCookie = await createSession("traveller");
+const travellerSession = await createSession("traveller");
+const travellerCookie = travellerSession.cookie;
+const travellerCsrfHeaders = { "X-Tirak-CSRF": travellerSession.csrfToken };
 await expectOk("traveller dashboard", "/api/traveller/dashboard", { cookie: travellerCookie });
 await expectOk("traveller discovery", "/api/traveller/discovery?city=bangkok&experience=nightlife", { cookie: travellerCookie });
 await expectOk("traveller profile", "/api/traveller/companions/cmp-aura", { cookie: travellerCookie });
 await expectOk("traveller sessions", "/api/traveller/sessions", { cookie: travellerCookie });
 await expectOk("traveller session detail", "/api/traveller/sessions/sess-bkk-aura-001", { cookie: travellerCookie });
 await expectError("traveller restricted profile", "/api/traveller/companions/cmp-nara", 423, { cookie: travellerCookie });
+await expectError("traveller mutation missing csrf", "/api/traveller/inquiries", 403, {
+  method: "POST",
+  cookie: travellerCookie,
+  body: {
+    companionId: "cmp-aura",
+    city: "bangkok",
+    experience: "nightlife",
+    preferredWindow: "",
+    message: "short",
+    privacyAcknowledged: false,
+  },
+});
 await expectError("traveller inquiry validation", "/api/traveller/inquiries", 422, {
   method: "POST",
   cookie: travellerCookie,
+  headers: travellerCsrfHeaders,
   body: {
     companionId: "cmp-aura",
     city: "bangkok",
@@ -105,17 +122,20 @@ await expectError("traveller inquiry validation", "/api/traveller/inquiries", 42
 await expectError("stripe compliance gate", "/api/traveller/inquiries/inq-staged-aura/stripe-checkout-session", 409, {
   method: "POST",
   cookie: travellerCookie,
+  headers: travellerCsrfHeaders,
   body: {},
 });
 await expectOk("account detail", "/api/account", { cookie: travellerCookie });
 await expectOk("account privacy", "/api/account/privacy", {
   method: "PATCH",
   cookie: travellerCookie,
+  headers: travellerCsrfHeaders,
   body: { receiveInquiryUpdates: false },
 });
 await expectOk("safety report", "/api/safety/reports", {
   method: "POST",
   cookie: travellerCookie,
+  headers: travellerCsrfHeaders,
   body: {
     targetType: "profile",
     targetId: "cmp-aura",
@@ -126,7 +146,9 @@ await expectOk("safety report", "/api/safety/reports", {
 });
 
 await expectError("companion onboarding wrong role", "/api/companion/onboarding", 403, { cookie: travellerCookie });
-const companionCookie = await createSession("companion");
+const companionSession = await createSession("companion");
+const companionCookie = companionSession.cookie;
+const companionCsrfHeaders = { "X-Tirak-CSRF": companionSession.csrfToken };
 await expectOk("companion onboarding", "/api/companion/onboarding", { cookie: companionCookie });
 await expectOk("companion dashboard", "/api/companion/dashboard", { cookie: companionCookie });
 await expectOk("companion inquiries", "/api/companion/inquiries", { cookie: companionCookie });
@@ -134,11 +156,13 @@ await expectOk("companion inquiry detail", "/api/companion/inquiries/cinq-staged
 await expectError("companion profile validation", "/api/companion/profile", 422, {
   method: "PATCH",
   cookie: companionCookie,
+  headers: companionCsrfHeaders,
   body: { displayName: "M", city: "bad", experienceTags: [], bio: "short" },
 });
 await expectOk("companion availability save", "/api/companion/availability", {
   method: "PATCH",
   cookie: companionCookie,
+  headers: companionCsrfHeaders,
   body: {
     availabilityWindows: [
       {

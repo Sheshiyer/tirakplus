@@ -12,6 +12,7 @@ import type {
   TravellerSessionDetail,
   TravellerSessionListResponse,
 } from "../../shared/contracts";
+import { csrfHeaders } from "./csrf";
 
 type ApiEnvelope<T> = {
   data: T;
@@ -46,7 +47,7 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...init.headers,
+      ...csrfHeaders(init.headers),
     },
   });
 

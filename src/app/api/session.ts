@@ -8,6 +8,7 @@ import type {
   SessionState,
   UserRole,
 } from "../../shared/contracts";
+import { csrfHeaders, setCsrfToken } from "./csrf";
 
 export type { Session, UserRole };
 
@@ -28,7 +29,7 @@ async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...init.headers,
+      ...csrfHeaders(init.headers),
     },
   });
 
@@ -62,22 +63,27 @@ export class SessionService {
   }
 
   static async verifyCode(payload: AuthVerifyRequest): Promise<AuthVerifyResponse> {
-    return apiRequest<AuthVerifyResponse>("/api/auth/verify", {
+    const response = await apiRequest<AuthVerifyResponse>("/api/auth/verify", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    setCsrfToken(response.csrfToken ?? response.session.csrfToken);
+    return response;
   }
 
   static async getSession(): Promise<Session | null> {
     const state = await apiRequest<SessionState>("/api/session");
+    setCsrfToken(state.csrfToken ?? state.session?.csrfToken);
     return state.session;
   }
 
   static async switchRole(role: RoleSwitchRequest["role"]): Promise<AuthVerifyResponse> {
-    return apiRequest<AuthVerifyResponse>("/api/session/role", {
+    const response = await apiRequest<AuthVerifyResponse>("/api/session/role", {
       method: "POST",
       body: JSON.stringify({ role }),
     });
+    setCsrfToken(response.csrfToken ?? response.session.csrfToken);
+    return response;
   }
 
   static async logout(): Promise<void> {
@@ -85,5 +91,6 @@ export class SessionService {
       method: "POST",
       body: JSON.stringify({}),
     });
+    setCsrfToken(null);
   }
 }
