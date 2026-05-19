@@ -1,5 +1,6 @@
 import { getAppConfig, getDefaults, isAuthorizedRequest, type Env } from "./config";
 import { createChatCompletion } from "./nvidia";
+import { evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, sanitizeMuseCopy } from "./policy";
 import { formatContext, ingestCorpus, searchCorpus } from "./retrieve";
 import type { CorpusFile, MuseChatRequest, MuseConversationStage, SearchResult } from "./types";
 
@@ -63,14 +64,18 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
   const stage = inferStage(body.stage ?? body.input?.stage ?? "arrival", signals);
   const answer = await buildMuseAnswer(env, appConfig.chatModel, message, stage, context);
   const conversationId = body.conversationId ?? body.input?.conversationId ?? `muse_${crypto.randomUUID()}`;
+  const content = sanitizeMuseCopy(answer);
+  const qualityResult = evaluateMuseCopy(content);
 
   return json({
     conversationId,
     stage,
+    contractVersion: "muse-response-v2",
+    policyVersion: MUSE_POLICY_VERSION,
     reply: {
       id: `msg_${crypto.randomUUID()}`,
       role: "muse",
-      content: sanitizeMuseCopy(answer),
+      content,
       createdAt: new Date().toISOString(),
     },
     suggestedPrompts: suggestedPrompts(stage),
@@ -78,6 +83,12 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
     nextAction: nextAction(stage, signals),
     agentMode: "external",
     retrievedContext: context,
+    quality: {
+      leakagePass: qualityResult.blockedTerms.length === 0,
+      safetyPass: qualityResult.unsafeTerms.length === 0,
+      voicePass: qualityResult.mechanicalPhrases.length === 0,
+      notes: [...qualityResult.blockedTerms, ...qualityResult.unsafeTerms, ...qualityResult.mechanicalPhrases],
+    },
   });
 }
 
@@ -98,13 +109,7 @@ async function buildMuseAnswer(
   const generated = await createChatCompletion(env, model, [
     {
       role: "system",
-      content: [
-        "You are Muse, Tirak Plus's private guide for reviewed Thailand discovery.",
-        "Use only the provided Tirak Plus context for product facts.",
-        "You may infer tone, timing, privacy, boundaries, and attraction patterns.",
-        "Never mention zodiac, astrology, vimshottari, dasha, houses, nakshatra, birth chart, or matching-engine internals.",
-        "Avoid explicit sexual copy, red-light framing, fake urgency, off-platform contact/payment pressure, and objectifying companion language.",
-      ].join(" "),
+      content: museSystemInstructions(stage),
     },
     {
       role: "user",
@@ -200,13 +205,6 @@ function nextAction(stage: MuseConversationStage, signals: ReturnType<typeof inf
   if (stage !== "recommendation_ready") return { label: "Continue with Muse", href: "/", kind: "continue" as const };
   if (signals.routingHints.suggestedRole === "companion") return { label: "Open companion assist", href: "/auth/login", kind: "auth" as const };
   return { label: "Review private discovery", href: "/auth/login", kind: "auth" as const };
-}
-
-function sanitizeMuseCopy(value: string): string {
-  return value
-    .replace(/\b(?:AI concierge|Muse concierge|concierge)\b/gi, "Muse")
-    .replace(/\b(?:zodiac|astrology|vimshottari|dasha|houses?|nakshatra|birth chart|matching engine)\b/gi, "pattern")
-    .slice(0, 1400);
 }
 
 function json(body: Record<string, unknown>, status = 200): Response {
