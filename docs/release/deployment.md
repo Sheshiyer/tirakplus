@@ -11,6 +11,16 @@
 - Confirm `wrangler.jsonc` Worker name and compatibility date.
 - Add explicit routes or custom domain mapping for `tirakplus.com`.
 - Keep `tirakplus-muse-rag` separate from other project Workers.
+
+## Vercel Web Shell
+
+The Vercel project serves the Vite web shell from `dist` and keeps browser traffic same-origin by rewriting `/api/*` to the Cloudflare customer Worker:
+
+- Vercel app routes: static assets and SPA deep links.
+- API origin: `https://tirakplus.tirak-court.workers.dev/api/*`.
+- Muse RAG remains isolated behind the Cloudflare customer Worker service binding.
+
+When the production domain is moved to Vercel, the browser should continue calling relative `/api/*` routes. Vercel rewrites those calls server-side, so the browser does not need cross-origin API access.
 - Store `NVIDIA_API_KEY`, `MUSE_AGENT_API_KEY`, and related secrets per Worker.
 - Verify service binding from customer Worker to Muse RAG before production deploy.
 
