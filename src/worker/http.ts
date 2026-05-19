@@ -2,6 +2,13 @@ type ApiResponseInit = ResponseInit & {
   requestId?: string;
 };
 
+const SECURITY_HEADERS = {
+  "Cache-Control": "no-store",
+  "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Content-Type-Options": "nosniff",
+} as const;
+
 export function createRequestId(request: Request): string {
   const incoming = request.headers.get("X-Request-Id");
   if (incoming && /^[A-Za-z0-9._:-]{8,96}$/.test(incoming)) {
@@ -17,7 +24,7 @@ export function json<T>(data: T, init: ApiResponseInit = {}): Response {
     {
       ...responseInit,
       headers: {
-        "Cache-Control": "no-store",
+        ...SECURITY_HEADERS,
         "X-Request-Id": requestId,
         ...headers,
       },
@@ -45,7 +52,7 @@ export function apiError(
       ...responseInit,
       status,
       headers: {
-        "Cache-Control": "no-store",
+        ...SECURITY_HEADERS,
         "X-Request-Id": requestId,
         ...headers,
       },

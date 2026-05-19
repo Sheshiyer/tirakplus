@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { DiscoveryFilterSelection, DiscoveryResponse } from "../../shared/contracts";
 import { isCitySlug, isExperienceSlug, TravellerService } from "../api/traveller";
+import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { CompanionPreviewCard } from "../components/ui/CompanionPreviewCard";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -101,6 +102,7 @@ export function TravellerDiscovery() {
       {state.status === "ready" && (
         <div className="discovery-layout">
           <aside className="filter-panel" aria-label="Discovery filters">
+            <MuseChartPanel chart={state.data.chart} compact />
             <Select
               label="City"
               value={state.data.filters.city}

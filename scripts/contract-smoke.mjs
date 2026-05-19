@@ -84,8 +84,11 @@ await expectOk("payment providers", "/api/payments/providers");
 
 await expectError("traveller discovery unauthorized", "/api/traveller/discovery", 401);
 const travellerCookie = await createSession("traveller");
+await expectOk("traveller dashboard", "/api/traveller/dashboard", { cookie: travellerCookie });
 await expectOk("traveller discovery", "/api/traveller/discovery?city=bangkok&experience=nightlife", { cookie: travellerCookie });
 await expectOk("traveller profile", "/api/traveller/companions/cmp-aura", { cookie: travellerCookie });
+await expectOk("traveller sessions", "/api/traveller/sessions", { cookie: travellerCookie });
+await expectOk("traveller session detail", "/api/traveller/sessions/sess-bkk-aura-001", { cookie: travellerCookie });
 await expectError("traveller restricted profile", "/api/traveller/companions/cmp-nara", 423, { cookie: travellerCookie });
 await expectError("traveller inquiry validation", "/api/traveller/inquiries", 422, {
   method: "POST",
@@ -127,6 +130,7 @@ const companionCookie = await createSession("companion");
 await expectOk("companion onboarding", "/api/companion/onboarding", { cookie: companionCookie });
 await expectOk("companion dashboard", "/api/companion/dashboard", { cookie: companionCookie });
 await expectOk("companion inquiries", "/api/companion/inquiries", { cookie: companionCookie });
+await expectOk("companion inquiry detail", "/api/companion/inquiries/cinq-staged-001", { cookie: companionCookie });
 await expectError("companion profile validation", "/api/companion/profile", 422, {
   method: "PATCH",
   cookie: companionCookie,

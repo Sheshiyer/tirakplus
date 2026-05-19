@@ -1,0 +1,22 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "tirakplus-muse-rag",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-18",
+  "vars": {
+    "ENVIRONMENT": "staging"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "APP_CONFIG",
+      "id": "1b8698c5b28c4d56a44de7b945daec23"
+    },
+    {
+      "binding": "APP_INDEX",
+      "id": "9bfb4fe7f4194b1096c5d48b3ab99287"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

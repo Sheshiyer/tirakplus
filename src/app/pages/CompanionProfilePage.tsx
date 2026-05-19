@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { CompanionProfile } from "../../shared/contracts";
 import { ApiRequestError, TravellerService } from "../api/traveller";
+import { AssetRegistry } from "../registry/assets";
+import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonProfile } from "../components/ui/Skeleton";
@@ -87,11 +89,16 @@ export function CompanionProfilePage() {
         </div>
 
         <aside className="profile-verification-panel" aria-label="Verification state">
+          <div className="profile-portrait" aria-hidden="true">
+            <img src={AssetRegistry.resolveAsset("profile", profile.avatarUrl)} alt="" />
+          </div>
           <p className="meta">Verification</p>
           <h2>{profile.verification.label}</h2>
           <p>{profile.verification.reviewNote}</p>
         </aside>
       </div>
+
+      <MuseChartPanel chart={profile.chart} className="profile-chart-panel" />
 
       <div className="profile-detail-grid">
         <section className="profile-detail-panel" aria-labelledby="availability-heading">

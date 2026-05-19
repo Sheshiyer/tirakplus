@@ -5,12 +5,15 @@ import {
   companionOptions,
   companionProfiles,
   companionReviewStates,
+  companionSessionDetails,
   companions,
   discoveryFilterOptions,
   entryPaths,
   experiences,
   safetyContent,
+  travellerDashboard,
   travellerInquiries,
+  travellerSessions,
 } from "./staged-data";
 import type {
   AccountPrivacySettings,
@@ -22,6 +25,7 @@ import type {
   CompanionOptionSet,
   CompanionProfile,
   CompanionReviewStateCard,
+  CompanionSessionDetail,
   DiscoveryFilterModel,
   ExperienceSlug,
   ExperienceSummary,
@@ -30,7 +34,9 @@ import type {
   SafetyReportRequest,
   SafetyReportResponse,
   Session,
+  TravellerDashboardResponse,
   TravellerInquiryDetail,
+  TravellerSessionDetail,
 } from "../shared/contracts";
 
 export type ExperienceFilter = {
@@ -53,10 +59,10 @@ export function createStagedDataProvider() {
       return {
         brand: {
           name: "Tirak Plus",
-          promise: "Private Thailand companion concierge for reviewed adult travellers.",
+          promise: "A private Thailand members path for reviewed travellers, companions, and introductions shaped by Muse.",
         },
         cities,
-        highlights: ["Verified visibility", "Private inquiries", "Provider approval before payments"],
+        highlights: ["Muse before public browsing", "Visibility and inquiry review", "Payment gates before money moves"],
         entryPaths,
       };
     },
@@ -97,6 +103,18 @@ export function createStagedDataProvider() {
       return travellerInquiries.find((item) => item.id === id);
     },
 
+    getTravellerDashboard(): TravellerDashboardResponse {
+      return travellerDashboard;
+    },
+
+    listTravellerSessions(): TravellerSessionDetail[] {
+      return travellerSessions;
+    },
+
+    getTravellerSession(id: string): TravellerSessionDetail | undefined {
+      return travellerSessions.find((item) => item.id === id);
+    },
+
     getCompanionDraftProfile(): CompanionDraftProfile {
       return companionDraftProfile;
     },
@@ -111,6 +129,10 @@ export function createStagedDataProvider() {
 
     listCompanionInquiries(): CompanionInquirySummary[] {
       return companionInquiries;
+    },
+
+    getCompanionSession(id: string): CompanionSessionDetail | undefined {
+      return companionSessionDetails.find((item) => item.id === id);
     },
 
     getSafetyContent(): SafetyContent {

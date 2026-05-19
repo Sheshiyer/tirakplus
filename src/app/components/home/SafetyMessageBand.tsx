@@ -1,4 +1,5 @@
 import type { SafetyContent } from "../../../shared/contracts";
+import { MusePoseImage } from "../muse/MusePoseImage";
 
 interface SafetyMessageBandProps {
   content: SafetyContent;
@@ -10,6 +11,7 @@ export function SafetyMessageBand({ content }: SafetyMessageBandProps) {
       <div>
         <p className="eyebrow">Safety before conversion</p>
         <h2 id="home-safety-title">{content.title}</h2>
+        <MusePoseImage variant="privacy" label="Muse in a composed privacy and safety pose" className="safety-muse-model" />
       </div>
       <ul className="safety-principle-list">
         {content.principles.map((principle) => (

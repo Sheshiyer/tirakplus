@@ -8,6 +8,9 @@ import type {
   TravellerInquiryDetail,
   TravellerInquiryListResponse,
   TravellerInquiryRequest,
+  TravellerDashboardResponse,
+  TravellerSessionDetail,
+  TravellerSessionListResponse,
 } from "../../shared/contracts";
 
 type ApiEnvelope<T> = {
@@ -84,6 +87,10 @@ function buildDiscoveryQuery(filters: DiscoveryQuery): string {
 }
 
 export const TravellerService = {
+  getDashboard(): Promise<TravellerDashboardResponse> {
+    return apiRequest<TravellerDashboardResponse>("/api/traveller/dashboard");
+  },
+
   getDiscovery(filters: DiscoveryQuery): Promise<DiscoveryResponse> {
     return apiRequest<DiscoveryResponse>(`/api/traveller/discovery${buildDiscoveryQuery(filters)}`);
   },
@@ -94,6 +101,14 @@ export const TravellerService = {
 
   getInquiries(): Promise<TravellerInquiryListResponse> {
     return apiRequest<TravellerInquiryListResponse>("/api/traveller/inquiries");
+  },
+
+  getSessions(): Promise<TravellerSessionListResponse> {
+    return apiRequest<TravellerSessionListResponse>("/api/traveller/sessions");
+  },
+
+  getSession(sessionId: string): Promise<TravellerSessionDetail> {
+    return apiRequest<TravellerSessionDetail>(`/api/traveller/sessions/${encodeURIComponent(sessionId)}`);
   },
 
   getInquiry(inquiryId: string): Promise<TravellerInquiryDetail> {

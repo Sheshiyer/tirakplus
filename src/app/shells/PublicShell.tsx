@@ -1,15 +1,20 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
 import { Button } from "../components/ui/Button";
 import { CompassIcon, ShieldIcon, CreditCardIcon, UserIcon } from "../components/navigation/Icons";
+import { AssetRegistry } from "../registry/assets";
 
 export function PublicShell() {
+  const location = useLocation();
+  const isMuseEntry = location.pathname === "/";
   const navLinks = [
+    { href: "/", label: "Muse" },
+    { href: "/overview", label: "Overview" },
     { href: "/cities/phuket", label: "Cities" },
     { href: "/experiences/nightlife", label: "Experiences" },
-    { href: "/discovery", label: "Discovery" },
     { href: "/safety", label: "Safety" },
+    { href: "/payments", label: "Payments" },
   ];
 
   const mobileNavItems = [
@@ -21,19 +26,25 @@ export function PublicShell() {
 
   return (
     <div className="app-shell public-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <TopNav
-        logo={<Link to="/" className="brand-link">Tirak Plus</Link>}
+        logo={
+          <Link to="/" className="brand-link brand-link-with-mark">
+            <img src={AssetRegistry.brand.tirakPlusMuseIcon192} alt="" aria-hidden="true" />
+            <span>Tirak Plus</span>
+          </Link>
+        }
         links={navLinks}
         action={
           <Button as={Link} to="/auth/login" variant="primary">
             Join / Log In
           </Button>
         }
-        theme="porcelain"
+        theme={isMuseEntry ? "night" : "porcelain"}
       />
       <BottomNav items={mobileNavItems} />
       
-      <main className="main-surface">
+      <main id="main-content" className="main-surface" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

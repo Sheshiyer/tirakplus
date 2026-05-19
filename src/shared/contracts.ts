@@ -24,6 +24,7 @@ export type ApiRouteMethod = "GET" | "POST" | "PATCH";
 
 export type ApiRouteAudience =
   | "public"
+  | "muse"
   | "auth"
   | "traveller"
   | "companion"
@@ -90,6 +91,87 @@ export type DataModelSchemaResponse = {
 };
 
 export type UserRole = "traveller" | "companion" | "admin";
+
+export type MuseConversationStage =
+  | "arrival"
+  | "birth_context"
+  | "travel_context"
+  | "desire_mapping"
+  | "safety_boundaries"
+  | "recommendation_ready";
+
+export type MuseChatRole = "user" | "muse";
+
+export type MuseChatMessage = {
+  id: string;
+  role: MuseChatRole;
+  content: string;
+  createdAt: string;
+};
+
+export type MuseChatRequest = {
+  conversationId?: string;
+  message: string;
+  stage?: MuseConversationStage;
+  clientContext?: {
+    timezone?: string;
+    route?: string;
+    roleIntent?: "traveller" | "companion";
+  };
+};
+
+export type MuseProfileSignals = {
+  birthContext: {
+    date?: string;
+    time?: string;
+    place?: string;
+    confidence: "none" | "partial" | "complete";
+  };
+  travelContext: {
+    city?: CitySlug;
+    timeframe?: string;
+    experienceHints: ExperienceSlug[];
+  };
+  desireVector: string[];
+  boundarySignals: string[];
+  routingHints: {
+    nextRoute?: string;
+    requiresAuth: boolean;
+    suggestedRole?: "traveller" | "companion";
+  };
+};
+
+export type MuseChartTone = "rose" | "lavender" | "green" | "pearl";
+
+export type MuseChartAxis = {
+  label: string;
+  value: string;
+  tone: MuseChartTone;
+};
+
+export type MuseChartSignature = {
+  title: string;
+  tagline: string;
+  summary: string;
+  axes: MuseChartAxis[];
+  cues: string[];
+  nextPrompt: string;
+};
+
+export type MuseChatResponse = {
+  conversationId: string;
+  stage: MuseConversationStage;
+  reply: MuseChatMessage;
+  suggestedPrompts: string[];
+  profileSignals: MuseProfileSignals;
+  nextAction?: {
+    label: string;
+    href: string;
+    kind: "route" | "auth" | "continue";
+  };
+  agentMode: "staged" | "external";
+  chart: MuseChartSignature;
+};
 
 export type SessionProfile = {
   id: string;
@@ -205,6 +287,7 @@ export type ExperienceSummary = {
 export type CompanionPreview = {
   id: string;
   displayName: string;
+  avatarUrl?: string;
   city: CitySlug;
   experienceTags: ExperienceSlug[];
   verificationState: "approved" | "pending_verification" | "changes_requested";
@@ -237,6 +320,7 @@ export type DiscoveryResponse = {
   filters: DiscoveryFilterSelection;
   filterOptions: DiscoveryFilterModel;
   results: CompanionPreview[];
+  chart: MuseChartSignature;
   emptyState: {
     title: string;
     description: string;
@@ -269,6 +353,7 @@ export type CompanionProfile = CompanionPreview & {
   experienceFit: ProfileExperienceFit[];
   safetyNote: string;
   inquiryGuidance: string[];
+  chart: MuseChartSignature;
 };
 
 export type InquiryStatus =
@@ -327,6 +412,62 @@ export type TravellerInquiryListResponse = {
 
 export type TravellerInquiryCreateResponse = {
   inquiry: TravellerInquiryDetail;
+};
+
+export type LoggedInMetric = {
+  label: string;
+  value: string;
+  note: string;
+};
+
+export type SessionChecklistItem = {
+  label: string;
+  status: "complete" | "active" | "pending" | "blocked";
+  note: string;
+};
+
+export type TravellerSessionSummary = {
+  id: string;
+  inquiryId: string;
+  companionId: string;
+  companionDisplayName: string;
+  companionAvatarUrl?: string;
+  city: CitySlug;
+  experience: ExperienceSlug;
+  status: "reviewing" | "scheduled" | "awaiting_confirmation" | "completed" | "blocked";
+  scheduledFor: string;
+  venueArea: string;
+  routeLabel: string;
+  nextStep: string;
+};
+
+export type TravellerSessionDetail = TravellerSessionSummary & {
+  museRead: MuseChartSignature;
+  itinerary: SessionChecklistItem[];
+  messageThread: MuseChatMessage[];
+  safetyNotes: string[];
+  paymentState: TravellerInquiryDetail["paymentState"];
+  privacyNote: string;
+};
+
+export type TravellerSessionListResponse = {
+  results: TravellerSessionSummary[];
+  emptyState: {
+    title: string;
+    description: string;
+  };
+};
+
+export type TravellerDashboardResponse = {
+  chart: MuseChartSignature;
+  greeting: string;
+  summary: string;
+  metrics: LoggedInMetric[];
+  activeInquiry: TravellerInquiryDetail;
+  upcomingSession: TravellerSessionSummary;
+  savedProfiles: CompanionPreview[];
+  sessionPreview: TravellerSessionSummary[];
+  guidance: string[];
 };
 
 export type CompanionReviewStatus =
@@ -392,6 +533,7 @@ export type CompanionOnboardingState = {
   };
   guidance: string[];
   requiredActions: string[];
+  chart: MuseChartSignature;
 };
 
 export type CompanionProfileUpdateRequest = Partial<{
@@ -438,6 +580,7 @@ export type CompanionReviewStateCard = {
 export type CompanionDashboardResponse = {
   profile: CompanionDraftProfile;
   progress: CompanionOnboardingState["progress"];
+  chart: MuseChartSignature;
   reviewStates: CompanionReviewStateCard[];
   panels: {
     title: string;
@@ -457,6 +600,19 @@ export type CompanionInquirySummary = {
   receivedAt: string;
   nextStep: string;
   privacyNote: string;
+};
+
+export type CompanionSessionDetail = CompanionInquirySummary & {
+  travellerContext: string;
+  museFit: MuseChartSignature;
+  decisionOptions: {
+    label: string;
+    value: "request_review" | "accept_after_review" | "decline_safely";
+    description: string;
+  }[];
+  checklist: SessionChecklistItem[];
+  messageThread: MuseChatMessage[];
+  paymentState: TravellerInquiryDetail["paymentState"];
 };
 
 export type CompanionInquiryListResponse = {

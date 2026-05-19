@@ -29,16 +29,18 @@ export function AccountSettings() {
   return (
     <section className="account-page">
       <div className="account-heading">
-        <h1>Account settings</h1>
-        <p>Manage your profile, preferences, and roles.</p>
+        <p className="eyebrow">Account and privacy</p>
+        <h1>Your protected Tirak Plus profile.</h1>
+        <p>Manage the signed-in role, private session state, and visibility expectations used during development QA.</p>
       </div>
 
       <div className="account-panel">
         <div className="account-row">
           <div>
-            <h2>Profile context</h2>
+            <h2>Dev persona rail</h2>
             <p>
-              You are currently viewing Tirak as a <strong>{currentRole}</strong>.
+              You are currently viewing the protected app as a <strong>{currentRole}</strong>. Role switching is available
+              here so traveller and companion flows can be QA-tested without creating throwaway accounts.
             </p>
           </div>
           <Button variant="secondary" onClick={handleSwitchRole} disabled={isLoading}>
@@ -54,9 +56,10 @@ export function AccountSettings() {
 
         <div className="account-row account-row-last">
           <div>
-            <h2>Session</h2>
+            <h2>Private session</h2>
             <p>
-              Signed in as {session.profile.email}
+              Signed in as {session.profile.email}. This screen should never expose verification documents, exact route
+              details, or off-platform payment prompts.
             </p>
           </div>
           <Button variant="danger" onClick={handleLogout} disabled={isLoading}>
