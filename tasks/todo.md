@@ -543,6 +543,7 @@ Started on 2026-05-19:
 - [ ] Commit, push, PR, and merge the deployment config to `main` so GitHub-connected Vercel builds have the right routing.
 - [ ] Create or link the Vercel project under the team account and connect it to `Sheshiyer/tirakplus`.
 - [ ] Trigger a production deployment and verify the deployment URL loads the app plus API routes without CORS breakage.
+- [x] Replace the temporary Cloudflare `/api/*` rewrite with a Vercel API adapter if the live Cloudflare Worker cannot be deployed from the current account context.
 
 ## Review
 

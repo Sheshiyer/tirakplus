@@ -14,13 +14,13 @@
 
 ## Vercel Web Shell
 
-The Vercel project serves the Vite web shell from `dist` and keeps browser traffic same-origin by rewriting `/api/*` to the Cloudflare customer Worker:
+The Vercel project serves the Vite web shell from `dist` and keeps browser traffic same-origin by running `/api/*` through `api/[...path].js`, which adapts the existing Worker API handler to Vercel serverless functions:
 
 - Vercel app routes: static assets and SPA deep links.
-- API origin: `https://tirakplus.tirak-court.workers.dev/api/*`.
-- Muse RAG remains isolated behind the Cloudflare customer Worker service binding.
+- API origin: same Vercel deployment domain.
+- Muse defaults to staged mode on Vercel unless external Muse credentials/service wiring are added for that environment.
 
-When the production domain is moved to Vercel, the browser should continue calling relative `/api/*` routes. Vercel rewrites those calls server-side, so the browser does not need cross-origin API access.
+When the production domain is moved to Vercel, the browser should continue calling relative `/api/*` routes. No browser CORS exception is required because app and API share the same origin.
 - Store `NVIDIA_API_KEY`, `MUSE_AGENT_API_KEY`, and related secrets per Worker.
 - Verify service binding from customer Worker to Muse RAG before production deploy.
 
