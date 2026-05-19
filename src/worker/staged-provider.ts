@@ -14,7 +14,7 @@ import {
   travellerDashboard,
   travellerInquiries,
   travellerSessions,
-} from "./staged-data";
+} from "./staged-data.js";
 import type {
   AccountPrivacySettings,
   AccountResponse,

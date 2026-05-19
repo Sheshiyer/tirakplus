@@ -8,8 +8,8 @@ import type {
   SessionState,
   UserRole,
 } from "../shared/contracts";
-import { apiError, json } from "./http";
-import { checkRateLimit } from "./rate-limit";
+import { apiError, json } from "./http.js";
+import { checkRateLimit } from "./rate-limit.js";
 
 const SESSION_COOKIE = "tirak_staged_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;

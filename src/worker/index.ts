@@ -1,17 +1,17 @@
-import { json, apiError, createRequestId, STATIC_SECURITY_HEADERS } from "./http";
+import { json, apiError, createRequestId, STATIC_SECURITY_HEADERS } from "./http.js";
 import {
   createStagedDataProvider,
   isProviderAvailabilityWindow,
   isProviderCity,
   isProviderExperience,
-} from "./staged-provider";
-import { companionMuseChart, travellerMuseChart } from "./staged-data";
-import { routeAuth, getSessionFromRequest, verifyCsrfToken } from "./auth";
-import { createPaymentSession, paymentProviders } from "./payment-provider";
-import { checkRateLimit, type RateLimitGroup } from "./rate-limit";
-import { getRouteRegistry } from "./route-registry";
-import { storageBoundaryResponse } from "./storage-boundaries";
-import { dataModelSchema } from "./data-model-schema";
+} from "./staged-provider.js";
+import { companionMuseChart, travellerMuseChart } from "./staged-data.js";
+import { routeAuth, getSessionFromRequest, verifyCsrfToken } from "./auth.js";
+import { createPaymentSession, paymentProviders } from "./payment-provider.js";
+import { checkRateLimit, type RateLimitGroup } from "./rate-limit.js";
+import { getRouteRegistry } from "./route-registry.js";
+import { storageBoundaryResponse } from "./storage-boundaries.js";
+import { dataModelSchema } from "./data-model-schema.js";
 import type {
   AccountPrivacyUpdateRequest,
   AvailabilityWindow,
