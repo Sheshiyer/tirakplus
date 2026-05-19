@@ -9,6 +9,7 @@ import { PublicHome } from "./pages/PublicHome";
 import { PublicDiscoveryPage } from "./pages/PublicDiscoveryPage";
 import { PublicPaymentsPage } from "./pages/PublicPaymentsPage";
 import { PublicSafetyPage } from "./pages/PublicSafetyPage";
+import { CookiesPage, NotFoundPage, PrivacyPage, SupportPage, TermsPage } from "./pages/LegalPages";
 import { CityOverviewPage } from "./pages/CityOverviewPage";
 import { ExperiencePage } from "./pages/ExperiencePage";
 import { AuthStart } from "./pages/AuthStart";
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <MuseChatPage /> },
       { path: "overview", element: <PublicHome /> },
+      { path: "cities/bangkok", element: <CityOverviewPage citySlug="bangkok" /> },
       { path: "cities/phuket", element: <CityOverviewPage citySlug="phuket" /> },
       { path: "cities/koh-samui", element: <CityOverviewPage citySlug="koh-samui" /> },
       { path: "cities/koh-phangan", element: <CityOverviewPage citySlug="koh-phangan" /> },
@@ -51,8 +53,13 @@ const router = createBrowserRouter([
       { path: "discovery", element: <PublicDiscoveryPage /> },
       { path: "safety", element: <PublicSafetyPage /> },
       { path: "payments", element: <PublicPaymentsPage /> },
+      { path: "privacy", element: <PrivacyPage /> },
+      { path: "terms", element: <TermsPage /> },
+      { path: "cookies", element: <CookiesPage /> },
+      { path: "support", element: <SupportPage /> },
       { path: "auth/login", element: <AuthStart /> },
       { path: "auth/verify", element: <AuthVerify /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
   {

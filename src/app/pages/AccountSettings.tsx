@@ -31,20 +31,20 @@ export function AccountSettings() {
       <div className="account-heading">
         <p className="eyebrow">Account and privacy</p>
         <h1>Your protected Tirak Plus profile.</h1>
-        <p>Manage the signed-in role, private session state, and visibility expectations used during development QA.</p>
+        <p>Manage session access, private visibility expectations, notifications, and account safety controls.</p>
       </div>
 
       <div className="account-panel">
         <div className="account-row">
           <div>
-            <h2>Dev persona rail</h2>
+            <h2>Profile access</h2>
             <p>
-              You are currently viewing the protected app as a <strong>{currentRole}</strong>. Role switching is available
-              here so traveller and companion flows can be QA-tested without creating throwaway accounts.
+              You are currently signed in as a <strong>{currentRole}</strong>. The other access path is available in this
+              build so reviewed traveller and companion surfaces can be checked without creating duplicate accounts.
             </p>
           </div>
           <Button variant="secondary" onClick={handleSwitchRole} disabled={isLoading}>
-            {isLoading ? "Switching..." : `Switch to ${targetRole}`}
+            {isLoading ? "Switching..." : `Preview ${targetRole} access`}
           </Button>
         </div>
 
@@ -65,6 +65,23 @@ export function AccountSettings() {
           <Button variant="danger" onClick={handleLogout} disabled={isLoading}>
             {isLoading ? "Signing out..." : "Sign out"}
           </Button>
+        </div>
+
+        <div className="account-controls-grid" aria-label="Privacy and notification settings">
+          {[
+            ["Visibility", "Only reviewed profile and inquiry fields should become visible outside this account."],
+            ["Notifications", "Inquiry and review updates should be sent only through approved contact channels."],
+            ["Data requests", "Export, correction, and deletion requests need an admin-reviewed workflow before launch."],
+            ["Safety reports", "Reports stay attached to restricted review records and should never appear in public copy."],
+          ].map(([title, body]) => (
+            <article className="account-control-card" key={title}>
+              <span aria-hidden="true" />
+              <div>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

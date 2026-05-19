@@ -9,6 +9,9 @@
     "cf:types": "wrangler types",
     "check": "npm run cf:types && tsc --noEmit && npm run build",
     "contract:smoke": "node scripts/contract-smoke.mjs",
+    "copy:audit": "node scripts/copy-audit.mjs",
+    "route:audit": "node scripts/route-audit.mjs",
+    "quality:release": "npm run check && npm run copy:audit && npm run route:audit",
     "dev": "npm run build && wrangler dev --local --port 8787 --inspector-port 9237",
     "deploy": "npm run check && wrangler deploy"
   },

@@ -406,3 +406,40 @@ Started on 2026-05-19:
 - Browser/CDP smoke passed: tested route headings rendered, no horizontal overflow, no console warning/error count on the sampled routes, and corrected dark protected card backgrounds.
 - Posted evidence comments and closed GitHub issues `#155` through `#179`.
 - `gh -R Sheshiyer/tirakplus issue list --state open` returned open issue count `0`.
+
+# Launch Gap Board And Execution Waves
+
+Started on 2026-05-19:
+
+- [x] Confirm the correct standalone repo/remote before creating GitHub issues.
+- [x] Create grouped GitHub issues for Brand, Muse Consistency, Product Flow, Security/Data, and Quality Release Waves 1-3.
+- [x] Brand wave: wire metadata, favicon/manifest, robots, sitemap, and public trust links.
+- [x] Muse consistency wave: remove banned Muse wording from RAG-visible surfaces and add copy guardrails.
+- [x] Product flow wave: add legal/support/not-found routes and production account copy.
+- [x] Security/data wave: add security docs, env examples, and production session/storage notes.
+- [x] Quality release wave 1: add CI for install/check/build and contract smoke.
+- [x] Quality release wave 2: add route/browser/copy QA scripts.
+- [x] Quality release wave 3: add deployment, domain, asset provenance, and release-readiness docs.
+- [x] Run verification and update GitHub issues with execution evidence.
+
+## Issue Map
+
+- `#181` Brand identity, metadata, favicon, and public trust surfaces.
+- `#182` Muse consistency, RAG wording, and brand-copy guardrails.
+- `#183` Product flow legal/support/404/account/route completeness.
+- `#184` Security/data session, request, rate-limit, and storage boundary posture.
+- `#185` Quality Release Wave 1: CI, typecheck, build, contract smoke.
+- `#186` Quality Release Wave 2: browser, accessibility, visual QA harness.
+- `#187` Quality Release Wave 3: deployment, domain, asset, and release docs.
+
+## Review
+
+- Added launch metadata, app icons, manifest, robots, sitemap, and security.txt.
+- Added Privacy, Terms, Cookies, Support, Not Found, and Bangkok public routes.
+- Added public footer links for legal, support, and safety surfaces.
+- Replaced account-page development wording with production account/privacy/security copy while keeping role preview available for QA.
+- Removed `private AI concierge` wording from Muse RAG prompt/corpus and renamed the default prompt id to `muse-private-guide`.
+- Added `scripts/copy-audit.mjs`, `scripts/route-audit.mjs`, `npm run quality:release`, and GitHub Actions CI.
+- Added `.env.example`, `SECURITY.md`, brand vocabulary, production security boundaries, deployment notes, release readiness, and asset provenance docs.
+- Verification passed: `npm run copy:audit`, `npm run route:audit`, `npm run check`, `npm run quality:release`, and `npm run contract:smoke` with 30 checks.
+- Route sanity passed for `/privacy`, `/terms`, `/cookies`, `/support`, `/cities/bangkok`, wildcard SPA route, manifest, robots, and sitemap.

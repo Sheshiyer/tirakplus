@@ -598,6 +598,47 @@ a {
   box-shadow: 0 10px 28px rgba(180, 155, 255, 0.22);
 }
 
+.public-footer {
+  width: min(100% - 40px, 1180px);
+  margin: 0 auto 28px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(17, 16, 24, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(17, 16, 24, 0.2);
+}
+
+.public-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.public-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: var(--text-caption-size);
+  font-weight: 700;
+}
+
+.public-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+}
+
+.public-footer-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+}
+
 .top-nav {
   position: fixed;
   top: 16px;
@@ -1307,6 +1348,42 @@ p {
 
 .account-page {
   width: min(100% - 40px, 720px);
+}
+
+.account-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.account-control-card {
+  min-width: 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+}
+
+.account-control-card > span {
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--color-rose-bronze);
+  box-shadow: 0 0 0 5px rgba(185, 111, 125, 0.14);
+}
+
+.account-control-card h3,
+.account-control-card p {
+  margin: 0;
+}
+
+.account-control-card p {
+  color: rgba(255, 255, 255, 0.66);
 }
 
 .auth-panel,
@@ -2682,6 +2759,10 @@ p {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.public-card-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .public-info-card {
   min-width: 0;
   padding: 24px;
@@ -2697,9 +2778,18 @@ p {
   box-shadow: none;
 }
 
+.public-info-card h2,
 .public-info-card h3,
 .public-info-card p {
   margin: 0;
+}
+
+.legal-hero {
+  min-height: 56dvh;
+}
+
+.legal-section {
+  background: linear-gradient(180deg, rgba(250, 247, 243, 0.98), rgba(255, 255, 255, 0.92));
 }
 
 .public-info-card p:not(.meta),
@@ -2958,9 +3048,11 @@ p {
 
   .home-hero,
   .public-business-hero,
+  .public-card-grid-two,
   .public-card-grid-three,
   .public-card-grid-four,
   .public-split-band,
+  .account-controls-grid,
   .home-trust-card,
   .city-overview,
   .home-safety-band,
@@ -3015,6 +3107,11 @@ p {
   .public-split-band {
     margin: 20px;
     padding: 28px;
+  }
+
+  .public-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .home-hero-copy {

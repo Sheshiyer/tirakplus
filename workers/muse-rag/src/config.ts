@@ -51,7 +51,7 @@ export async function getAppConfig(env: Env, appId: string): Promise<AppConfig |
     chatModel: raw.chatModel ?? defaults.defaultChatModel,
     embeddingModel: raw.embeddingModel ?? defaults.defaultEmbeddingModel,
     searchTopK: raw.searchTopK ?? defaults.defaultSearchTopK,
-    promptId: raw.promptId ?? "muse-concierge",
+    promptId: raw.promptId ?? "muse-private-guide",
     authMode: raw.authMode ?? "bearer",
     enabled: raw.enabled ?? true,
   };

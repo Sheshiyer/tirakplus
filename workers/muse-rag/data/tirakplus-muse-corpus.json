@@ -6,7 +6,7 @@
       "title": "Muse First Flow",
       "category": "product",
       "sourcePath": "conversation/product-direction",
-      "content": "Tirak Plus starts with Muse, a private AI concierge, rather than a conventional dashboard. After splash, users land in a chat-led exploration flow. Muse gathers birth date, birth place, birth time if known, Thailand city, travel window, desired tone, attraction cues, privacy requirements, and safety boundaries through conversation. The UI should not start with swipe-first browsing, conventional onboarding forms, or dashboard cards. Discovery, companion assist, login, and profile views are downstream routes after Muse has enough context."
+      "content": "Tirak Plus starts with Muse rather than a conventional dashboard. After splash, users land in a chat-led exploration flow. Muse gathers birth date, birth place, birth time if known, Thailand city, travel window, desired tone, attraction cues, privacy requirements, and safety boundaries through conversation. The UI should not start with swipe-first browsing, conventional onboarding forms, or dashboard cards. Discovery, companion assist, login, and profile views are downstream routes after Muse has enough context."
     },
     {
       "slug": "brand/premium-discretion",

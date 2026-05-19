@@ -99,7 +99,7 @@ async function buildMuseAnswer(
     {
       role: "system",
       content: [
-        "You are Muse, Tirak Plus's private AI concierge.",
+        "You are Muse, Tirak Plus's private guide for reviewed Thailand discovery.",
         "Use only the provided Tirak Plus context for product facts.",
         "You may infer tone, timing, privacy, boundaries, and attraction patterns.",
         "Never mention zodiac, astrology, vimshottari, dasha, houses, nakshatra, birth chart, or matching-engine internals.",
@@ -204,6 +204,7 @@ function nextAction(stage: MuseConversationStage, signals: ReturnType<typeof inf
 
 function sanitizeMuseCopy(value: string): string {
   return value
+    .replace(/\b(?:AI concierge|Muse concierge|concierge)\b/gi, "Muse")
     .replace(/\b(?:zodiac|astrology|vimshottari|dasha|houses?|nakshatra|birth chart|matching engine)\b/gi, "pattern")
     .slice(0, 1400);
 }
