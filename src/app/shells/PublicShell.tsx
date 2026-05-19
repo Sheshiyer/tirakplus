@@ -47,6 +47,22 @@ export function PublicShell() {
       <main id="main-content" className="main-surface" tabIndex={-1}>
         <Outlet />
       </main>
+
+      {!isMuseEntry && (
+        <footer className="public-footer" aria-label="Public footer">
+          <Link to="/" className="public-footer-brand">
+            <img src={AssetRegistry.brand.tirakPlusMuseIcon192} alt="" aria-hidden="true" />
+            <span>Tirak Plus</span>
+          </Link>
+          <nav aria-label="Legal and support links">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/cookies">Cookies</Link>
+            <Link to="/support">Support</Link>
+            <Link to="/safety">Safety</Link>
+          </nav>
+        </footer>
+      )}
     </div>
   );
 }
