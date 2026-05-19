@@ -472,3 +472,39 @@ Started on 2026-05-19:
 - Added `scripts/static-smoke.mjs`, `scripts/app-smoke.mjs`, `npm run static:smoke`, and `npm run app:smoke`.
 - Extended contract smoke to assert CSRF issuance and missing-CSRF `403 CSRF_TOKEN_REQUIRED`.
 - Verification passed: `npm run quality:release`, `npm run app:smoke`, `npm run contract:smoke` with 31 checks, and targeted auth rate-limit probe returning `429 RATE_LIMITED`.
+
+# Muse RAG Hardening Phase
+
+Started on 2026-05-19:
+
+- [x] Use `autoresearch` mode to shape the keep/discard research loop.
+- [x] Use Swarm Architect to map phase/wave/swarm issue structure.
+- [x] Create GitHub issues `#194` through `#235` for 42 Muse RAG hardening tasks.
+- [x] Wave 1 Contract: freeze Muse v2 contracts, 30-45 step response calculation, and six-pass methodology.
+- [x] Wave 1 Eval: add deterministic local Muse leakage/tone/safety eval harness.
+- [x] Wave 1 Policy: centralize banned/meta language and sanitization for the RAG Worker.
+- [x] Run `npm run muse:eval`, `npm run quality:release`, and targeted source audits.
+- [x] Close completed Wave 1 issues and leave downstream issues open.
+
+## Issue Map
+
+- `#194`-`#201`: Contract wave.
+- `#202`-`#208`: Prompt policy wave.
+- `#209`-`#214`: RAG corpus wave.
+- `#215`-`#222`: Response pipeline wave.
+- `#223`-`#228`: Eval wave.
+- `#229`-`#232`: Auto-evolution wave.
+- `#233`-`#235`: Ops and integration wave.
+
+## Wave 1 Review
+
+- Created 42 GitHub issues for Muse RAG hardening: `#194` through `#235`.
+- Added `docs/muse-rag/response-calculation.md` with the 45-step internal response pipeline.
+- Added `docs/muse-rag/six-pass-methodology.md` for intent, retrieval, draft, leakage, safety, and voice/evolution passes.
+- Added `docs/muse-rag/contracts.md` for response v2, pain-point, and eval result contracts.
+- Added `docs/muse-rag/autoresearch-loop.md` for the keep/discard promotion process.
+- Added `workers/muse-rag/src/policy.ts` with policy version, Muse system instructions, sanitization, and copy evaluation.
+- Updated `workers/muse-rag/src/index.ts` to use the centralized policy and return response v2 metadata/quality checks from the RAG Worker.
+- Extended `workers/muse-rag/src/types.ts` with response v2, pain-point, and eval result contracts.
+- Added `scripts/muse-eval.mjs` and wired `npm run muse:eval` into `npm run quality:release` and CI.
+- Verification passed: `npm run muse:eval`, `npm run copy:audit`, `npm run check`, `npm run quality:release`, `npm run contract:smoke`, and a local `/api/muse/chat` probe.

@@ -35,12 +35,16 @@ const files = (await Promise.all(scannedRoots.map(listFiles)))
 
 const failures = [];
 for (const file of files) {
+  const relativePath = relative(root, file);
+  const isGuardrailFile =
+    relativePath === "workers/muse-rag/src/policy.ts" ||
+    relativePath === "scripts/copy-audit.mjs";
   const text = await readFile(file, "utf8");
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
     for (const pattern of banned) {
-      if (pattern.test(line) && !allowedGuardrail.test(line)) {
-        failures.push(`${relative(root, file)}:${index + 1} matched ${pattern}`);
+      if (pattern.test(line) && !isGuardrailFile && !allowedGuardrail.test(line)) {
+        failures.push(`${relativePath}:${index + 1} matched ${pattern}`);
       }
     }
   });

@@ -23,6 +23,8 @@ export type MuseChatRequest = {
 export type MuseChatResponse = {
   conversationId: string;
   stage: MuseConversationStage;
+  contractVersion?: "muse-response-v2";
+  policyVersion?: string;
   reply: {
     id: string;
     role: "muse";
@@ -57,6 +59,37 @@ export type MuseChatResponse = {
   };
   agentMode: "external";
   retrievedContext: SearchResult[];
+  quality?: {
+    leakagePass: boolean;
+    safetyPass: boolean;
+    voicePass: boolean;
+    notes: string[];
+  };
+};
+
+export type MusePainPoint = {
+  category:
+    | "missing_context"
+    | "tone_drift"
+    | "leakage_risk"
+    | "safety_boundary"
+    | "route_confusion"
+    | "companion_profile_friction"
+    | "traveller_intent_friction";
+  severity: "low" | "medium" | "high";
+  signal: string;
+  suggestedAction: "prompt_candidate" | "corpus_candidate" | "eval_candidate" | "product_review";
+};
+
+export type MuseEvalResult = {
+  id: string;
+  role: "traveller" | "companion" | "unknown";
+  stage: MuseConversationStage;
+  leakagePass: boolean;
+  safetyPass: boolean;
+  voicePass: boolean;
+  helpfulnessPass: boolean;
+  failures: string[];
 };
 
 export type CorpusFile = {

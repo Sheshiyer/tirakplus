@@ -26,4 +26,4 @@ jobs:
         run: npm run check
 
       - name: Launch release audits
-        run: npm run copy:audit && npm run route:audit && npm run static:smoke
+        run: npm run copy:audit && npm run route:audit && npm run static:smoke && npm run muse:eval
