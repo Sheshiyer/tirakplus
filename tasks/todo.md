@@ -540,11 +540,18 @@ Started on 2026-05-19:
 
 - [x] Add Vercel project configuration for Vite build output, SPA deep links, and `/api/*` same-origin proxying to the Cloudflare customer Worker.
 - [x] Verify local build and release checks after Vercel config.
-- [ ] Commit, push, PR, and merge the deployment config to `main` so GitHub-connected Vercel builds have the right routing.
-- [ ] Create or link the Vercel project under the team account and connect it to `Sheshiyer/tirakplus`.
-- [ ] Trigger a production deployment and verify the deployment URL loads the app plus API routes without CORS breakage.
+- [x] Commit, push, PR, and merge the deployment config to `main` so GitHub-connected Vercel builds have the right routing.
+- [x] Create or link the Vercel project under the team account and connect it to `Sheshiyer/tirakplus`.
+- [x] Trigger a production deployment and verify the deployment URL loads the app plus API routes without CORS breakage.
 - [x] Replace the temporary Cloudflare `/api/*` rewrite with a Vercel API adapter if the live Cloudflare Worker cannot be deployed from the current account context.
 
 ## Review
 
-- Pending.
+- Created Vercel project `tirakplus` under `sheshiyers-projects` with project id `prj_uyYFnhi0zTnQA5MKDdoABfV7Jftb`.
+- Connected the Vercel project to GitHub repository `Sheshiyer/tirakplus`.
+- Added `vercel.json` for Vite output, SPA deep links, security headers, and `/api/*` routing.
+- First Vercel deployment exposed that the live Cloudflare Worker origin was behind `main` and could not be deployed from the current Wrangler account context because configured KV namespace IDs were not found.
+- Replaced the Cloudflare API rewrite with `api/index.ts`, a Vercel serverless adapter over the existing Worker API handler. Muse runs in staged mode on Vercel until external Muse credentials/service wiring are added for that environment.
+- Merged PR `#238` for Vercel project config and PR `#239` for Vercel API routes.
+- Production deployment is live at `https://tirakplus.vercel.app`.
+- Verification passed: `npm run quality:release`, `vercel build --yes --scope team_SC6taS2Jv873KjJpO2Q0uOvQ`, Vercel preview `/api/system/routes`, production `/overview`, production `/api/system/routes`, and `API_BASE_URL=https://tirakplus.vercel.app npm run contract:smoke` with 31 checks.
