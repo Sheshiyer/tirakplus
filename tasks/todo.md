@@ -443,3 +443,32 @@ Started on 2026-05-19:
 - Added `.env.example`, `SECURITY.md`, brand vocabulary, production security boundaries, deployment notes, release readiness, and asset provenance docs.
 - Verification passed: `npm run copy:audit`, `npm run route:audit`, `npm run check`, `npm run quality:release`, and `npm run contract:smoke` with 30 checks.
 - Route sanity passed for `/privacy`, `/terms`, `/cookies`, `/support`, `/cities/bangkok`, wildcard SPA route, manifest, robots, and sitemap.
+
+# Runtime Hardening Wave
+
+Started on 2026-05-19:
+
+- [x] Create GitHub issues for runtime security, CSRF, rate-limit, and smoke coverage.
+- [x] Add browser security headers for app/static navigation responses.
+- [x] Add staged CSRF token issuance and verification for cookie-authenticated mutation routes.
+- [x] Add staged in-memory rate-limit guardrails for auth, Muse, inquiry, report, and account/companion mutations.
+- [x] Extend smoke tests for legal/static/browser launch surfaces and security headers.
+- [x] Run `npm run quality:release`, contract smoke, and targeted CSRF/rate-limit probes.
+- [x] Update/close GitHub issues `#189` through `#192`.
+
+## Issue Map
+
+- `#189` Runtime security headers for app/static responses.
+- `#190` Staged CSRF protection for state-changing APIs.
+- `#191` Staged rate-limit guardrails.
+- `#192` Legal/static/browser route smoke coverage.
+
+## Review
+
+- Added shared CSP/static security headers and configured Worker-first asset handling so public app routes receive those headers.
+- Added per-session staged CSRF tokens, surfaced through session/auth envelopes, and required `X-Tirak-CSRF` on protected state-changing routes.
+- Updated client API helpers to retain and send the staged CSRF token.
+- Added in-memory staged rate limits for auth, Muse chat, protected mutations, and safety reports.
+- Added `scripts/static-smoke.mjs`, `scripts/app-smoke.mjs`, `npm run static:smoke`, and `npm run app:smoke`.
+- Extended contract smoke to assert CSRF issuance and missing-CSRF `403 CSRF_TOKEN_REQUIRED`.
+- Verification passed: `npm run quality:release`, `npm run app:smoke`, `npm run contract:smoke` with 31 checks, and targeted auth rate-limit probe returning `429 RATE_LIMITED`.

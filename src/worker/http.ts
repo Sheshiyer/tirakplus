@@ -2,11 +2,35 @@ type ApiResponseInit = ResponseInit & {
   requestId?: string;
 };
 
-const SECURITY_HEADERS = {
+export const SECURITY_HEADERS = {
   "Cache-Control": "no-store",
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; "),
   "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",
+} as const;
+
+export const STATIC_SECURITY_HEADERS = {
+  "Content-Security-Policy": SECURITY_HEADERS["Content-Security-Policy"],
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Resource-Policy": "same-origin",
+  "Permissions-Policy": SECURITY_HEADERS["Permissions-Policy"],
+  "Referrer-Policy": SECURITY_HEADERS["Referrer-Policy"],
+  "Strict-Transport-Security": SECURITY_HEADERS["Strict-Transport-Security"],
+  "X-Content-Type-Options": SECURITY_HEADERS["X-Content-Type-Options"],
+  "X-Frame-Options": SECURITY_HEADERS["X-Frame-Options"],
 } as const;
 
 export function createRequestId(request: Request): string {

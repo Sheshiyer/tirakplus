@@ -11,6 +11,9 @@ Send security and privacy concerns to `support@tirakplus.com` until a dedicated 
 ## Current Guardrails
 
 - API responses use request IDs and security headers.
+- App/navigation responses use CSP, frame, referrer, nosniff, and permissions headers through the Worker asset path.
+- Staged cookie-authenticated mutations require `X-Tirak-CSRF`.
+- Staged auth, Muse, report, and mutation routes have in-memory rate-limit guardrails.
 - Payment state remains behind the documented compliance gate.
 - Muse-visible copy must not expose internal inference terms or brand Muse as an AI product label.
 - Secrets must be stored through Cloudflare secrets/KV and never committed.
@@ -19,6 +22,5 @@ Send security and privacy concerns to `support@tirakplus.com` until a dedicated 
 
 - Replace staged verification code auth with a production provider.
 - Replace JSON session cookies with signed opaque session IDs backed by server-side storage.
-- Add CSRF protection for state-changing routes.
-- Add rate limits for auth, Muse chat, inquiries, reports, and account changes.
+- Move CSRF/session state and rate limits out of staged in-memory/cookie storage into production storage.
 - Add D1/R2 migrations and retention/delete/export workflows.

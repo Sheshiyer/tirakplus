@@ -25,5 +25,5 @@ jobs:
       - name: Typecheck and build
         run: npm run check
 
-      - name: Launch static and copy audits
-        run: npm run copy:audit && npm run route:audit
+      - name: Launch release audits
+        run: npm run copy:audit && npm run route:audit && npm run static:smoke

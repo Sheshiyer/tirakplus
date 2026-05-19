@@ -7,6 +7,7 @@
 - [ ] Auth is production-grade or launch is explicitly staged-only.
 - [ ] Session storage uses an approved server-side store.
 - [ ] Rate limits and CSRF are enabled for state-changing routes.
+- [ ] Runtime app smoke verifies CSP/security headers on public navigation routes.
 - [ ] Payment gate remains disabled until compliance approval.
 - [ ] Muse RAG copy audit passes.
 - [ ] Asset provenance is reviewed for cross-project leakage.

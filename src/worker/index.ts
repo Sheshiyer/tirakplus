@@ -1,4 +1,4 @@
-import { json, apiError, createRequestId } from "./http";
+import { json, apiError, createRequestId, STATIC_SECURITY_HEADERS } from "./http";
 import {
   createStagedDataProvider,
   isProviderAvailabilityWindow,
@@ -6,8 +6,9 @@ import {
   isProviderExperience,
 } from "./staged-provider";
 import { companionMuseChart, travellerMuseChart } from "./staged-data";
-import { routeAuth, getSessionFromRequest } from "./auth";
+import { routeAuth, getSessionFromRequest, verifyCsrfToken } from "./auth";
 import { createPaymentSession, paymentProviders } from "./payment-provider";
+import { checkRateLimit, type RateLimitGroup } from "./rate-limit";
 import { getRouteRegistry } from "./route-registry";
 import { storageBoundaryResponse } from "./storage-boundaries";
 import { dataModelSchema } from "./data-model-schema";
@@ -61,6 +62,9 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   const authResponse = await routeAuth(request, pathname, requestId);
   if (authResponse) return authResponse;
 
+  const guardResponse = guardApiMutation(request, pathname, fail);
+  if (guardResponse) return guardResponse;
+
   if (request.method === "GET" && pathname === "/api/system/routes") {
     return ok(getRouteRegistry());
   }
@@ -87,6 +91,9 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   if (request.method === "POST" && pathname === "/api/muse/chat") {
+    const rateLimitResponse = applyRateLimit(request, "muse", fail);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await readJsonBody<MuseChatRequest>(request, requestId);
     if (body instanceof Response) return body;
 
@@ -429,6 +436,61 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   return fail(404, "API_ROUTE_NOT_FOUND", "No API route exists for this request.");
+}
+
+function guardApiMutation(
+  request: Request,
+  pathname: string,
+  fail: (
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors?: Record<string, string>,
+    init?: ResponseInit,
+  ) => Response,
+): Response | null {
+  if (request.method !== "POST" && request.method !== "PATCH") return null;
+  if (pathname === "/api/muse/chat") return null;
+
+  const rateLimitResponse = applyRateLimit(request, rateLimitGroupForPath(pathname), fail);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const csrfResult = verifyCsrfToken(request);
+  if (csrfResult === "ok") return null;
+  return fail(
+    csrfResult === "missing_session" ? 401 : 403,
+    csrfResult === "missing_session" ? "SESSION_REQUIRED" : "CSRF_TOKEN_REQUIRED",
+    csrfResult === "missing_session"
+      ? "Sign in before changing protected data."
+      : "Refresh the page and try again.",
+  );
+}
+
+function applyRateLimit(
+  request: Request,
+  group: RateLimitGroup,
+  fail: (
+    status: number,
+    code: string,
+    message: string,
+    fieldErrors?: Record<string, string>,
+    init?: ResponseInit,
+  ) => Response,
+): Response | null {
+  const result = checkRateLimit(request, group);
+  if (result.allowed) return null;
+  return fail(
+    429,
+    "RATE_LIMITED",
+    "Too many requests. Wait a moment before trying again.",
+    undefined,
+    { headers: { "Retry-After": String(result.retryAfterSeconds), "X-RateLimit-Limit": String(result.limit) } },
+  );
+}
+
+function rateLimitGroupForPath(pathname: string): RateLimitGroup {
+  if (pathname === "/api/safety/reports") return "report";
+  return "mutation";
 }
 
 const companionSafetyGuidance = [
@@ -1151,6 +1213,18 @@ export default {
       return routeApi(request, env);
     }
 
-    return env.ASSETS.fetch(request);
+    return withStaticSecurityHeaders(await env.ASSETS.fetch(request));
   },
 } satisfies ExportedHandler<Env>;
+
+function withStaticSecurityHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(STATIC_SECURITY_HEADERS)) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}

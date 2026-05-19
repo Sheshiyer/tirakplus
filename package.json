@@ -11,7 +11,9 @@
     "contract:smoke": "node scripts/contract-smoke.mjs",
     "copy:audit": "node scripts/copy-audit.mjs",
     "route:audit": "node scripts/route-audit.mjs",
-    "quality:release": "npm run check && npm run copy:audit && npm run route:audit",
+    "static:smoke": "node scripts/static-smoke.mjs",
+    "app:smoke": "node scripts/app-smoke.mjs",
+    "quality:release": "npm run check && npm run copy:audit && npm run route:audit && npm run static:smoke",
     "dev": "npm run build && wrangler dev --local --port 8787 --inspector-port 9237",
     "deploy": "npm run check && wrangler deploy"
   },

@@ -9,9 +9,11 @@ import type {
   UserRole,
 } from "../shared/contracts";
 import { apiError, json } from "./http";
+import { checkRateLimit } from "./rate-limit";
 
 const SESSION_COOKIE = "tirak_staged_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
+const CSRF_HEADER = "X-Tirak-CSRF";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -22,10 +24,14 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
       session,
       status: session ? "active" : "anonymous",
       protectedRoutesEnabled: true,
+      csrfToken: session?.csrfToken ?? null,
     }, { requestId });
   }
 
   if (request.method === "POST" && pathname === "/api/auth/start") {
+    const limited = rateLimitAuth(request, requestId);
+    if (limited) return limited;
+
     const body = await readJsonBody<AuthStartRequest>(request, requestId);
     if (body instanceof Response) return body;
 
@@ -45,6 +51,9 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
   }
 
   if (request.method === "POST" && pathname === "/api/auth/verify") {
+    const limited = rateLimitAuth(request, requestId);
+    if (limited) return limited;
+
     const body = await readJsonBody<AuthVerifyRequest>(request, requestId);
     if (body instanceof Response) return body;
 
@@ -58,7 +67,7 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
 
     const session = createSession(body.email, normalizeCustomerRole(body.role));
     return json<AuthVerifyResponse>(
-      { session },
+      { session, csrfToken: session.csrfToken },
       {
         requestId,
         headers: {
@@ -69,6 +78,9 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
   }
 
   if (request.method === "POST" && pathname === "/api/session/role") {
+    const csrfError = requireCsrf(request, requestId);
+    if (csrfError) return csrfError;
+
     const session = readSessionCookie(request);
     if (!session) {
       return apiError(401, "SESSION_REQUIRED", "Sign in before changing account context.", undefined, { requestId });
@@ -80,6 +92,7 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
     const nextRole = normalizeCustomerRole(body.role);
     const nextSession: Session = {
       ...session,
+      csrfToken: session.csrfToken ?? createCsrfToken(),
       profile: {
         ...session.profile,
         role: nextRole,
@@ -87,7 +100,7 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
     };
 
     return json<AuthVerifyResponse>(
-      { session: nextSession },
+      { session: nextSession, csrfToken: nextSession.csrfToken },
       {
         requestId,
         headers: {
@@ -98,6 +111,9 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
   }
 
   if (request.method === "POST" && pathname === "/api/auth/logout") {
+    const csrfError = requireCsrf(request, requestId);
+    if (csrfError) return csrfError;
+
     return json(
       { status: "signed_out" },
       {
@@ -110,6 +126,35 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
   }
 
   return null;
+}
+
+function rateLimitAuth(request: Request, requestId?: string): Response | null {
+  const result = checkRateLimit(request, "auth");
+  if (result.allowed) return null;
+  return apiError(
+    429,
+    "RATE_LIMITED",
+    "Too many auth attempts. Wait a moment before trying again.",
+    undefined,
+    {
+      requestId,
+      headers: { "Retry-After": String(result.retryAfterSeconds) },
+    },
+  );
+}
+
+function requireCsrf(request: Request, requestId?: string): Response | null {
+  const result = verifyCsrfToken(request);
+  if (result === "ok") return null;
+  return apiError(
+    result === "missing_session" ? 401 : 403,
+    result === "missing_session" ? "SESSION_REQUIRED" : "CSRF_TOKEN_REQUIRED",
+    result === "missing_session"
+      ? "Sign in before changing account context."
+      : "Refresh the page and try again.",
+    undefined,
+    { requestId },
+  );
 }
 
 async function readJsonBody<T>(request: Request, requestId?: string): Promise<T | Response> {
@@ -137,7 +182,14 @@ function createSession(email: string, role: Extract<UserRole, "traveller" | "com
       role,
     },
     expiresAt: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toISOString(),
+    csrfToken: createCsrfToken(),
   };
+}
+
+function createCsrfToken(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function normalizeCustomerRole(role: unknown): Extract<UserRole, "traveller" | "companion"> {
@@ -170,9 +222,18 @@ export function getSessionFromRequest(request: Request): Session | null {
   return readSessionCookie(request);
 }
 
+export function verifyCsrfToken(request: Request): "ok" | "missing_session" | "invalid_token" {
+  const session = readSessionCookie(request);
+  if (!session) return "missing_session";
+  const provided = request.headers.get(CSRF_HEADER);
+  if (!session.csrfToken || !provided || provided !== session.csrfToken) return "invalid_token";
+  return "ok";
+}
+
 function isSession(value: unknown): value is Session {
   if (!isRecord(value)) return false;
   if (typeof value.id !== "string" || typeof value.expiresAt !== "string") return false;
+  if (value.csrfToken !== undefined && typeof value.csrfToken !== "string") return false;
   if (!isRecord(value.profile)) return false;
   return (
     typeof value.profile.id === "string" &&
