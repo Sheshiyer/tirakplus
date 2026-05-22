@@ -1,3 +1,17 @@
+# Meta Copy Removal Pass
+
+## Public And Account Copy Hygiene
+
+- [ ] Audit public, auth, account, support, legal, city, experience, and API-shaped staged copy for meta/product-description language.
+- [ ] Replace H1, lede, card, and status copy with direct app-state language.
+- [ ] Expand copy audit coverage so planning terms do not re-enter visible surfaces.
+- [ ] Run copy/build checks and mobile-first browser QA on affected routes.
+- [ ] Record review notes and lessons from this correction.
+
+## Review
+
+- Pending.
+
 # Tirak Plus Companion Phase
 
 ## Companion Registration, Profile Management, Availability
@@ -555,3 +569,267 @@ Started on 2026-05-19:
 - Merged PR `#238` for Vercel project config and PR `#239` for Vercel API routes.
 - Production deployment is live at `https://tirakplus.vercel.app`.
 - Verification passed: `npm run quality:release`, `vercel build --yes --scope team_SC6taS2Jv873KjJpO2Q0uOvQ`, Vercel preview `/api/system/routes`, production `/overview`, production `/api/system/routes`, and `API_BASE_URL=https://tirakplus.vercel.app npm run contract:smoke` with 31 checks.
+
+# Stripe Test Mode And Protected App Polish
+
+Started on 2026-05-21:
+
+- [x] Review existing payment boundary, contracts, and UI surfaces.
+- [x] Add a Stripe test-mode adapter behind `PAYMENT_PROVIDER_MODE=stripe_test` without committing secret keys.
+- [x] Add traveller UI actions for checkout only when a payment session URL is available.
+- [x] Preserve compliance-hold behavior as the default production-safe path.
+- [x] Add route/contract smoke coverage for both blocked and test-mode responses.
+- [x] Run typecheck/build, copy audits, contract smoke, and mobile visual QA for payment surfaces.
+
+Plan:
+
+- Use Stripe Checkout hosted sessions from the Worker, authenticated server-side only.
+- Keep client code free of secret keys and raw Stripe SDK assumptions.
+- Use API-shaped payment responses so later providers can share the same surface.
+- Treat the pasted test secret as compromised for source-control purposes; do not write it into tracked files.
+
+Review:
+
+- Added server-side Stripe Checkout Session creation in `src/worker/payment-provider.ts`.
+- Added `PAYMENT_PROVIDER_MODE=stripe_test` support while keeping `compliance_hold` as the default behavior.
+- Added `.dev.vars.example` with placeholder Stripe test settings only; no pasted secret key was written to source.
+- Added provider-neutral `/api/traveller/inquiries/:id/payment-session` UI behavior and kept `/stripe-checkout-session` as the hard compliance-gate contract endpoint.
+- Added traveller inquiry payment panel action and blocked/configuration messaging.
+- Added `npm run stripe:smoke` for blocked/default mode and Stripe-checkout-expected mode when local test secrets are configured.
+- Updated Stripe docs with local test-mode variables and server-only secret guidance.
+- Validation passed: `npm run check`, `npm run contract:smoke`, `npm run copy:audit`, `npm run route:audit`, and `npm run stripe:smoke`.
+- Mobile screenshots captured in `generated/qa-screenshots/stripe-test-flow-20260521/`.
+
+# Floating Muse Trigger
+
+Started on 2026-05-21:
+
+- [x] Inspect full `generated/muse-3d/` folder and animation handoff.
+- [x] Identify app-safe assets for a floating Muse trigger without reintroducing runtime 3D.
+- [x] Copy approved idle/listen keyframes into customer public assets.
+- [x] Add a reusable floating Muse trigger component for protected traveller and companion shells.
+- [x] Run checks and mobile visual QA for protected app routes.
+
+Plan:
+
+- Use the `idle_float` and `listen_start` handoff as visual behavior.
+- Keep OBJ/MTL as reference/source only.
+- Route the trigger to the existing Muse interaction surface first; a drawer can be a later product pass.
+
+Review:
+
+- Read `generated/muse-3d/README.md`, `ANIMATION_HANDOFF.md`, and `exports/manifest.json`.
+- Copied app-safe keyframes from `generated/muse-3d/keyframes/` into `public/assets/muse/floating/`.
+- Added `FloatingMuseTrigger` and placed it in traveller and companion protected shells.
+- The trigger uses the 3D Muse mark/icon plus idle/listen handoff frames, with reduced-motion fallback.
+- Click behavior routes to the existing Muse chat/RAG interaction surface at `/`.
+- Verification passed: `npm run check`, `npm run static:smoke`, and `npm run copy:audit`.
+- Mobile QA screenshot captured at `generated/qa-screenshots/floating-muse-trigger-20260521/traveller-dashboard-floating-muse-final.png`.
+
+# Mobile And Tablet Muse Guide Asset Research
+
+Started on 2026-05-21:
+
+- [x] Pause product wiring after the direction correction.
+- [x] Inspect existing generated Muse and flow reference boards instead of inventing new character assets.
+- [x] Include the original mobile screen concepts from `generated/screen-concepts/`.
+- [x] Identify the exact mobile and tablet crop/composition targets from the existing reference boards.
+- [x] Map current dashboard card gaps against those references.
+- [x] Propose the next implementation pass without changing app assets during research.
+
+Plan:
+
+- Use `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/` as the research source.
+- Treat `muse-character-splash-responsive-board.png`, `muse-landing-responsive-board.png`, and the flow boards as inspiration/reference, not shippable cropped UI.
+- Use `generated/screen-concepts/gpt-image-2-dark-pass/` as the mobile app treatment reference for close imagery, bottom nav, dark surfaces, and card hierarchy.
+- The mobile direction should be closer-up and scene-integrated, matching the existing GPT render boards rather than a distant full-body figure.
+- Do not wire newly generated Muse guide assets until the reference-derived asset strategy is agreed.
+
+Research notes:
+
+- `muse-character-splash-responsive-board.png` shows Muse as a close upper-body scene subject on mobile and tablet, not a distant full-body figure in a narrow poster.
+- `screen-concepts/gpt-image-2-dark-pass/home-dark.png` defines the mobile app tone: immersive Thai location imagery, large logo/nav treatment, glass panels, rose action, and bottom navigation.
+- `screen-concepts/gpt-image-2-dark-pass/traveller-discovery-dark.png` defines the protected-app discovery structure: compact header, filter chips, profile cards, and a bottom sheet.
+- `screen-concepts/gpt-image-2-dark-pass/companion-profile-dark.png` shows close portrait placement with the face/upper body as the focal image; this is the closest match for how the dashboard Muse card should feel if it uses a person/guide visual.
+- Current dashboard Muse card gap: it uses a distant full-body model-like image, creating a pasted-asset feeling and forcing awkward framing instead of a close, scene-integrated mobile composition.
+
+# UI Repair GitHub Issue Setup
+
+Started on 2026-05-21:
+
+- [x] Use Swarm Architect to convert the five-phase UI repair concept into GitHub-trackable execution work.
+- [x] Create milestone `Tirak Plus UI Repair: Muse + Protected App`.
+- [x] Create phase, wave, swarm, area, agent, status, and `ui-repair` labels needed for the batch.
+- [x] Create 55 issues with task IDs `UIR-001` through `UIR-055`.
+- [x] Verify the milestone contains 55 open issues.
+
+Issue map:
+
+- Phase 1, visual contracts and baseline: `#240`-`#250`.
+- Phase 2, protected app repair: `#251`-`#261`.
+- Phase 3, Muse layer integration: `#262`-`#272`.
+- Phase 4, asset pipeline: `#273`-`#284`.
+- Phase 5, QA and release hardening: `#285`-`#294`.
+
+Review:
+
+- Chosen issue count is 55. This is enough for parallel execution across visual contracts, protected app UI, Muse layer, asset pipeline, and QA without fragmenting into CSS-level tickets.
+- Every issue includes dependencies, allowed edit surface, owner role, branch/worktree envelope, visual reference roots, and validation expectations.
+- Phase 1 must close first because it freezes the Muse-layer versus normal app fallback contract and route-by-route visual ownership.
+
+# UI Repair Phase 1 Contract Closeout
+
+Started on 2026-05-21:
+
+- [x] Complete `UIR-001`: inventory canonical reference boards and mobile concepts.
+- [x] Complete `UIR-002`: freeze Muse layer versus traditional app fallback contract.
+- [x] Complete `UIR-003`: define route-by-route visual ownership matrix.
+- [x] Complete `UIR-004`: freeze responsive layout and crop rules.
+- [x] Complete `UIR-005`: define protected app navigation and IA target.
+- [x] Complete `UIR-006`: define copy hygiene and meta-copy relocation rules.
+- [x] Complete `UIR-007`: freeze API-shaped data and staged fixture boundary.
+- [x] Complete `UIR-008`: define payment, safety, and privacy placement rules.
+- [x] Complete `UIR-009`: capture baseline screenshots and current design ratings.
+- [x] Complete `UIR-010`: create shared implementation checklist for UI repair workers.
+- [x] Complete `UIR-011`: run Phase 1 integration review and unlock downstream work.
+
+Review:
+
+- Added `docs/design/ui-repair-contract.md` as the Phase 1 source of truth.
+- Updated `docs/design/visual-reference-qa.md` with the UI repair contract, active mobile concepts, safety, and auth references.
+- Updated `docs/design/asset-usage.md` and `docs/design/asset-provenance.md` with reference-only, crop, provenance, and generation-gate rules.
+- Captured 18 baseline screenshots under `generated/qa-screenshots/ui-repair-phase1-baseline-20260521/`.
+- Baseline rating remains: overall `5/10`, traditional app layer `6.5/10`, Muse layer `4/10`, flow coherence `5.5/10`.
+- Verification passed: `npm run copy:audit`, `npm run route:audit`, `npm run check`, `npm run static:smoke`, `npm run app:smoke`, and `npm run contract:smoke`.
+- Playwright console sweep for the captured baseline session reported zero warnings/errors.
+- Downstream unlock: `UIR-012` through `UIR-021` can start after respecting shell/style lock zones; `UIR-023` can proceed in parallel if the Muse/app boundary remains frozen; `UIR-036` through `UIR-038` remain blocked until `UIR-035` accepts the reference-derived asset strategy.
+
+# Floating Muse Trigger Logo Correction
+
+Started on 2026-05-21:
+
+- [x] Remove the app-icon overlay from the floating Muse trigger.
+- [x] Preserve the existing 3D/keyframe Muse floating asset as the only visible iconography.
+- [x] Remove unused overlay styling and registry wiring that can reintroduce the double-logo stack.
+- [x] Update lessons with the correction pattern.
+- [x] Verify with code search, build/check, and a mobile screenshot.
+
+Review:
+
+- Removed the separate `tirakplus-muse-icon-192.png` overlay from `FloatingMuseTrigger`.
+- Removed the purple aura/gradient wrapper so the floating entry renders only the 3D/keyframe Muse asset.
+- Removed `muse.floating.icon` from the asset registry to prevent the app icon from being reintroduced as the Muse trigger.
+- Verification passed: overlay search returned no `floating-muse-trigger-icon`, no `floating-muse-trigger-aura`, and no `muse.floating.icon`; `npm run check`, `npm run static:smoke`, and `npm run copy:audit` passed.
+- Mobile screenshot captured at `generated/qa-screenshots/floating-muse-trigger-icon-fix-20260521/traveller-dashboard-trigger-mobile-no-overlay.png`.
+
+# Public Route Copy Leak Correction
+
+Started on 2026-05-21:
+
+- [x] Rewrite public discovery copy so it reads as product UI, not the architecture explanation.
+- [x] Rewrite public safety copy without platform/product-surface/meta language.
+- [x] Rewrite public payments copy without provider-supportability, rails, gates, or compliance narration.
+- [x] Rewrite login copy without Muse-flow assumptions or development-only labels as primary copy.
+- [x] Add a copy-audit guard for public-route meta terms.
+- [x] Verify with search, audits, build, and public-route screenshots.
+
+Review:
+
+- Replaced public discovery copy with user-facing Muse-first copy about city, timing, pace, boundaries, and matches.
+- Replaced public safety copy with concrete traveller/companion controls and removed platform/product-surface phrasing.
+- Replaced public payments copy with plain expectations about checkout appearing only inside a signed-in plan, and hid provider implementation notes from public UI.
+- Replaced login meta/dev copy with private sign-in and preview access language.
+- Added public-route banned terms to `scripts/copy-audit.mjs` so supportability, payment rails, product surface, provider gates, routing, and similar planning language fail on public components.
+- Added mobile public-shell bottom spacing and compact public Muse imagery so the bottom nav does not cover the public route footer or the first-screen Muse image.
+- Verification passed: explicit phrase search on affected public files returned no leaked phrases; `npm run copy:audit`, `npm run route:audit`, `npm run static:smoke`, `npm run check`, and `npm run app:smoke`.
+- Mobile screenshots captured at `generated/qa-screenshots/public-copy-cleanup-20260521/`.
+
+# UI Repair Phase 2 Protected App Execution
+
+Started on 2026-05-21:
+
+- [x] Complete `UIR-012`: rebuild traveller dashboard as a route board with fallback-first hierarchy.
+- [x] Complete `UIR-013`: align traveller discovery with dark-pass mobile and web reference boards.
+- [x] Complete `UIR-014`: refactor companion profile detail visual hierarchy.
+- [x] Complete `UIR-015`: refactor traveller inquiry flow into private inquiry UI.
+- [x] Complete `UIR-016`: repair plans and session detail card system.
+- [x] Complete `UIR-017`: repair inbox as operational thread list and detail flow.
+- [x] Complete `UIR-018`: rebuild Safety as the home for policy/privacy/support material.
+- [x] Complete `UIR-019`: repair account/settings light-system boundary.
+- [x] Complete `UIR-020`: align companion protected dashboard and onboarding with product layer.
+- [x] Complete `UIR-021`: unify protected shell navigation and floating Muse coexistence.
+- [x] Complete `UIR-022`: Phase 2 protected app integration review.
+
+Plan:
+
+- Treat protected routes as the normal app layer: dense, useful cards/forms first; Muse only as a compact support affordance.
+- Serialize shared shell/style work before route-specific visual fixes to avoid fighting the bottom nav and floating Muse placement.
+- Prioritize the routes users already flagged: traveller dashboard, profile/detail contrast, safety, inbox, payments/inquiry, and companion profile/onboarding.
+- Keep staged data behind worker/API-shaped rails; do not add component-local profile, inquiry, or payment mock arrays.
+- Verify at minimum with `npm run check`, `npm run copy:audit`, `npm run route:audit`, `npm run static:smoke`, `npm run app:smoke`, and mobile/tablet/desktop screenshots for the repaired protected routes.
+
+Review:
+
+- Replaced protected dashboard/session/inquiry Muse poster panels with compact Muse chart/support cards so the normal app layer remains primary.
+- Removed visible planning/meta phrases from traveller inquiry, payment, companion dashboard, companion inbox, companion safety, legal, and staged API copy.
+- Expanded `scripts/copy-audit.mjs` to cover protected route pages plus staged worker payloads for terms such as `supportability`, `API rail`, `review-gated`, `routing`, `production step`, and `payment-gate`.
+- Added traveller safety as the place for privacy, payment, verification, Muse assistance, and reporting guidance.
+- Restored account/settings as a light management surface inside the protected shell.
+- Moved the floating Muse trigger to the top-right on mobile so it does not cover the bottom nav or route cards.
+- Verification passed: `npm run copy:audit`, `npm run route:audit`, `npm run static:smoke`, `npm run check`, and `npm run app:smoke`.
+- Browser QA passed on protected traveller and companion routes with zero horizontal overflow, no visible banned-term leaks, no bottom-nav overlap from floating Muse, and zero console/page errors.
+- Screenshot evidence lives in `generated/qa-screenshots/ui-repair-phase2-protected-20260521/` across mobile, tablet, and desktop captures.
+
+# UI Repair Phase 3 Muse Layer Integration
+
+Started on 2026-05-21:
+
+- [x] Complete `UIR-023`: redesign Muse entry as layered onboarding scene.
+- [x] Complete `UIR-024`: define Muse onboarding state machine and entry points.
+- [x] Complete `UIR-025`: convert floating Muse trigger into contextual interaction entry.
+- [x] Complete `UIR-026`: add route-context handoff from app screens to Muse.
+- [x] Complete `UIR-027`: repair Muse chart as supportive signal, not dashboard clutter.
+- [x] Complete `UIR-028`: add Muse fallback and offline/error behavior.
+- [x] Complete `UIR-029`: polish Muse motion and reduced-motion rules.
+- [x] Complete `UIR-030`: connect Muse onboarding outputs to discovery/profile defaults.
+- [x] Complete `UIR-031`: add privacy and safety guardrails to Muse UI copy.
+- [x] Complete `UIR-032`: instrument Muse interaction QA hooks without product leakage.
+- [x] Complete `UIR-033`: Phase 3 Muse layer integration review.
+
+Plan:
+
+- Keep Muse as an onboarding and context layer, not a replacement for discovery, profile, inquiry, account, or safety routes.
+- Add explicit, inspectable Muse stage metadata and route context handoff while keeping visible copy user-facing.
+- Make the floating Muse trigger preserve current route context and support direct return to normal app routes.
+- Verify Muse entry at `390x844`, `768x1024`, `1280x800`, and `1440x900`.
+- Verify chat progression, contextual handoff, copy hygiene, reduced-motion stability, and normal app fallback actions.
+
+Review:
+
+- Added shared Muse client-context contracts for source, route kind, route label, city/experience defaults, and protected-route identifiers.
+- Converted the floating Muse trigger into a contextual entry that preserves the current protected route and returns cleanly to the normal app layer.
+- Removed timer-driven auto-chat activation; Muse now stays in the layered onboarding scene until the user sends a message.
+- Added Muse QA hooks via data attributes for stage, source, route kind, fallback, and agent mode without exposing implementation copy.
+- Added user-facing fallback actions when Muse is unavailable, plus a local `?qa=muse-error` smoke path.
+- Tuned the Muse signal panel and responsive scene layout so mobile, tablet, and desktop avoid text/panel overlap.
+- Connected recommendation-ready Muse output to protected discovery defaults with a reversible `Muse tuned` panel.
+- Fixed the protected discovery footer and active-filter chip layout exposed during Muse handoff QA.
+- Screenshot evidence lives in `generated/qa-screenshots/ui-repair-phase3-muse-layer-20260521/`.
+- Verification passed: `npm run copy:audit`, `npm run route:audit`, `npm run static:smoke`, `npm run muse:eval`, `npm run muse:corpus`, `npm run check`, and `npm run app:smoke`.
+- Browser QA passed for Muse entry at `390x844`, `768x1024`, `1280x800`, and `1440x900`; chat progression to `recommendation_ready`; floating route context from traveller dashboard; simulated fallback; reduced motion; and Muse discovery defaults.
+
+# Muse Chat Close Control
+
+Started on 2026-05-21:
+
+- [x] Add a close control to the active Muse chat workspace.
+- [x] Reset the active thread and return to `/` when the close control is used.
+- [x] Verify the close control on desktop and mobile chat states.
+
+Review:
+
+- Added an accessible top-right close button to the focused Muse chat header.
+- Closing the chat clears the active conversation state, restores the Muse home scene, and strips contextual query parameters by navigating to `/`.
+- Added a lesson so future modal-like Muse states always ship with an exit.
+- Verification passed: `npm run copy:audit`, `npm run build`, and `npm run app:smoke`.
+- Browser QA passed on desktop `1440x900` and mobile `390x844`: close button visible in active chat, click returns to `/`, `data-chat-active` returns to `false`, thread resets to the opening Muse message, and horizontal overflow stays false.
