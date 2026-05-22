@@ -10,12 +10,16 @@
     "check": "npm run cf:types && tsc --noEmit && npm run build",
     "contract:smoke": "node scripts/contract-smoke.mjs",
     "copy:audit": "node scripts/copy-audit.mjs",
+    "copy:structure-audit": "node scripts/copy-structure-audit.mjs",
+    "asset:staleness": "node scripts/asset-staleness-audit.mjs",
+    "asset:board-crop": "node scripts/board-crop-audit.mjs",
     "route:audit": "node scripts/route-audit.mjs",
     "static:smoke": "node scripts/static-smoke.mjs",
+    "stripe:smoke": "node scripts/stripe-checkout-smoke.mjs",
     "app:smoke": "node scripts/app-smoke.mjs",
     "muse:eval": "node scripts/muse-eval.mjs",
     "muse:corpus": "node scripts/muse-corpus-verify.mjs",
-    "quality:release": "npm run check && npm run copy:audit && npm run route:audit && npm run static:smoke && npm run muse:corpus && npm run muse:eval",
+    "quality:release": "npm run check && npm run copy:audit && npm run copy:structure-audit && npm run asset:staleness && npm run asset:board-crop && npm run route:audit && npm run static:smoke && npm run muse:corpus && npm run muse:eval",
     "dev": "npm run build && wrangler dev --local --port 8787 --inspector-port 9237",
     "deploy": "npm run check && wrangler deploy"
   },
@@ -29,6 +33,7 @@
     "wrangler": "^4.58.0"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3"
   }
