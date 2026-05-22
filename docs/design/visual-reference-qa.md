@@ -9,6 +9,7 @@ This document is the required visual gate for Muse-first customer UI work. It tu
 - The next implementation pass must be built from the reference-board composition, not from memory and not from cropped board fragments.
 - Generated boards are reference specifications only. Do not crop UI text, phone chrome, labels, cards, or generated interface fragments into production.
 - Production Muse artwork must be clean standalone PNG or WebP art with transparent or intentionally composited edges.
+- The Phase 1 UI repair contract is `docs/design/ui-repair-contract.md`. It freezes the two-layer model: Muse is onboarding/interaction/RAG support, while the traditional card/form app layer remains the reliable fallback.
 
 ## Primary References
 
@@ -20,6 +21,19 @@ This document is the required visual gate for Muse-first customer UI work. It tu
 | Companion profile | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/companion-profile-responsive-board.png` | Binding layout reference for profile detail, trust states, availability, and inquiry CTA hierarchy. |
 | Inquiry flow | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/inquiry-flow-responsive-board.png` | Binding layout reference for private inquiry composition, date/time selection, plan context, privacy status, and desktop columns. |
 | Settings and privacy | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/settings-privacy-responsive-board.png` | Binding layout reference for the light privacy/account system. This screen should not inherit the dark Muse card treatment. |
+| Safety center | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/safety-center-responsive-board.png` | Reference for safety/support/disclosure hierarchy. |
+| Age and consent auth | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/web-reference-boards/gpt-image-2/age-consent-auth-responsive-board.png` | Reference for auth, consent, and privacy-first entry. |
+
+## Mobile Screen Concepts
+
+These concepts are active mobile treatment references, not production assets:
+
+| Screen concept | Reference | Implementation Role |
+|---|---|---|
+| Dark mobile home | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/screen-concepts/gpt-image-2-dark-pass/home-dark.png` | Mobile app tone, glass panels, rose action, destination cards, bottom nav. |
+| Dark traveller discovery | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/screen-concepts/gpt-image-2-dark-pass/traveller-discovery-dark.png` | Compact header, filter chips, profile cards, bottom filter sheet. |
+| Dark companion profile | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/screen-concepts/gpt-image-2-dark-pass/companion-profile-dark.png` | Close profile imagery, profile facts, private inquiry CTA, trust rail. |
+| Dark inquiry flow | `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/tirakplus/generated/screen-concepts/gpt-image-2-dark-pass/inquiry-flow-dark.png` | Private inquiry controls, calendar, message, privacy state, primary CTA. |
 
 ## Muse Root Requirements
 

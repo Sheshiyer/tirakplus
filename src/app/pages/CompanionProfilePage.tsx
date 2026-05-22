@@ -102,7 +102,7 @@ export function CompanionProfilePage() {
 
       <div className="profile-detail-grid">
         <section className="profile-detail-panel" aria-labelledby="availability-heading">
-          <h2 id="availability-heading">Availability context</h2>
+          <h2 id="availability-heading">Availability</h2>
           <div className="availability-list">
             {profile.availabilityWindows.map((window) => (
               <article key={window.id} className={`availability-item availability-item-${window.status}`}>
@@ -129,7 +129,7 @@ export function CompanionProfilePage() {
 
       <section className="profile-safety-panel" aria-labelledby="profile-safety-heading">
         <div>
-          <p className="eyebrow">Safety note</p>
+          <p className="eyebrow">First message</p>
           <h2 id="profile-safety-heading">{profile.safetyNote}</h2>
         </div>
         <ul>
@@ -137,6 +137,9 @@ export function CompanionProfilePage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+        <Button as={Link} to="/traveller/safety" variant="secondary">
+          Open safety
+        </Button>
       </section>
     </section>
   );

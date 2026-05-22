@@ -35,7 +35,7 @@ export function HomeHero({ brandName, brandPromise }: HomeHeroProps) {
         </form>
         <div className="action-row">
           <Button as={Link} variant="primary" to="/discovery">
-            See discovery path
+            Open discovery
           </Button>
           <Button as={Link} variant="secondary" to="/auth/login?role=companion">
             Companion path
@@ -45,11 +45,11 @@ export function HomeHero({ brandName, brandPromise }: HomeHeroProps) {
       <aside className="hero-muse-panel" aria-label="Muse">
         <MusePoseImage variant="splash" label="Muse in a calm welcome pose" className="hero-muse-model" />
         <div className="hero-muse-copy">
-          <p className="meta">Private workflow</p>
+          <p className="meta">Muse read</p>
           <ol>
-            <li>Muse starts with context, not a profile grid.</li>
-            <li>Discovery stays guided by city, boundaries, and intent.</li>
-            <li>Human review remains in the inquiry path.</li>
+            <li>Start with city, pace, and boundaries.</li>
+            <li>Explore matches shaped around the plan.</li>
+            <li>Keep support close when a request needs care.</li>
           </ol>
         </div>
       </aside>

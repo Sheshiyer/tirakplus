@@ -68,7 +68,7 @@ export function PublicHome() {
       <div className="public-home">
         <section className="error-panel" role="alert">
           <p className="eyebrow">Content unavailable</p>
-          <h1>We could not load the public Tirak Plus overview.</h1>
+          <h1>We could not load Tirak Plus.</h1>
           <p>{state.message}</p>
         </section>
       </div>
@@ -87,13 +87,13 @@ export function PublicHome() {
         <section className="empty-panel">
           <p className="eyebrow">City overview</p>
           <h2>Bangkok overview is temporarily unavailable.</h2>
-          <p>Use discovery when the staged city rail returns.</p>
+          <p>Use discovery while the city guide is unavailable.</p>
         </section>
       )}
       <section className="city-link-band" aria-labelledby="city-link-title">
         <div>
           <p className="eyebrow">More city contexts</p>
-          <h2 id="city-link-title">Plan around the city first, then choose the right introduction path.</h2>
+          <h2 id="city-link-title">Choose the city first.</h2>
         </div>
         <div className="city-link-actions">
           <Button as={Link} to="/cities/phuket" variant="secondary">Phuket</Button>
@@ -103,8 +103,8 @@ export function PublicHome() {
       </section>
       <section className="experience-link-band" aria-labelledby="experience-link-title">
         <div>
-          <p className="eyebrow">Experience surfaces</p>
-          <h2 id="experience-link-title">Browse by plan context without turning companions into inventory.</h2>
+          <p className="eyebrow">Experience styles</p>
+          <h2 id="experience-link-title">Choose the pace and setting for the plan.</h2>
         </div>
         <div className="city-link-actions">
           <Button as={Link} to="/experiences/nightlife" variant="secondary">Nightlife</Button>

@@ -13,15 +13,15 @@ const privacySections: PolicySection[] = [
   },
   {
     title: "How Muse uses context",
-    body: "Muse may use conversation context to shape timing, mood, boundaries, visibility, and route suggestions. Internal inference language is translated into user-facing guidance and is not shown as engine logic.",
+    body: "Muse uses conversation context to help with timing, mood, boundaries, visibility, and route suggestions.",
   },
   {
     title: "Sensitive data boundaries",
-    body: "Verification material, private review notes, exact route details, and safety reports are treated as restricted data. They should not appear in public discovery, profile cards, or off-platform handoffs.",
+    body: "Verification material, private review notes, exact route details, and safety reports stay restricted.",
   },
   {
     title: "Retention and deletion",
-    body: "Launch implementation must include retention windows, account deletion, export, and safety-log preservation rules before production data collection begins.",
+    body: "Contact support for deletion, export, correction, or retention questions.",
   },
 ];
 
@@ -32,7 +32,7 @@ const termsSections: PolicySection[] = [
   },
   {
     title: "Reviewed introductions",
-    body: "Discovery, companion visibility, inquiry routing, and payment state depend on review. Tirak Plus does not support instant booking pressure, fake urgency, or off-platform payment requests.",
+    body: "Discovery, companion visibility, introductions, and payment state depend on review. Tirak Plus does not support instant booking pressure, fake urgency, or off-platform payment requests.",
   },
   {
     title: "Respectful conduct",
@@ -40,22 +40,22 @@ const termsSections: PolicySection[] = [
   },
   {
     title: "Payments",
-    body: "Payment rails remain disabled until provider supportability, legal review, and jurisdiction-specific service checks are approved for the exact flow being offered.",
+    body: "Payments appear only inside signed-in plans when checkout is available for that plan.",
   },
 ];
 
 const cookieSections: PolicySection[] = [
   {
     title: "Required session cookies",
-    body: "The staged app uses a secure session cookie to keep signed-in traveller and companion flows available during a browser session.",
+    body: "Tirak Plus uses a secure session cookie to keep signed-in traveller and companion flows available during a browser session.",
   },
   {
     title: "Analytics posture",
-    body: "Analytics should remain privacy-safe and consent-aware. Third-party tracking must not be added until the consent and retention model is documented.",
+    body: "Analytics stay limited and consent-aware.",
   },
   {
     title: "Preference storage",
-    body: "Future saved preferences should be limited to product needs such as language, display mode, and notification choices.",
+    body: "Saved preferences cover language, display mode, and notification choices.",
   },
 ];
 
@@ -102,8 +102,8 @@ export function PrivacyPage() {
   return (
     <PolicyPage
       eyebrow="Privacy"
-      title="Private context should stay private."
-      lede="This launch policy explains the data boundaries Tirak Plus must keep visible before production data collection begins."
+      title="Your trip context stays private."
+      lede="This policy explains what is collected, how Muse context is used, and how safety records stay restricted."
       sections={privacySections}
     />
   );
@@ -114,7 +114,7 @@ export function TermsPage() {
     <PolicyPage
       eyebrow="Terms"
       title="Reviewed access, respectful use, no pressure."
-      lede="These launch terms define the conduct and review boundaries for traveller and companion flows."
+      lede="These terms cover conduct, review, payments, and account access."
       sections={termsSections}
     />
   );
@@ -124,8 +124,8 @@ export function CookiesPage() {
   return (
     <PolicyPage
       eyebrow="Cookies"
-      title="Only the minimum session state belongs here."
-      lede="Tirak Plus should keep cookies limited, explain what is required, and avoid hidden tracking."
+      title="Only required session cookies."
+      lede="Tirak Plus uses required session cookies and keeps tracking limited."
       sections={cookieSections}
     />
   );
@@ -139,8 +139,8 @@ export function SupportPage() {
           <p className="eyebrow">Support</p>
           <h1 id="support-title">A clear path when something needs attention.</h1>
           <p className="lede">
-            Use support for account access, privacy requests, safety reports, payment-gate questions, or companion
-            review status. Production launch should connect these paths to the admin dashboard workflow.
+            Use support for account access, privacy requests, safety reports, payment questions, or companion
+            review status.
           </p>
           <div className="action-row">
             <Button as={Link} to="/safety" variant="primary">Review safety guidance</Button>
@@ -152,7 +152,7 @@ export function SupportPage() {
       <section className="public-section legal-section" aria-labelledby="support-options-title">
         <div className="public-section-heading">
           <p className="eyebrow">Support paths</p>
-          <h2 id="support-options-title">Route the request before it becomes hidden work.</h2>
+          <h2 id="support-options-title">Choose the right support path.</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {[
@@ -179,7 +179,7 @@ export function NotFoundPage() {
           <p className="eyebrow">Route unavailable</p>
           <h1 id="not-found-title">Muse cannot open that path yet.</h1>
           <p className="lede">
-            This route is not part of the current Tirak Plus surface. Start with Muse or return to the public overview.
+            This page is not available. Start with Muse or return home.
           </p>
           <div className="action-row">
             <Button as={Link} to="/" variant="primary">Talk to Muse</Button>

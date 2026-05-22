@@ -23,6 +23,7 @@ import { TravellerInquiriesPage } from "./pages/TravellerInquiriesPage";
 import { TravellerInquiryDetailPage } from "./pages/TravellerInquiryDetailPage";
 import { TravellerSessionsPage } from "./pages/TravellerSessionsPage";
 import { TravellerSessionDetailPage } from "./pages/TravellerSessionDetailPage";
+import { TravellerSafetyPage } from "./pages/TravellerSafetyPage";
 import { CompanionDashboardPage } from "./pages/CompanionDashboardPage";
 import { CompanionOnboardingPage } from "./pages/CompanionOnboardingPage";
 import { CompanionProfileManagerPage } from "./pages/CompanionProfileManagerPage";
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
           { path: "inquiries/:inquiryId", element: <TravellerInquiryDetailPage /> },
           { path: "plans", element: <TravellerSessionsPage /> },
           { path: "plans/:sessionId", element: <TravellerSessionDetailPage /> },
+          { path: "safety", element: <TravellerSafetyPage /> },
           { path: "account", element: <AccountSettings /> },
         ]
       }

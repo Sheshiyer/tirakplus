@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import type { CompanionSessionDetail } from "../../shared/contracts";
 import { CompanionService } from "../api/companion";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -79,10 +78,14 @@ export function CompanionInquiryDetailPage() {
             <span>{data.preferredWindow}</span>
           </div>
         </div>
-        <div className="member-muse-card">
-          <MusePoseImage variant="companion" label="Muse presenting a companion decision surface" />
+        <aside className="member-route-support-card" aria-label="Muse inquiry support">
           <MuseChartPanel chart={data.museFit} compact />
-        </div>
+          <div className="member-route-support-copy">
+            <p className="eyebrow">Muse fit</p>
+            <h2>{data.museFit.summary}</h2>
+            <p>{data.museFit.nextPrompt}</p>
+          </div>
+        </aside>
       </div>
 
       <div className="member-bento-grid member-bento-grid-featured">

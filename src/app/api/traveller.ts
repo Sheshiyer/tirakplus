@@ -4,6 +4,7 @@ import type {
   DiscoveryFilterSelection,
   DiscoveryResponse,
   ExperienceSlug,
+  PaymentSessionResult,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
   TravellerInquiryListResponse,
@@ -121,6 +122,16 @@ export const TravellerService = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+
+  createPaymentSession(inquiryId: string): Promise<PaymentSessionResult> {
+    return apiRequest<PaymentSessionResult>(
+      `/api/traveller/inquiries/${encodeURIComponent(inquiryId)}/payment-session`,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+    );
   },
 };
 

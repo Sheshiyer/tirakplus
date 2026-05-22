@@ -235,7 +235,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:traveller",
     stagedProvider: "payment-provider",
     productionTarget: "payment-provider",
-    notes: "Compliance-gated Stripe route; staged mode returns blocked.",
+    notes: "Compliance-gated Stripe route; stripe_test can create hosted Checkout Sessions with server-side test keys.",
   },
   {
     method: "POST",
@@ -246,7 +246,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:traveller",
     stagedProvider: "payment-provider",
     productionTarget: "payment-provider",
-    notes: "Compatibility alias for prior staged client route.",
+    notes: "Provider-neutral payment-session route; defaults blocked unless local stripe_test is configured.",
   },
   {
     method: "GET",

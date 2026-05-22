@@ -40,8 +40,8 @@ export function TravellerInquiriesPage() {
     <section className="inquiry-page" aria-labelledby="inquiries-title">
       <div className="inquiry-heading">
         <p className="eyebrow">Traveller inbox</p>
-        <h1 id="inquiries-title">Private inquiry review.</h1>
-        <p>Track submitted inquiries without exposing profile or payment details publicly.</p>
+        <h1 id="inquiries-title">Your conversations.</h1>
+        <p>Review open requests, timing, and next steps in one place.</p>
       </div>
 
       {state.status === "loading" && (
@@ -81,7 +81,7 @@ export function TravellerInquiriesPage() {
                   <span>{inquiry.experience.replace(/-/g, " ")}</span>
                 </div>
                 <Button as={Link} to={`/traveller/inbox/${inquiry.id}`} variant="secondary">
-                  View detail
+                  Open thread
                 </Button>
               </article>
             ))}

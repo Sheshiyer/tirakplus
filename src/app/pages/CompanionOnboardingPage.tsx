@@ -86,7 +86,7 @@ export function CompanionOnboardingPage() {
         verificationReferences: draft.verificationReferences,
       });
       applyProfile(response.profile, response.onboarding);
-      setStatusMessage("Profile draft saved through the companion API rail.");
+      setStatusMessage("Profile draft saved.");
     } catch (error) {
       if (error instanceof CompanionApiError) {
         setFieldErrors(error.fieldErrors || {});
@@ -108,7 +108,7 @@ export function CompanionOnboardingPage() {
     try {
       const response = await CompanionService.updateVisibility(draft.visibilitySettings);
       applyProfile(response.profile, response.onboarding);
-      setStatusMessage("Visibility settings saved. Public exposure remains review-gated.");
+      setStatusMessage("Visibility settings saved. Your profile remains private until review is complete.");
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "Visibility settings could not be saved.");
     } finally {
@@ -168,10 +168,10 @@ export function CompanionOnboardingPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Companion registration</p>
-          <h1 id="companion-onboarding-title">Build a reviewed profile before public visibility.</h1>
+          <h1 id="companion-onboarding-title">Build your profile at your pace.</h1>
           <p>
-            Separate private verification details from public profile copy, then submit only when visibility and safety
-            controls are clear.
+            Keep verification details private, shape your public bio, and submit when your visibility settings feel
+            right.
           </p>
         </div>
         <div className="companion-progress-panel">
@@ -218,7 +218,7 @@ export function CompanionOnboardingPage() {
                 label="Private legal name"
                 value={draft.legalName}
                 error={fieldErrors.legalName}
-                helperText="Used for review only; never shown on public profile surfaces."
+                helperText="Shown only to review."
                 onChange={(event) => setDraft({ ...draft, legalName: event.target.value })}
               />
             </div>
@@ -332,7 +332,7 @@ export function CompanionOnboardingPage() {
               label="Verification references"
               value={draft.verificationReferences.join("\n")}
               error={fieldErrors.verificationReferences}
-              helperText="One reference per line. Keep sensitive material out of public copy."
+              helperText="One reference per line. Keep sensitive material out of the bio."
               onChange={(event) =>
                 setDraft({
                   ...draft,

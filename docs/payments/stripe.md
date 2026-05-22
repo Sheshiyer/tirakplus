@@ -8,6 +8,19 @@ Implementation must use a PaymentProvider boundary so customer and admin code de
 
 Provider alternatives are tracked in docs/payments/provider-alternatives.md. Stripe should be treated as the first adapter candidate, not as a hard dependency in product flows.
 
+## Local Test Mode
+
+Stripe Checkout can be exercised locally with `PAYMENT_PROVIDER_MODE=stripe_test`. This mode is for test keys and local verification only; production and default staging remain on `compliance_hold`.
+
+Required local variables:
+
+- `STRIPE_SECRET_KEY`: server-only Stripe test secret. Never commit this value.
+- `STRIPE_PUBLISHABLE_KEY`: optional publishable test key for future client-side Stripe surfaces.
+- `STRIPE_CHECKOUT_UNIT_AMOUNT`: integer minor units, for example `250000` for THB 2,500.
+- `STRIPE_CHECKOUT_CURRENCY`: lowercase ISO currency, for example `thb`.
+
+The Worker creates a Stripe-hosted Checkout Session server-side and returns only the hosted checkout URL to the traveller UI. React components must not import Stripe secret keys or create Checkout Sessions directly.
+
 ## Current Policy Risk
 
 Official Stripe policy currently lists adult services, including escorts, under prohibited adult content and services. It also lists online dating and matchmaking as limited availability, with Thailand dating services specifically listed under jurisdiction-specific prohibited businesses. Source: https://stripe.com/en-ca/legal/restricted-businesses

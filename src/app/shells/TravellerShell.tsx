@@ -1,7 +1,8 @@
 import { Outlet, Link } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
-import { LayoutDashboardIcon, CompassIcon, CalendarIcon, MailIcon, UserIcon } from "../components/navigation/Icons";
+import { LayoutDashboardIcon, CompassIcon, CalendarIcon, MailIcon, ShieldIcon } from "../components/navigation/Icons";
+import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 
 export function TravellerShell() {
   // Navigation for a logged-in traveller
@@ -10,7 +11,7 @@ export function TravellerShell() {
     { href: "/traveller/discovery", label: "Discovery" },
     { href: "/traveller/inbox", label: "Inbox" },
     { href: "/traveller/plans", label: "Plans" },
-    { href: "/traveller/account", label: "Account" },
+    { href: "/traveller/safety", label: "Safety" },
   ];
 
   const mobileNavItems = [
@@ -18,7 +19,7 @@ export function TravellerShell() {
     { id: "discovery", label: "Discovery", href: "/traveller/discovery", icon: <CompassIcon /> },
     { id: "plans", label: "Plans", href: "/traveller/plans", icon: <CalendarIcon /> },
     { id: "inbox", label: "Inbox", href: "/traveller/inbox", icon: <MailIcon /> },
-    { id: "account", label: "Account", href: "/traveller/account", icon: <UserIcon /> },
+    { id: "safety", label: "Safety", href: "/traveller/safety", icon: <ShieldIcon /> },
   ];
 
   return (
@@ -34,6 +35,7 @@ export function TravellerShell() {
       <main id="main-content" className="member-main" tabIndex={-1}>
         <Outlet />
       </main>
+      <FloatingMuseTrigger />
     </div>
   );
 }

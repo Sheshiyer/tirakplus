@@ -9,7 +9,7 @@ export function SafetyMessageBand({ content }: SafetyMessageBandProps) {
   return (
     <section className="safety-message-band" aria-labelledby="home-safety-title">
       <div>
-        <p className="eyebrow">Safety before conversion</p>
+        <p className="eyebrow">Safety first</p>
         <h2 id="home-safety-title">{content.title}</h2>
         <MusePoseImage variant="privacy" label="Muse in a composed privacy and safety pose" className="safety-muse-model" />
       </div>

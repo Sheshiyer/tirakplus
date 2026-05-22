@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import type { TravellerSessionDetail } from "../../shared/contracts";
 import { TravellerService } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -79,15 +78,19 @@ export function TravellerSessionDetailPage() {
             <span>{session.venueArea}</span>
           </div>
         </div>
-        <div className="member-muse-card">
-          <MusePoseImage variant="thinking" label="Muse holding the plan in review" />
+        <aside className="member-route-support-card" aria-label="Muse plan support">
           <MuseChartPanel chart={session.museRead} compact />
-        </div>
+          <div className="member-route-support-copy">
+            <p className="eyebrow">Muse read</p>
+            <h2>{session.museRead.summary}</h2>
+            <p>{session.museRead.nextPrompt}</p>
+          </div>
+        </aside>
       </div>
 
       <div className="member-bento-grid member-bento-grid-featured">
         <article className="member-bento-card member-bento-card-large">
-          <p className="eyebrow">Itinerary state</p>
+          <p className="eyebrow">Plan steps</p>
           <div className="session-checklist">
             {session.itinerary.map((item) => (
               <article key={item.label} className={`timeline-item timeline-item-${item.status}`}>
@@ -111,15 +114,15 @@ export function TravellerSessionDetailPage() {
         </article>
 
         <article className="member-bento-card">
-          <p className="eyebrow">Payment gate</p>
-          <h2>{session.paymentState.status.replace(/_/g, " ")}</h2>
+          <p className="eyebrow">Payment</p>
+          <h2>{session.paymentState.status === "not_started" ? "Not started" : "Not needed yet"}</h2>
           <p>{session.paymentState.note}</p>
         </article>
       </div>
 
       <section className="member-bento-card member-safety-panel">
         <div>
-          <p className="eyebrow">Privacy and safety</p>
+          <p className="eyebrow">Safety</p>
           <h2>{session.privacyNote}</h2>
         </div>
         <ul>

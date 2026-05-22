@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import type { TravellerDashboardResponse } from "../../shared/contracts";
 import { TravellerService } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { CompanionPreviewCard } from "../components/ui/CompanionPreviewCard";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -63,7 +62,7 @@ export function TravellerDashboardPage() {
     <section className="member-page traveller-dashboard-page" aria-labelledby="traveller-dashboard-title">
       <div className="member-hero">
         <div className="member-hero-copy">
-          <p className="eyebrow">Traveller workspace</p>
+          <p className="eyebrow">Today</p>
           <h1 id="traveller-dashboard-title">{data.greeting}</h1>
           <p>{data.summary}</p>
           <div className="action-row">
@@ -75,10 +74,17 @@ export function TravellerDashboardPage() {
             </Button>
           </div>
         </div>
-        <div className="member-muse-card">
-          <MusePoseImage variant="chat" label="Muse listening to the traveller route context" />
+        <aside className="member-route-support-card" aria-label="Muse route support">
           <MuseChartPanel chart={data.chart} compact />
-        </div>
+          <div className="member-route-support-copy">
+            <p className="eyebrow">Muse support</p>
+            <h2>Keep the route calm.</h2>
+            <p>{data.chart.nextPrompt}</p>
+          </div>
+          <Button as={Link} to="/" variant="secondary">
+            Ask Muse
+          </Button>
+        </aside>
       </div>
 
       <div className="member-metric-grid" aria-label="Traveller workspace metrics">
@@ -93,7 +99,7 @@ export function TravellerDashboardPage() {
 
       <div className="member-bento-grid member-bento-grid-featured">
         <article className="member-bento-card member-bento-card-large">
-          <p className="eyebrow">Active review</p>
+          <p className="eyebrow">Inbox</p>
           <h2>{data.activeInquiry.companionDisplayName} inquiry</h2>
           <p>{data.activeInquiry.nextStep}</p>
           <div className="status-pill-row">
@@ -120,7 +126,7 @@ export function TravellerDashboardPage() {
         </article>
 
         <article className="member-bento-card">
-          <p className="eyebrow">Muse notes</p>
+          <p className="eyebrow">Helpful cues</p>
           <ul className="member-note-list">
             {data.guidance.map((item) => (
               <li key={item}>{item}</li>
@@ -132,7 +138,7 @@ export function TravellerDashboardPage() {
       <section className="member-section" aria-labelledby="saved-profiles-title">
         <div className="member-section-heading">
           <p className="eyebrow">Saved profiles</p>
-          <h2 id="saved-profiles-title">Reviewed people stay next to the route context.</h2>
+          <h2 id="saved-profiles-title">Saved profiles</h2>
         </div>
         <div className="discovery-results-grid">
           {data.savedProfiles.map((profile) => (

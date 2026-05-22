@@ -27,24 +27,24 @@ export function AccountSettings() {
   const targetRole = currentRole === "traveller" ? "companion" : "traveller";
 
   return (
-    <section className="account-page">
+    <section className="account-page account-page-light">
       <div className="account-heading">
         <p className="eyebrow">Account and privacy</p>
-        <h1>Your protected Tirak Plus profile.</h1>
-        <p>Manage session access, private visibility expectations, notifications, and account safety controls.</p>
+        <h1>Account and privacy</h1>
+        <p>Manage access, visibility, notifications, and safety controls.</p>
       </div>
 
       <div className="account-panel">
         <div className="account-row">
           <div>
-            <h2>Profile access</h2>
+            <h2>Access mode</h2>
             <p>
-              You are currently signed in as a <strong>{currentRole}</strong>. The other access path is available in this
-              build so reviewed traveller and companion surfaces can be checked without creating duplicate accounts.
+              You are signed in as a <strong>{currentRole}</strong>. This account can open traveller and companion tools
+              without another login.
             </p>
           </div>
           <Button variant="secondary" onClick={handleSwitchRole} disabled={isLoading}>
-            {isLoading ? "Switching..." : `Preview ${targetRole} access`}
+            {isLoading ? "Switching..." : `Switch to ${targetRole}`}
           </Button>
         </div>
 
@@ -58,8 +58,8 @@ export function AccountSettings() {
           <div>
             <h2>Private session</h2>
             <p>
-              Signed in as {session.profile.email}. This screen should never expose verification documents, exact route
-              details, or off-platform payment prompts.
+              Signed in as {session.profile.email}. Verification documents, exact route details, and payment prompts
+              stay out of this account view.
             </p>
           </div>
           <Button variant="danger" onClick={handleLogout} disabled={isLoading}>
@@ -69,10 +69,10 @@ export function AccountSettings() {
 
         <div className="account-controls-grid" aria-label="Privacy and notification settings">
           {[
-            ["Visibility", "Only reviewed profile and inquiry fields should become visible outside this account."],
-            ["Notifications", "Inquiry and review updates should be sent only through approved contact channels."],
-            ["Data requests", "Export, correction, and deletion requests need an admin-reviewed workflow before launch."],
-            ["Safety reports", "Reports stay attached to restricted review records and should never appear in public copy."],
+            ["Visibility", "Reviewed profile and inquiry details stay under your visibility controls."],
+            ["Notifications", "Inquiry and review updates use approved contact channels."],
+            ["Data requests", "Export, correction, and deletion requests are handled by the Tirak support team."],
+            ["Safety reports", "Reports stay attached to review records and away from public pages."],
           ].map(([title, body]) => (
             <article className="account-control-card" key={title}>
               <span aria-hidden="true" />

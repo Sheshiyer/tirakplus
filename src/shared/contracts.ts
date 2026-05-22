@@ -102,6 +102,37 @@ export type MuseConversationStage =
 
 export type MuseChatRole = "user" | "muse";
 export type MuseRoleIntent = "traveller" | "companion" | "unknown";
+export type MuseClientContextSource = "muse-entry" | "floating-trigger" | "protected-route";
+export type MuseRouteKind =
+  | "muse-entry"
+  | "traveller-dashboard"
+  | "traveller-discovery"
+  | "traveller-profile"
+  | "traveller-inquiry"
+  | "traveller-plan"
+  | "traveller-safety"
+  | "companion-dashboard"
+  | "companion-onboarding"
+  | "companion-profile"
+  | "companion-inbox"
+  | "companion-plan"
+  | "companion-safety"
+  | "account"
+  | "public";
+
+export type MuseClientContext = {
+  timezone?: string;
+  route?: string;
+  roleIntent?: MuseRoleIntent;
+  source?: MuseClientContextSource;
+  routeKind?: MuseRouteKind;
+  routeLabel?: string;
+  city?: CitySlug;
+  companionId?: string;
+  inquiryId?: string;
+  planId?: string;
+  experience?: ExperienceSlug;
+};
 
 export type MuseChatMessage = {
   id: string;
@@ -114,11 +145,8 @@ export type MuseChatRequest = {
   conversationId?: string;
   message: string;
   stage?: MuseConversationStage;
-  clientContext?: {
-    timezone?: string;
-    route?: string;
-    roleIntent?: MuseRoleIntent;
-  };
+  profileSignals?: MuseProfileSignals;
+  clientContext?: MuseClientContext;
 };
 
 export type MuseProfileSignals = {
@@ -659,7 +687,7 @@ export type PaymentProviderSummary = {
     | "high_risk_card"
     | "manual_review";
   label: string;
-  status: "adapter_candidate" | "research" | "compliance_hold" | "fallback";
+  status: "adapter_candidate" | "research" | "compliance_hold" | "test_mode" | "fallback";
   localRails: string[];
   approvalRisk: "low" | "medium" | "high" | "unknown";
   implementationNote: string;
@@ -668,12 +696,13 @@ export type PaymentProviderSummary = {
 export type PaymentSessionResult =
   | {
       status: "blocked";
-      code: "PAYMENT_PROVIDER_NOT_APPROVED";
+      code: "PAYMENT_PROVIDER_NOT_APPROVED" | "PAYMENT_PROVIDER_NOT_CONFIGURED" | "PAYMENT_PROVIDER_ERROR";
       message: string;
       provider: PaymentProviderSummary["id"];
     }
   | {
       status: "created";
       provider: PaymentProviderSummary["id"];
+      checkoutSessionId: string;
       checkoutUrl: string;
     };

@@ -68,7 +68,7 @@ export function CompanionProfileManagerPage() {
       });
       setDraft(response.profile);
       setLoadState({ status: "ready", data: response.onboarding });
-      setStatusMessage("Profile draft saved and safe preview refreshed.");
+      setStatusMessage("Profile draft saved.");
     } catch (error) {
       if (error instanceof CompanionApiError) {
         setFieldErrors(error.fieldErrors || {});
@@ -137,9 +137,9 @@ export function CompanionProfileManagerPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Profile management</p>
-          <h1 id="companion-profile-title">Edit the draft while previewing only safe public fields.</h1>
+          <h1 id="companion-profile-title">Edit your profile details.</h1>
           <p>
-            Public copy, private review notes, and account controls stay separated so approval can be audited later.
+            Public bio, private review notes, and account controls stay separated so you know what travellers can see.
           </p>
         </div>
         <div className="companion-progress-panel">
@@ -263,9 +263,9 @@ export function CompanionProfileManagerPage() {
         </form>
 
         <aside className="safe-preview-panel" aria-labelledby="safe-preview-title">
-          <p className="eyebrow">Safe preview</p>
+          <p className="eyebrow">Traveller view</p>
           <h2 id="safe-preview-title">{draft.visibilitySettings.publicProfile ? draft.displayName : "Profile hidden"}</h2>
-          <p>{draft.visibilitySettings.publicProfile ? draft.bio : "Public preview is paused until review and visibility approval."}</p>
+          <p>{draft.visibilitySettings.publicProfile ? draft.bio : "Traveller view stays paused until review and visibility approval."}</p>
           <div className="preview-meta-grid">
             <span>{draft.visibilitySettings.showCity ? draft.city.replace(/-/g, " ") : "City hidden"}</span>
             <span>{draft.visibilitySettings.showAvailability ? "Availability visible after approval" : "Availability hidden"}</span>

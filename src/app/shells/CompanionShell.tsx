@@ -2,6 +2,7 @@ import { Outlet, Link } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
 import { LayoutDashboardIcon, CalendarIcon, MailIcon, UserIcon, ShieldIcon } from "../components/navigation/Icons";
+import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 
 export function CompanionShell() {
   // Navigation for a logged-in companion
@@ -34,6 +35,7 @@ export function CompanionShell() {
       <main id="main-content" className="member-main" tabIndex={-1}>
         <Outlet />
       </main>
+      <FloatingMuseTrigger />
     </div>
   );
 }

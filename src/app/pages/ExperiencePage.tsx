@@ -7,27 +7,27 @@ const experienceLabels: Record<ExperienceSlug, { title: string; eyebrow: string;
   nightlife: {
     title: "Nightlife experience",
     eyebrow: "After-dark planning",
-    description: "Lounge, rooftop, and late-evening plans framed through discretion, transport, and review context.",
+    description: "Lounge, rooftop, and late-evening plans with discretion, transport, and timing named early.",
   },
   "island-explorer": {
     title: "Island explorer experience",
     eyebrow: "Island pacing",
-    description: "Beach clubs, coves, wellness stops, and quieter discovery routes with privacy-aware next steps.",
+    description: "Beach clubs, coves, wellness stops, and quieter routes with privacy kept close.",
   },
   "muay-thai-night": {
     title: "Muay Thai night",
     eyebrow: "Fight-night context",
-    description: "Respectful local fight-night planning with clear itinerary context before any private inquiry.",
+    description: "Respectful local fight-night planning with seating, timing, and transport kept clear.",
   },
   "private-dining": {
     title: "Private dining experience",
     eyebrow: "Dining route",
-    description: "Composed restaurant and resort-area evenings with timing, privacy, and review context set before any next step.",
+    description: "Composed restaurant and resort-area evenings with timing and privacy named upfront.",
   },
   "local-guidance": {
     title: "Local guidance experience",
     eyebrow: "Local fluency",
-    description: "City and island guidance built around boundaries, transport, safety, and composed introductions.",
+    description: "City and island guidance for boundaries, transport, safety, and calm introductions.",
   },
 };
 
@@ -80,7 +80,7 @@ export function ExperiencePage({ experienceSlug }: ExperiencePageProps) {
       <div className="experience-page">
         <section className="error-panel" role="alert">
           <p className="eyebrow">Experience unavailable</p>
-          <h1>We could not load this experience page.</h1>
+          <h1>We could not load this experience.</h1>
           <p>{state.message}</p>
           <Button as={Link} to="/" variant="secondary">
             Return home
@@ -110,8 +110,8 @@ export function ExperiencePage({ experienceSlug }: ExperiencePageProps) {
         {state.experiences.length === 0 ? (
           <div className="empty-panel">
             <p className="eyebrow">Experience contexts</p>
-            <h2>This experience is still under staged review.</h2>
-            <p>Return to city overviews while the API rail is filled.</p>
+            <h2>This experience is still being prepared.</h2>
+            <p>Return to city overviews while this guide is finished.</p>
           </div>
         ) : (
           <div className="experience-list experience-list-wide">

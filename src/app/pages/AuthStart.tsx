@@ -11,7 +11,8 @@ export function AuthStart() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { login, verify, isLoading, error } = useAuth();
-  const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const fromLocation = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
+  const fromPath = fromLocation?.pathname ? `${fromLocation.pathname}${fromLocation.search ?? ""}` : undefined;
   const intendedRole: Extract<UserRole, "traveller" | "companion"> =
     searchParams.get("role") === "companion" || fromPath?.startsWith("/companion") ? "companion" : "traveller";
 
@@ -29,19 +30,22 @@ export function AuthStart() {
 
   const handleDevAccess = async (role: Extract<UserRole, "traveller" | "companion">) => {
     const devEmail = role === "traveller" ? "dev.traveller@tirakplus.local" : "dev.companion@tirakplus.local";
+    const fallbackPath = role === "traveller" ? "/traveller/dashboard" : "/companion/dashboard";
+    const targetPath =
+      fromPath && fromPath.startsWith(role === "traveller" ? "/traveller" : "/companion") ? fromPath : fallbackPath;
     await verify(devEmail, "123456", role);
-    navigate(role === "traveller" ? "/traveller/dashboard" : "/companion/dashboard", { replace: true });
+    navigate(targetPath, { replace: true });
   };
 
   return (
     <section className="auth-page">
       <div className="auth-panel">
         <div className="auth-heading">
-          <h1>Continue with Tirak Plus</h1>
+          <h1>Sign in to continue</h1>
           <p>
             {intendedRole === "companion"
-              ? "Create or manage a reviewed companion profile with visibility controls."
-              : "Enter the private traveller path after Muse has shaped the route."}
+              ? "Sign in to manage your profile, availability, and messages."
+              : "Sign in to keep your trip context, saved profiles, and messages private."}
           </p>
         </div>
 
@@ -74,18 +78,18 @@ export function AuthStart() {
         </form>
 
         <p className="auth-terms">
-          By continuing, you accept the safety and privacy rules that keep introductions reviewed, respectful, and visibility-aware.
-          {" "}<Link to="/safety">Review them before continuing</Link>.
+          By continuing, you agree to keep messages respectful and to use Tirak Plus for private, safety-aware plans.
+          {" "}<Link to="/safety">Read the safety notes</Link>.
         </p>
 
-        <div className="auth-dev-panel" aria-label="Development access">
-          <p className="meta">Development access</p>
+        <div className="auth-dev-panel" aria-label="Sample account access">
+          <p className="meta">Sample account</p>
           <div className="auth-dev-actions">
             <Button type="button" variant="secondary" onClick={() => void handleDevAccess("traveller")} disabled={isLoading}>
-              Traveller QA
+              Traveller sample
             </Button>
             <Button type="button" variant="secondary" onClick={() => void handleDevAccess("companion")} disabled={isLoading}>
-              Companion QA
+              Companion sample
             </Button>
           </div>
         </div>

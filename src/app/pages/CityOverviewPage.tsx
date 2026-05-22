@@ -83,24 +83,24 @@ export function CityOverviewPage({ citySlug }: CityOverviewPageProps) {
     <div className="city-page">
       <section className="city-page-hero" aria-labelledby={`${state.city.slug}-page-title`}>
         <p className="eyebrow">City context</p>
-        <h1 id={`${state.city.slug}-page-title`}>{state.city.name}, shaped before discovery.</h1>
+        <h1 id={`${state.city.slug}-page-title`}>{state.city.name} starts with local rhythm.</h1>
         <p className="lede">
-          Start with the local rhythm, route boundaries, and experience context. Muse keeps the first read private
-          before any protected profile surface opens.
+          Name timing, transport, and boundaries first. Muse keeps the read private while you choose the right next
+          step.
         </p>
       </section>
       <CityOverview city={state.city} experiences={state.experiences} />
       {state.experiences.length === 0 ? (
         <section className="empty-panel">
           <p className="eyebrow">Experience contexts</p>
-          <h2>No reviewed experience contexts are staged for this city yet.</h2>
+          <h2>No reviewed experience guides are ready for this city yet.</h2>
           <p>Try another city overview or return to traveller discovery.</p>
         </section>
       ) : null}
       <section className="city-page-cta" aria-labelledby={`${state.city.slug}-cta-title`}>
         <div>
           <p className="eyebrow">Next step</p>
-          <h2 id={`${state.city.slug}-cta-title`}>Use this city context when planning a private inquiry.</h2>
+          <h2 id={`${state.city.slug}-cta-title`}>Carry this city context into discovery.</h2>
         </div>
         <Button as={Link} to="/discovery" variant="primary">
           Open discovery

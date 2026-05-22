@@ -119,12 +119,13 @@ await expectError("traveller inquiry validation", "/api/traveller/inquiries", 42
     privacyAcknowledged: false,
   },
 });
-await expectError("stripe compliance gate", "/api/traveller/inquiries/inq-staged-aura/stripe-checkout-session", 409, {
+const stripeGate = await expectError("stripe compliance gate", "/api/traveller/inquiries/inq-staged-aura/stripe-checkout-session", 409, {
   method: "POST",
   cookie: travellerCookie,
   headers: travellerCsrfHeaders,
   body: {},
 });
+assert(stripeGate.code === "PAYMENT_PROVIDER_NOT_APPROVED", "stripe compliance gate: expected provider approval code");
 await expectOk("account detail", "/api/account", { cookie: travellerCookie });
 await expectOk("account privacy", "/api/account/privacy", {
   method: "PATCH",

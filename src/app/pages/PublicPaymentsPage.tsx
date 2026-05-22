@@ -17,21 +17,35 @@ async function getPaymentProviders(): Promise<PaymentProviderSummary[]> {
 
 const paymentFlow = [
   {
-    label: "Before inquiry",
-    title: "No payment action appears in public discovery.",
-    description: "The public website explains the boundary. Money movement is not part of browsing or profile visibility.",
+    label: "Browse",
+    title: "No checkout on public pages.",
+    description: "Talk to Muse and shape a plan without being pushed toward payment.",
   },
   {
-    label: "After review",
-    title: "Inquiry context must clear first.",
-    description: "Review checks the route, safety context, service model, and whether a provider can support the exact flow.",
+    label: "Plan",
+    title: "A request needs context first.",
+    description: "City, timing, expectations, and boundaries come before any paid step.",
   },
   {
-    label: "Provider gate",
-    title: "Checkout stays disabled until supportability is approved.",
-    description: "Stripe is documented as the target provider, but live activation remains behind the compliance gate.",
+    label: "Pay",
+    title: "Checkout appears inside the signed-in plan.",
+    description: "When payments are available, the action stays attached to the plan you are reviewing.",
   },
 ];
+
+function paymentStatusCopy(provider: PaymentProviderSummary): string {
+  if (provider.status === "test_mode") return "Testing";
+  if (provider.status === "fallback") return "Available by request";
+  return "Coming soon";
+}
+
+function paymentProviderNote(provider: PaymentProviderSummary): string {
+  if (provider.status === "test_mode") {
+    return "Card checkout is being tested before it appears in live plans.";
+  }
+
+  return "This method will appear only when it is ready for signed-in plans.";
+}
 
 export function PublicPaymentsPage() {
   const [state, setState] = useState<PaymentState>({ status: "loading" });
@@ -42,7 +56,7 @@ export function PublicPaymentsPage() {
       .catch((caught: unknown) => {
         setState({
           status: "error",
-          message: caught instanceof Error ? caught.message : "Unable to load payment provider status.",
+          message: caught instanceof Error ? caught.message : "Unable to load payment methods.",
         });
       });
   }, []);
@@ -52,30 +66,29 @@ export function PublicPaymentsPage() {
       <section className="public-business-hero" aria-labelledby="public-payments-title">
         <div>
           <p className="eyebrow">Payments</p>
-          <h1 id="public-payments-title">Payment rails open only after review.</h1>
+          <h1 id="public-payments-title">Checkout stays inside a confirmed plan.</h1>
           <p className="lede">
-            Tirak Plus keeps payment state separate from public discovery. Review, provider supportability, and
-            jurisdiction-specific service checks must clear before checkout can appear.
+            Public pages never ask for payment. When checkout is available, it appears with the plan details in one
+            signed-in place.
           </p>
           <div className="action-row">
             <Button as={Link} to="/safety" variant="primary">Read safety guidance</Button>
             <Button as={Link} to="/" variant="secondary">Start with Muse</Button>
           </div>
         </div>
-        <aside className="payment-status-panel" aria-label="Payment provider status">
-          <p className="eyebrow">Current gate</p>
-          <h2>Review before payment</h2>
+        <aside className="payment-status-panel" aria-label="Payment method status">
+          <p className="eyebrow">Current status</p>
+          <h2>Payments are not open yet</h2>
           <p>
-            Public discovery never creates instant checkout. The signed-in product can show payment status only after
-            an inquiry has enough context for review.
+            Talk to Muse and shape a plan now. Checkout appears only when the signed-in plan is ready.
           </p>
         </aside>
       </section>
 
       <section className="public-section" aria-labelledby="payment-flow-title">
         <div className="public-section-heading">
-          <p className="eyebrow">How payment state works</p>
-          <h2 id="payment-flow-title">Clear steps, no pressure cues.</h2>
+          <p className="eyebrow">How it works</p>
+          <h2 id="payment-flow-title">No pressure, no surprise checkout.</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {paymentFlow.map((item) => (
@@ -90,8 +103,8 @@ export function PublicPaymentsPage() {
 
       <section className="public-split-band" aria-labelledby="provider-status-title">
         <div>
-          <p className="eyebrow">Provider status</p>
-          <h2 id="provider-status-title">Supportability stays visible.</h2>
+          <p className="eyebrow">Payment methods</p>
+          <h2 id="provider-status-title">Methods will appear when they are ready.</h2>
           {state.status === "error" ? <p>{state.message}</p> : null}
         </div>
         <div className="public-provider-list">
@@ -99,15 +112,15 @@ export function PublicPaymentsPage() {
             ? state.providers.map((provider) => (
                 <article className="public-provider-row" key={provider.id}>
                   <span>{provider.label}</span>
-                  <strong>{provider.status.replaceAll("_", " ")}</strong>
-                  <p>{provider.implementationNote}</p>
+                  <strong>{paymentStatusCopy(provider)}</strong>
+                  <p>{paymentProviderNote(provider)}</p>
                 </article>
               ))
             : (
               <article className="public-provider-row">
-                <span>Provider review</span>
+                <span>Payment methods</span>
                 <strong>Loading</strong>
-                <p>Checking the staged payment supportability state.</p>
+                <p>Checking which methods can be shown here.</p>
               </article>
             )}
         </div>

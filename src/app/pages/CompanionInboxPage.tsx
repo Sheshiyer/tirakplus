@@ -63,10 +63,10 @@ export function CompanionInboxPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Private inquiries</p>
-          <h1 id="companion-inbox-title">Review routed requests after Tirak safety checks.</h1>
+          <h1 id="companion-inbox-title">Review traveller requests when checks are complete.</h1>
           <p>
-            Inquiries are shown as reviewed planning context. Traveller contact details, payment state, and routing stay
-            private until the workflow allows them.
+            Inquiries show planning context first. Contact details and payment actions stay private until the request
+            is ready.
           </p>
         </div>
       </div>

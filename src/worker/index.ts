@@ -7,7 +7,7 @@ import {
 } from "./staged-provider.js";
 import { companionMuseChart, travellerMuseChart } from "./staged-data.js";
 import { routeAuth, getSessionFromRequest, verifyCsrfToken } from "./auth.js";
-import { createPaymentSession, paymentProviders } from "./payment-provider.js";
+import { createPaymentSession, getPaymentProviders } from "./payment-provider.js";
 import { checkRateLimit, type RateLimitGroup } from "./rate-limit.js";
 import { getRouteRegistry } from "./route-registry.js";
 import { storageBoundaryResponse } from "./storage-boundaries.js";
@@ -36,13 +36,20 @@ import type {
   TravellerSessionDetail,
 } from "../shared/contracts";
 
-type WorkerEnv = Env & {
+type PaymentProviderMode = "compliance_hold" | "stripe_test";
+
+type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   MUSE_AGENT_API_KEY?: string;
   MUSE_AGENT_CONFIG?: KVNamespace;
   MUSE_AGENT_CONFIG_KEY?: string;
   MUSE_AGENT_MODE?: "staged" | "external";
   MUSE_RAG?: Fetcher;
+  PAYMENT_PROVIDER_MODE?: PaymentProviderMode;
   SELEMENE_ENGINE_API_KEY?: string;
+  STRIPE_CHECKOUT_CURRENCY?: string;
+  STRIPE_CHECKOUT_UNIT_AMOUNT?: string;
+  STRIPE_PUBLISHABLE_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
 };
 
 async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
@@ -153,12 +160,12 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       chart: travellerMuseChart,
       emptyState: {
         title: "No reviewed profiles match these filters.",
-        description: "Adjust the city, experience, or availability context. Tirak does not create fake scarcity or online-now pressure.",
+        description: "Adjust the city, experience, or timing to see more profiles.",
       },
       guidance: [
-        "Discovery shows review state and planning context instead of ratings.",
-        "Availability is not an instant-booking promise.",
-        "Inquiry review happens before routing or payment.",
+        "Choose a city first when your plan is location-specific.",
+        "Use timing to narrow profiles for this week.",
+        "Open a profile when the tone feels right.",
       ],
     });
   }
@@ -173,7 +180,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     return ok({
       companionId: profile.id,
       windows: profile.availabilityWindows,
-      note: "Availability is planning context and must pass review before routing.",
+      note: "Availability helps planning and appears to travellers after review.",
     });
   }
 
@@ -241,17 +248,17 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       panels: [
         {
           title: "Profile draft",
-          description: "Edit public tone, private review fields, and safe preview details before submission.",
+          description: "Edit public tone, private review fields, and traveller-facing details before submission.",
           href: "/companion/profile",
         },
         {
           title: "Availability",
-          description: "Keep city windows visibility-scoped; hidden windows do not appear in discovery.",
+          description: "Keep city windows controlled; hidden windows do not appear in discovery.",
           href: "/companion/plans",
         },
         {
           title: "Private inquiries",
-          description: "Review incoming requests only after Tirak completes routing and safety checks.",
+          description: "Review incoming requests only after Tirak completes safety checks.",
           href: "/companion/inbox",
         },
       ],
@@ -263,8 +270,8 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     return ok({
       results: provider.listCompanionInquiries(),
       emptyState: {
-        title: "No routed inquiries yet.",
-        description: "Tirak only routes inquiries after review; no fake demand or online-now pressure is shown.",
+        title: "No reviewed inquiries yet.",
+        description: "Tirak sends inquiries after review, without fake demand or online-now pressure.",
       },
     });
   }
@@ -366,17 +373,17 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/payments/providers") {
-    return ok(paymentProviders);
+    return ok(getPaymentProviders(getPaymentProviderMode(env)));
   }
 
   const paymentMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)\/payment-session$/);
   if (request.method === "POST" && paymentMatch) {
-    return blockedPaymentResponse(fail);
+    return createTravellerPaymentSession(request, env, paymentMatch[1], ok, fail, { errorOnBlocked: false });
   }
 
   const stripePaymentMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)\/stripe-checkout-session$/);
   if (request.method === "POST" && stripePaymentMatch) {
-    return blockedPaymentResponse(fail);
+    return createTravellerPaymentSession(request, env, stripePaymentMatch[1], ok, fail, { errorOnBlocked: true });
   }
 
   const paymentDetailMatch = pathname.match(/^\/api\/traveller\/payments\/([^/]+)$/);
@@ -388,7 +395,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       complianceState: "compliance_hold",
       amount: null,
       currency: "THB",
-      nextStep: "Payment detail is API-shaped, but live payment state remains blocked until provider approval.",
+      nextStep: "Payment is not available for this plan yet.",
     });
   }
 
@@ -461,7 +468,7 @@ function guardApiMutation(
     csrfResult === "missing_session" ? 401 : 403,
     csrfResult === "missing_session" ? "SESSION_REQUIRED" : "CSRF_TOKEN_REQUIRED",
     csrfResult === "missing_session"
-      ? "Sign in before changing protected data."
+      ? "Sign in before changing account data."
       : "Refresh the page and try again.",
   );
 }
@@ -494,10 +501,10 @@ function rateLimitGroupForPath(pathname: string): RateLimitGroup {
 }
 
 const companionSafetyGuidance = [
-  "Public profile fields stay separate from private review fields.",
+  "Public profile fields stay separate from private review notes.",
   "Availability is planning context, not instant booking or public urgency.",
   "Visibility can pause discovery, city, availability, and inquiries independently.",
-  "No payment, off-platform contact, or routing step happens before review clears.",
+  "No payment, off-platform contact, or introduction happens before review clears.",
 ];
 
 const museSystemContract = {
@@ -610,11 +617,13 @@ async function callExternalMuseAgent(body: MuseChatRequest, env: WorkerEnv): Pro
 
 function createStagedMuseChatResponse(body: MuseChatRequest): MuseChatResponse {
   const message = body.message.trim();
-  const signals = inferMuseProfileSignals(message);
+  const contextSignals = inferMuseClientContextSignals(body.clientContext);
+  const seedSignals = body.profileSignals ? mergeMuseProfileSignals(contextSignals, body.profileSignals) : contextSignals;
+  const signals = mergeMuseProfileSignals(seedSignals, inferMuseProfileSignals(message));
   const stage = inferNextMuseStage(body.stage ?? "arrival", signals, message);
   const conversationId = body.conversationId?.trim() || `muse_${crypto.randomUUID()}`;
   const now = new Date().toISOString();
-  const reply = selectStagedMuseReply(stage, signals, message);
+  const reply = selectStagedMuseReply(stage, signals, message, body.clientContext);
 
   return {
     conversationId,
@@ -633,6 +642,141 @@ function createStagedMuseChatResponse(body: MuseChatRequest): MuseChatResponse {
   };
 }
 
+function mergeMuseProfileSignals(previous: MuseProfileSignals | undefined, next: MuseProfileSignals): MuseProfileSignals {
+  if (!previous) return next;
+
+  const birthContext =
+    museBirthConfidenceRank(next.birthContext.confidence) >= museBirthConfidenceRank(previous.birthContext.confidence)
+      ? { ...previous.birthContext, ...next.birthContext }
+      : { ...next.birthContext, ...previous.birthContext };
+
+  return {
+    birthContext: {
+      ...birthContext,
+      confidence: strongestMuseBirthConfidence(previous.birthContext.confidence, next.birthContext.confidence),
+    },
+    travelContext: {
+      city: next.travelContext.city ?? previous.travelContext.city,
+      timeframe: next.travelContext.timeframe ?? previous.travelContext.timeframe,
+      experienceHints: uniqueMuseValues([...previous.travelContext.experienceHints, ...next.travelContext.experienceHints]),
+    },
+    desireVector: uniqueMuseValues([...previous.desireVector, ...next.desireVector]),
+    boundarySignals: uniqueMuseValues([...previous.boundarySignals, ...next.boundarySignals]),
+    routingHints: {
+      nextRoute: next.routingHints.nextRoute ?? previous.routingHints.nextRoute,
+      requiresAuth: previous.routingHints.requiresAuth || next.routingHints.requiresAuth,
+      suggestedRole:
+        next.routingHints.suggestedRole && next.routingHints.suggestedRole !== previous.routingHints.suggestedRole
+          ? next.routingHints.suggestedRole
+          : previous.routingHints.suggestedRole ?? next.routingHints.suggestedRole,
+    },
+  };
+}
+
+function museBirthConfidenceRank(confidence: MuseProfileSignals["birthContext"]["confidence"]): number {
+  if (confidence === "complete") return 2;
+  if (confidence === "partial") return 1;
+  return 0;
+}
+
+function strongestMuseBirthConfidence(
+  previous: MuseProfileSignals["birthContext"]["confidence"],
+  next: MuseProfileSignals["birthContext"]["confidence"],
+): MuseProfileSignals["birthContext"]["confidence"] {
+  return museBirthConfidenceRank(next) > museBirthConfidenceRank(previous) ? next : previous;
+}
+
+function uniqueMuseValues<T extends string>(values: T[]): T[] {
+  return Array.from(new Set(values));
+}
+
+function createEmptyMuseProfileSignals(): MuseProfileSignals {
+  return {
+    birthContext: {
+      confidence: "none",
+    },
+    travelContext: {
+      experienceHints: [],
+    },
+    desireVector: [],
+    boundarySignals: [],
+    routingHints: {
+      requiresAuth: false,
+    },
+  };
+}
+
+function inferMuseClientContextSignals(clientContext: MuseChatRequest["clientContext"]): MuseProfileSignals {
+  const signals = createEmptyMuseProfileSignals();
+  if (!clientContext) return signals;
+
+  const city = clientContext.city ?? inferCityFromRoute(clientContext.route);
+  const experience = clientContext.experience ?? inferExperienceFromRoute(clientContext.route);
+  const routeKind = clientContext.routeKind ?? "muse-entry";
+  const isProtectedRoute = routeKind.startsWith("traveller") || routeKind.startsWith("companion") || routeKind === "account";
+
+  return {
+    ...signals,
+    travelContext: {
+      city,
+      experienceHints: experience ? [experience] : [],
+    },
+    desireVector: contextDesireSignals(routeKind),
+    boundarySignals: contextBoundarySignals(routeKind),
+    routingHints: {
+      nextRoute: clientContext.route,
+      requiresAuth: isProtectedRoute,
+      suggestedRole:
+        clientContext.roleIntent === "traveller" || clientContext.roleIntent === "companion"
+          ? clientContext.roleIntent
+          : undefined,
+    },
+  };
+}
+
+function inferCityFromRoute(route: string | undefined): CitySlug | undefined {
+  if (!route) return undefined;
+  try {
+    const url = new URL(route, "https://tirakplus.local");
+    const queryCity = url.searchParams.get("city");
+    if (isCitySlug(queryCity)) return queryCity;
+    return (["bangkok", "phuket", "koh-samui", "koh-phangan"] as CitySlug[]).find((city) =>
+      url.pathname.includes(`/cities/${city}`) || url.pathname.includes(city),
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+function inferExperienceFromRoute(route: string | undefined): ExperienceSlug | undefined {
+  if (!route) return undefined;
+  try {
+    const url = new URL(route, "https://tirakplus.local");
+    const queryExperience = url.searchParams.get("experience");
+    if (isExperienceSlug(queryExperience)) return queryExperience;
+    return (["nightlife", "island-explorer", "muay-thai-night", "private-dining", "local-guidance"] as ExperienceSlug[]).find(
+      (experience) => url.pathname.includes(`/experiences/${experience}`) || url.pathname.includes(experience),
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+function contextDesireSignals(routeKind: string): string[] {
+  if (routeKind.includes("profile")) return ["profile fit"];
+  if (routeKind.includes("inquiry") || routeKind.includes("inbox")) return ["respectful message"];
+  if (routeKind.includes("discovery")) return ["private fit"];
+  if (routeKind.includes("plan")) return ["timing clarity"];
+  return [];
+}
+
+function contextBoundarySignals(routeKind: string): string[] {
+  if (routeKind.includes("safety")) return ["safety explicit"];
+  if (routeKind.includes("account")) return ["privacy controls"];
+  if (routeKind.includes("companion")) return ["visibility control"];
+  return [];
+}
+
 function inferMuseProfileSignals(message: string): MuseProfileSignals {
   const lower = message.toLowerCase();
   const city = (["bangkok", "phuket", "koh-samui", "koh-phangan"] as CitySlug[]).find((item) =>
@@ -642,8 +786,10 @@ function inferMuseProfileSignals(message: string): MuseProfileSignals {
     (experience) => lower.includes(experience.replaceAll("-", " ")) || lower.includes(experience),
   );
   const dateMatch = message.match(/\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b/);
-  const timeMatch = message.match(/\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s?(?:am|pm)?\b/i);
-  const placeMatch = message.match(/\b(?:born in|birth place is|from)\s+([a-zA-Z\s-]{3,40})/i);
+  const timeMatch = message.match(/\b(?:at\s*)?((?:[01]?\d|2[0-3]):[0-5]\d\s?(?:am|pm)?|(?:[1-9]|1[0-2])\s?(?:am|pm))\b/i);
+  const placeMatch =
+    message.match(/\b(?:born in|birth place is|from)\s+([a-zA-Z\s-]{3,40})/i) ??
+    message.match(/\bborn\b.*?\bin\s+([a-zA-Z\s-]{3,40})(?:,|$)/i);
   const desireVector = [
     lower.includes("private") || lower.includes("discreet") ? "privacy-led" : "",
     lower.includes("warm") || lower.includes("kind") ? "warmth" : "",
@@ -660,7 +806,7 @@ function inferMuseProfileSignals(message: string): MuseProfileSignals {
   return {
     birthContext: {
       ...(dateMatch ? { date: dateMatch[0] } : {}),
-      ...(timeMatch ? { time: timeMatch[0] } : {}),
+      ...(timeMatch ? { time: timeMatch[1].trim() } : {}),
       ...(placeMatch ? { place: placeMatch[1].trim() } : {}),
       confidence: dateMatch && timeMatch && placeMatch ? "complete" : dateMatch || timeMatch || placeMatch ? "partial" : "none",
     },
@@ -674,7 +820,7 @@ function inferMuseProfileSignals(message: string): MuseProfileSignals {
     routingHints: {
       nextRoute: stageRouteHint(city, experienceHints),
       requiresAuth: false,
-      suggestedRole: lower.includes("profile") || lower.includes("bio") || lower.includes("services") ? "companion" : "traveller",
+      suggestedRole: lower.includes("profile") || lower.includes("bio") || lower.includes("services") ? "companion" : undefined,
     },
   };
 }
@@ -690,28 +836,38 @@ function inferNextMuseStage(
   if (!signals.travelContext.city && signals.travelContext.experienceHints.length === 0) return "travel_context";
   if (signals.desireVector.length === 0) return "desire_mapping";
   if (signals.boundarySignals.length === 0) return "safety_boundaries";
-  if (currentStage === "safety_boundaries") return "recommendation_ready";
-  return currentStage === "arrival" ? "birth_context" : currentStage;
+  return "recommendation_ready";
 }
 
-function selectStagedMuseReply(stage: MuseConversationStage, signals: MuseProfileSignals, message: string): string {
+function selectStagedMuseReply(
+  stage: MuseConversationStage,
+  signals: MuseProfileSignals,
+  message: string,
+  clientContext: MuseChatRequest["clientContext"],
+): string {
+  const contextPrefix = museContextPrefix(clientContext);
   if (stage === "birth_context") {
-    return "I can start there. Give me your birth date, birth place, and if you know it, the time. I will keep the details private and turn it into a useful read, not a lecture.";
+    return `${contextPrefix}I can start there. Give me your birth date, birth place, and if you know it, the time. I will keep the details private and turn it into a useful read, not a lecture.`;
   }
   if (stage === "travel_context") {
-    return "Good. Now tell me where Thailand enters the story: Bangkok, Phuket, Samui, Phangan, or a moving target? Add the window too. I am looking for rhythm, not a checklist.";
+    return `${contextPrefix}Good. Now tell me where Thailand enters the story: Bangkok, Phuket, Samui, Phangan, or a moving target? Add the window too. I am looking for rhythm, not a checklist.`;
   }
   if (stage === "desire_mapping") {
-    return "I am picking up the shape of it. Say the quiet part plainly: do you want warmth, wit, calm privacy, sharp nightlife energy, local guidance, or someone who can make the evening feel less improvised?";
+    return `${contextPrefix}I am picking up the shape of it. Say the quiet part plainly: do you want warmth, wit, calm privacy, sharp nightlife energy, local guidance, or someone who can make the evening feel less improvised?`;
   }
   if (stage === "safety_boundaries") {
-    return "Before I route anything, give me the guardrails. What should feel absolutely off-limits, what pace feels comfortable, and how visible do you want this to be?";
+    return `${contextPrefix}Before I show anything, give me the guardrails. What feels absolutely off-limits, what pace feels comfortable, and how visible do you want this to be?`;
   }
   if (stage === "recommendation_ready") {
     const city = signals.travelContext.city ? signals.travelContext.city.replace("-", " ") : "your first city";
-    return `I have enough to sketch a discreet path for ${city}. I will keep it private, filter for tone and safety first, then show options only when the fit is clean.`;
+    return `${contextPrefix}I have enough to sketch a discreet path for ${city}. I will keep it private, filter for tone and safety first, then show options only when the fit is clean.`;
   }
-  return `Tell me what brings you here in one line. I will make the next question sharper than "${message.slice(0, 48)}" deserves.`;
+  return `${contextPrefix}Tell me what brings you here in one line. I will make the next question sharper than "${message.slice(0, 48)}" deserves.`;
+}
+
+function museContextPrefix(clientContext: MuseChatRequest["clientContext"]): string {
+  if (clientContext?.source !== "floating-trigger" || !clientContext.routeLabel) return "";
+  return `I have your ${clientContext.routeLabel.toLowerCase()} in view. `;
 }
 
 function selectMusePrompts(stage: MuseConversationStage): string[] {
@@ -727,9 +883,12 @@ function selectMuseNextAction(stage: MuseConversationStage, signals: MuseProfile
     return { label: "Continue with Muse", href: "/", kind: "continue" };
   }
   if (signals.routingHints.suggestedRole === "companion") {
-    return { label: "Open companion assist", href: "/auth/login", kind: "auth" };
+    return { label: "Open profile workspace", href: "/companion/profile?muse=1", kind: "route" };
   }
-  return { label: "Review private discovery", href: "/auth/login", kind: "auth" };
+  const params = new URLSearchParams({ muse: "1", source: "muse" });
+  if (signals.travelContext.city) params.set("city", signals.travelContext.city);
+  if (signals.travelContext.experienceHints[0]) params.set("experience", signals.travelContext.experienceHints[0]);
+  return { label: "Open tuned discovery", href: `/traveller/discovery?${params.toString()}`, kind: "route" };
 }
 
 function createMuseChartFromSignals(signals: MuseProfileSignals) {
@@ -741,10 +900,10 @@ function createMuseChartFromSignals(signals: MuseProfileSignals) {
   return {
     ...travellerMuseChart,
     summary: hasBirthContext
-      ? "Muse has enough birth context to shape the read without exposing the private method."
-      : "Muse is still waiting for birth date, place, and optional time before sharpening the read.",
+      ? "Muse has enough private context to shape the read without exposing the method."
+      : "Muse is still waiting for date, place, and optional time before sharpening the read.",
     axes: [
-      { label: "Birth read", value: hasBirthContext ? signals.birthContext.confidence : "needed", tone: "lavender" as const },
+      { label: "Private read", value: hasBirthContext ? signals.birthContext.confidence : "needed", tone: "lavender" as const },
       { label: "City", value: city, tone: "pearl" as const },
       { label: "Mood", value: desire, tone: "rose" as const },
       { label: "Boundary", value: boundary, tone: "green" as const },
@@ -752,7 +911,7 @@ function createMuseChartFromSignals(signals: MuseProfileSignals) {
     cues: [
       hasBirthContext ? "Translate the read into plain language" : "Collect date, place, and optional time",
       signals.travelContext.city ? "Use city rhythm" : "Ask for the first city",
-      signals.boundarySignals.length > 0 ? "Respect stated limits" : "Clarify what should stay off-limits",
+      signals.boundarySignals.length > 0 ? "Respect stated limits" : "Clarify what stays off-limits",
     ],
     nextPrompt: hasBirthContext
       ? "Tell Muse the city, mood, and visibility boundary."
@@ -909,7 +1068,11 @@ function requireCustomerRole(
   return null;
 }
 
-function blockedPaymentResponse(
+async function createTravellerPaymentSession(
+  request: Request,
+  env: WorkerEnv,
+  inquiryId: string,
+  ok: <T>(data: T, init?: ResponseInit) => Response,
   fail: (
     status: number,
     code: string,
@@ -917,12 +1080,42 @@ function blockedPaymentResponse(
     fieldErrors?: Record<string, string>,
     init?: ResponseInit,
   ) => Response,
-): Response {
-  const result = createPaymentSession("stripe");
-  if (result.status === "blocked") {
-    return fail(409, result.code, result.message);
+  options: { errorOnBlocked: boolean },
+): Promise<Response> {
+  const session = getSessionFromRequest(request);
+  if (!session) {
+    return fail(401, "SESSION_REQUIRED", "Sign in before creating a payment session.");
   }
-  return fail(409, "PAYMENT_PROVIDER_NOT_APPROVED", "Live payment creation is disabled.");
+
+  const result = await createPaymentSession("stripe", {
+    mode: getPaymentProviderMode(env),
+    stripeSecretKey: env.STRIPE_SECRET_KEY,
+    origin: new URL(request.url).origin,
+    inquiryId,
+    customerEmail: session.profile.email,
+    amount: parseStripeUnitAmount(env.STRIPE_CHECKOUT_UNIT_AMOUNT),
+    currency: env.STRIPE_CHECKOUT_CURRENCY,
+  });
+
+  if (result.status === "blocked") {
+    if (!options.errorOnBlocked) {
+      return ok(result);
+    }
+    const status = result.code === "PAYMENT_PROVIDER_NOT_CONFIGURED" ? 503 : 409;
+    return fail(status, result.code, result.message);
+  }
+
+  return ok(result, { status: 201 });
+}
+
+function getPaymentProviderMode(env: WorkerEnv): PaymentProviderMode {
+  return env.PAYMENT_PROVIDER_MODE === "stripe_test" ? "stripe_test" : "compliance_hold";
+}
+
+function parseStripeUnitAmount(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const amount = Number.parseInt(value, 10);
+  return Number.isFinite(amount) && amount > 0 ? amount : undefined;
 }
 
 function validateCompanionProfileUpdate(body: CompanionProfileUpdateRequest): Record<string, string> {
@@ -1064,7 +1257,7 @@ function createOnboardingState(profile: CompanionDraftProfile, companionOptions:
     {
       id: "bio",
       label: "Profile tone",
-      description: "Public copy must stay premium, practical, and non-objectifying.",
+      description: "Keep the bio premium, practical, and non-objectifying.",
       complete: profile.bio.trim().length >= 40 && profile.profileTone.trim().length >= 16,
     },
     {
@@ -1148,7 +1341,7 @@ function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName
     status: "under_review",
     createdAt: now,
     updatedAt: now,
-    nextStep: "A private review state is created before routing or payment.",
+    nextStep: "Private review has started before any introduction or payment.",
     message: body.message.trim(),
     timeline: [
       {
@@ -1162,7 +1355,7 @@ function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName
         note: "Tirak checks safety, fit, and allowed next steps.",
       },
       {
-        label: "Routing decision",
+        label: "Introduction decision",
         status: "pending",
         note: "No introduction or payment happens before review clears.",
       },
@@ -1170,9 +1363,9 @@ function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName
     paymentState: {
       status: "disabled_for_compliance",
       provider: "stripe",
-      note: "Payment remains blocked until provider supportability is approved.",
+      note: "Payment is not available for this inquiry yet.",
     },
-    privacyNote: "Inquiry details stay private and are not published to profile or discovery surfaces.",
+    privacyNote: "Inquiry details stay private and are not published to profiles or discovery.",
   };
 }
 
@@ -1215,7 +1408,7 @@ export default {
 
     return withStaticSecurityHeaders(await env.ASSETS.fetch(request));
   },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<WorkerEnv>;
 
 function withStaticSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);

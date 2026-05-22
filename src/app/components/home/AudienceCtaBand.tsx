@@ -11,7 +11,7 @@ export function AudienceCtaBand({ entryPaths }: AudienceCtaBandProps) {
     <section className="audience-cta-band" aria-labelledby="audience-cta-title">
       <div className="audience-cta-heading">
         <p className="eyebrow">Choose your path</p>
-        <h2 id="audience-cta-title">Two private workflows, both built around review and agency.</h2>
+        <h2 id="audience-cta-title">Choose how you want to continue.</h2>
       </div>
       <div className="audience-cta-grid">
         {entryPaths.map((entry) => (

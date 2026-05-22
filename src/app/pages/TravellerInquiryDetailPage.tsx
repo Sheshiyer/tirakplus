@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { TravellerInquiryDetail } from "../../shared/contracts";
-import { TravellerService } from "../api/traveller";
+import { ApiRequestError, TravellerService } from "../api/traveller";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -13,7 +13,10 @@ type LoadState =
 
 export function TravellerInquiryDetailPage() {
   const { inquiryId } = useParams();
+  const [searchParams] = useSearchParams();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [checkoutState, setCheckoutState] = useState<"idle" | "creating">("idle");
+  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!inquiryId) {
@@ -65,6 +68,28 @@ export function TravellerInquiryDetailPage() {
   }
 
   const { inquiry } = state;
+  const paymentReturnState = searchParams.get("payment");
+
+  const startCheckout = async () => {
+    setCheckoutState("creating");
+    setCheckoutMessage(null);
+    try {
+      const result = await TravellerService.createPaymentSession(inquiry.id);
+      if (result.status === "created") {
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
+      setCheckoutMessage(result.message);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        setCheckoutMessage(error.message);
+      } else {
+        setCheckoutMessage("Checkout could not be opened.");
+      }
+    } finally {
+      setCheckoutState("idle");
+    }
+  };
 
   return (
     <section className="inquiry-page" aria-labelledby="inquiry-detail-title">
@@ -74,7 +99,7 @@ export function TravellerInquiryDetailPage() {
         <p>{inquiry.nextStep}</p>
 
         <div className="inquiry-detail-message">
-          <h2>Traveller context</h2>
+          <h2>Your message</h2>
           <p>{inquiry.message}</p>
         </div>
 
@@ -89,9 +114,27 @@ export function TravellerInquiryDetailPage() {
         </div>
 
         <div className="payment-state-panel">
-          <p className="meta">Payment state</p>
-          <h2>{inquiry.paymentState.status.replace(/_/g, " ")}</h2>
+          <p className="meta">Payment</p>
+          <h2>
+            {paymentReturnState === "success"
+              ? "Checkout returned"
+              : inquiry.paymentState.provider === "stripe"
+                ? "Card checkout"
+                : inquiry.paymentState.status === "not_started"
+                  ? "Not started"
+                  : "Not needed yet"}
+          </h2>
           <p>{inquiry.paymentState.note}</p>
+          {paymentReturnState === "success" && (
+            <p className="payment-return-note">Checkout sent you back to Tirak. We will update this plan when confirmation arrives.</p>
+          )}
+          {paymentReturnState === "cancelled" && (
+            <p className="payment-return-note">Checkout was cancelled. Nothing has moved.</p>
+          )}
+          {checkoutMessage && <p className="payment-return-note">{checkoutMessage}</p>}
+          <Button type="button" variant="primary" onClick={() => void startCheckout()} disabled={checkoutState === "creating"}>
+            {checkoutState === "creating" ? "Opening checkout..." : "Open checkout"}
+          </Button>
         </div>
 
         <p className="privacy-note">{inquiry.privacyNote}</p>

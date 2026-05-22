@@ -38,12 +38,9 @@ export function TravellerSessionsPage() {
     <section className="member-page traveller-sessions-page" aria-labelledby="traveller-sessions-title">
       <div className="member-hero member-hero-compact">
         <div>
-          <p className="eyebrow">Plans and sessions</p>
-          <h1 id="traveller-sessions-title">Reviewed routes, bookings, and next steps.</h1>
-          <p>
-            Plans collect Muse context, companion fit, privacy state, and payment gates. They are not public bookings or
-            instant confirmations.
-          </p>
+          <p className="eyebrow">Plans</p>
+          <h1 id="traveller-sessions-title">Your private routes.</h1>
+          <p>Keep timing, area, and next steps in one place before anything moves forward.</p>
         </div>
       </div>
 
@@ -82,7 +79,7 @@ export function TravellerSessionsPage() {
                   </div>
                 </div>
                 <Button as={Link} to={`/traveller/plans/${session.id}`} variant="secondary">
-                  Open
+                  Open plan
                 </Button>
               </article>
             ))}

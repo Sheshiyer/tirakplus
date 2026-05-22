@@ -20,25 +20,25 @@ const safetyGroups = [
   {
     title: "For travellers",
     items: [
-      "Start with context and boundaries before sending an inquiry.",
-      "Keep messages practical, respectful, and tied to a real plan.",
-      "Review safety guidance before any payment or introduction step appears.",
+      "Share only what the plan needs.",
+      "Keep messages practical, respectful, and easy to review later.",
+      "Use report tools when a request feels rushed or unclear.",
     ],
   },
   {
     title: "For companions",
     items: [
-      "Profile visibility stays controlled and can remain hidden during review.",
-      "Availability is planning context, not pressure to accept every inquiry.",
-      "Public profile copy stays separate from private review information.",
+      "Control when your profile is visible.",
+      "Use availability as guidance, not pressure.",
+      "Keep private notes separate from what travellers see.",
     ],
   },
   {
-    title: "For the platform",
+    title: "What stays close",
     items: [
-      "Verification and review sit before discovery, inquiry routing, and payment state.",
-      "Reports and unsafe requests are treated as product rails, not afterthoughts.",
-      "Provider supportability is required before money movement is enabled.",
+      "Profiles are checked before introductions move forward.",
+      "Reports stay close to messages and plans.",
+      "Payment steps stay away until the plan is clear.",
     ],
   },
 ];
@@ -62,14 +62,13 @@ export function PublicSafetyPage() {
       <section className="public-business-hero" aria-labelledby="public-safety-title">
         <div>
           <p className="eyebrow">Safety and privacy</p>
-          <h1 id="public-safety-title">Discretion is part of the product surface.</h1>
+          <h1 id="public-safety-title">Keep the plan calm and private.</h1>
           <p className="lede">
-            Tirak Plus is designed around adult agency, visibility control, reviewed introductions, and clear
-            boundaries. Safety is not hidden behind a footer link.
+            Share only what the plan needs, keep boundaries clear, and pause anything that feels rushed or wrong.
           </p>
           <div className="action-row">
             <Button as={Link} to="/" variant="primary">Talk to Muse</Button>
-            <Button as={Link} to="/payments" variant="secondary">Review payment gates</Button>
+            <Button as={Link} to="/payments" variant="secondary">Open payments guide</Button>
           </div>
         </div>
         <aside className="public-muse-aside public-muse-aside-light" aria-label="Muse privacy guidance">
@@ -97,8 +96,8 @@ export function PublicSafetyPage() {
 
       <section className="public-section public-section-tight" aria-labelledby="safety-groups-title">
         <div className="public-section-heading">
-          <p className="eyebrow">What this means</p>
-          <h2 id="safety-groups-title">Different controls for different sides of the marketplace.</h2>
+          <p className="eyebrow">What to expect</p>
+          <h2 id="safety-groups-title">Clear controls for both sides.</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {safetyGroups.map((group) => (

@@ -58,7 +58,7 @@ export function CompanionAvailabilityPage() {
       const response = await CompanionService.updateAvailability({ availabilityWindows: windows });
       setWindows(response.profile.availabilityWindows);
       setLoadState({ status: "ready", data: response.onboarding });
-      setStatusMessage("Availability saved through the companion API rail.");
+      setStatusMessage("Availability saved.");
     } catch (error) {
       if (error instanceof CompanionApiError) {
         setFieldErrors(error.fieldErrors || {});
@@ -121,7 +121,7 @@ export function CompanionAvailabilityPage() {
           <h1 id="companion-availability-title">Set planning windows without creating public urgency.</h1>
           <p>
             Availability is always visibility-scoped. Hidden windows stay out of discovery, and even available windows
-            require review before routing.
+            require review before they appear to travellers.
           </p>
         </div>
         <div className="companion-progress-panel">

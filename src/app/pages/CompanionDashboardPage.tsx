@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import type { CompanionDashboardResponse, CompanionReviewStatus } from "../../shared/contracts";
 import { CompanionService } from "../api/companion";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -66,14 +65,13 @@ export function CompanionDashboardPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Companion workspace</p>
-          <h1 id="companion-dashboard-title">Control profile visibility before traveller discovery.</h1>
+          <h1 id="companion-dashboard-title">Set your visibility before discovery.</h1>
           <p>
-            Your profile, availability, and inquiries stay review-gated. Public surfaces only receive fields that pass
-            verification and visibility settings.
+            Your profile, availability, and inquiries stay private until review and your visibility settings allow them
+            to appear.
           </p>
         </div>
         <div className={`review-state-card review-state-card-${profile.reviewStatus}`}>
-          <MusePoseImage variant="companion" label="Muse presenting the companion workspace" className="companion-assist-muse" />
           <MuseChartPanel chart={loadState.data.chart} compact />
           <p className="meta">Current state</p>
           <h2>{activeReviewState?.label || statusLabel(profile.reviewStatus)}</h2>
@@ -98,8 +96,8 @@ export function CompanionDashboardPage() {
 
       <section className="companion-section companion-review-section" aria-labelledby="review-states-title">
         <div className="companion-section-heading">
-          <p className="eyebrow">Review states</p>
-          <h2 id="review-states-title">Every state keeps public exposure explicit.</h2>
+          <p className="eyebrow">Review</p>
+          <h2 id="review-states-title">Know what travellers can see.</h2>
         </div>
         <div className="review-state-grid">
           {reviewStates.map((state) => (
@@ -116,7 +114,7 @@ export function CompanionDashboardPage() {
       <section className="companion-safety-band" aria-labelledby="companion-safety-title">
         <div>
           <p className="eyebrow">Companion safety</p>
-          <h2 id="companion-safety-title">Boundaries are product behavior, not afterthought copy.</h2>
+          <h2 id="companion-safety-title">Keep boundaries easy to act on.</h2>
         </div>
         <ul>
           {safetyGuidance.map((item) => (

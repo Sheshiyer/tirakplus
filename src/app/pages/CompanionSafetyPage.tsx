@@ -59,10 +59,10 @@ export function CompanionSafetyPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Companion safety</p>
-          <h1 id="companion-safety-page-title">Visibility, review, and boundaries are enforced in the workflow.</h1>
+          <h1 id="companion-safety-page-title">Visibility, review, and boundaries stay in your control.</h1>
           <p>
-            Tirak does not expose private verification material, create fake urgency, rank people, or allow payment and
-            routing to bypass review.
+            Tirak keeps private verification material hidden, avoids fake urgency, avoids ranking people, and keeps
+            payment inside reviewed plans.
           </p>
         </div>
       </div>
@@ -72,8 +72,7 @@ export function CompanionSafetyPage() {
           <article key={item} className="companion-safety-card">
             <h2>{item}</h2>
             <p>
-              This rule is reflected in companion registration, profile visibility, availability, and routed inquiry
-              states.
+              Use it for registration, profile visibility, availability, and every traveller request.
             </p>
           </article>
         ))}

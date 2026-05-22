@@ -16,6 +16,10 @@ const env = {
   PAYMENT_PROVIDER_MODE: process.env.PAYMENT_PROVIDER_MODE ?? "compliance_hold",
   MUSE_AGENT_MODE: process.env.MUSE_AGENT_MODE ?? "staged",
   MUSE_AGENT_CONFIG_KEY: process.env.MUSE_AGENT_CONFIG_KEY ?? "muse:agent-config",
+  STRIPE_CHECKOUT_CURRENCY: process.env.STRIPE_CHECKOUT_CURRENCY,
+  STRIPE_CHECKOUT_UNIT_AMOUNT: process.env.STRIPE_CHECKOUT_UNIT_AMOUNT,
+  STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 };
 
 export default async function handler(req: any, res: any) {

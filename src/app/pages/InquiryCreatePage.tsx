@@ -183,7 +183,7 @@ export function InquiryCreatePage() {
         <p className="eyebrow">Private inquiry</p>
         <h1 id="inquiry-title">Send a reviewed inquiry to {profile.displayName}.</h1>
         <p>
-          Inquiry details stay private and are reviewed before routing, payment, or introduction.
+          Inquiry details stay private and are reviewed before introduction or payment.
         </p>
       </div>
 
@@ -210,7 +210,7 @@ export function InquiryCreatePage() {
           onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
         />
         <Checkbox
-          label="I understand this inquiry requires private review before routing or payment."
+          label="I understand this inquiry requires private review before introduction or payment."
           checked={form.privacyAcknowledged}
           error={fieldErrors.privacyAcknowledged}
           onChange={(event) => setForm((current) => ({ ...current, privacyAcknowledged: event.target.checked }))}

@@ -1,11 +1,20 @@
 import { FormEvent, PointerEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MuseApiError, MuseService } from "../api/muse";
+import { isCitySlug, isExperienceSlug } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { AssetRegistry } from "../registry/assets";
 import type { CSSProperties } from "react";
-import type { MuseChartSignature, MuseChatMessage, MuseChatResponse, MuseConversationStage } from "../../shared/contracts";
+import type {
+  MuseChartSignature,
+  MuseChatMessage,
+  MuseChatResponse,
+  MuseClientContext,
+  MuseConversationStage,
+  MuseRoleIntent,
+  MuseRouteKind,
+} from "../../shared/contracts";
 
 const initialMuseMessage: MuseChatMessage = {
   id: "muse_intro",
@@ -22,20 +31,138 @@ const openingPrompts = [
 ];
 
 const openingChart = {
-  title: "Muse chart",
+  title: "Muse signal",
   tagline: "Private Thailand, tuned to your rhythm.",
   summary: "Start with mood, timing, boundary, and city fit. Muse keeps the private read quiet.",
   axes: [
     { label: "Mood", value: "unread", tone: "rose" },
     { label: "Pace", value: "ask first", tone: "lavender" },
     { label: "Boundary", value: "private", tone: "green" },
-    { label: "Route", value: "open", tone: "pearl" },
+    { label: "Path", value: "open", tone: "pearl" },
   ],
-  cues: ["Share birth context when ready", "Name the first city", "Say what should stay off-limits"],
+  cues: ["Share birth context when ready", "Name the first city", "Say what stays off-limits"],
   nextPrompt: "Tell Muse the city, mood, and boundary.",
 } satisfies MuseChartSignature;
 
+type MuseRouteContext = {
+  clientContext: MuseClientContext;
+  returnPath?: string;
+  returnLabel?: string;
+};
+
+const routeKindLabels: Record<MuseRouteKind, string> = {
+  "muse-entry": "Opening",
+  "traveller-dashboard": "Board",
+  "traveller-discovery": "Discovery",
+  "traveller-profile": "Profile",
+  "traveller-inquiry": "Inbox",
+  "traveller-plan": "Plans",
+  "traveller-safety": "Safety",
+  "companion-dashboard": "Board",
+  "companion-onboarding": "Onboarding",
+  "companion-profile": "Profile",
+  "companion-inbox": "Inbox",
+  "companion-plan": "Availability",
+  "companion-safety": "Safety",
+  account: "Account",
+  public: "Tirak Plus",
+};
+
+const stageLabels: Record<MuseConversationStage, string> = {
+  arrival: "Opening",
+  birth_context: "Birth details",
+  travel_context: "City and timing",
+  desire_mapping: "Mood",
+  safety_boundaries: "Boundaries",
+  recommendation_ready: "Ready",
+};
+
+function isMuseRouteKind(value: string | null): value is MuseRouteKind {
+  return Boolean(value && value in routeKindLabels);
+}
+
+function isMuseRoleIntent(value: string | null): value is MuseRoleIntent {
+  return value === "traveller" || value === "companion" || value === "unknown";
+}
+
+function safeRoutePath(value: string | null): string | undefined {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/api/")) return undefined;
+  return value.slice(0, 240);
+}
+
+function safeLabel(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.replace(/[^\w\s-]/g, "").trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 32) : undefined;
+}
+
+function safeIdentifier(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return /^[a-zA-Z0-9_-]{2,80}$/.test(trimmed) ? trimmed : undefined;
+}
+
+function routeKindForPath(pathname: string): MuseRouteKind {
+  if (pathname.startsWith("/traveller/discovery")) return "traveller-discovery";
+  if (pathname.startsWith("/traveller/companions")) return "traveller-profile";
+  if (pathname.startsWith("/traveller/inbox") || pathname.startsWith("/traveller/inquiries")) return "traveller-inquiry";
+  if (pathname.startsWith("/traveller/plans")) return "traveller-plan";
+  if (pathname.startsWith("/traveller/safety")) return "traveller-safety";
+  if (pathname.startsWith("/traveller/account")) return "account";
+  if (pathname.startsWith("/traveller")) return "traveller-dashboard";
+  if (pathname.startsWith("/companion/onboarding")) return "companion-onboarding";
+  if (pathname.startsWith("/companion/profile")) return "companion-profile";
+  if (pathname.startsWith("/companion/inbox")) return "companion-inbox";
+  if (pathname.startsWith("/companion/plans")) return "companion-plan";
+  if (pathname.startsWith("/companion/safety")) return "companion-safety";
+  if (pathname.startsWith("/companion/account")) return "account";
+  if (pathname.startsWith("/companion")) return "companion-dashboard";
+  if (pathname === "/") return "muse-entry";
+  return "public";
+}
+
+function roleIntentForRoute(kind: MuseRouteKind): MuseRoleIntent {
+  if (kind.startsWith("traveller")) return "traveller";
+  if (kind.startsWith("companion")) return "companion";
+  return "unknown";
+}
+
+function buildMuseRouteContext(searchParams: URLSearchParams, timezone: string): MuseRouteContext {
+  const returnPath = safeRoutePath(searchParams.get("from"));
+  const inferredKind = routeKindForPath(returnPath ?? "/");
+  const requestedKind = searchParams.get("kind");
+  const requestedRole = searchParams.get("role");
+  const companionId = safeIdentifier(searchParams.get("companion"));
+  const inquiryId = safeIdentifier(searchParams.get("inquiry"));
+  const planId = safeIdentifier(searchParams.get("plan"));
+  const routeKind = isMuseRouteKind(requestedKind) ? requestedKind : inferredKind;
+  const routeLabel = safeLabel(searchParams.get("label")) ?? routeKindLabels[routeKind];
+  const roleIntent = isMuseRoleIntent(requestedRole) ? requestedRole : roleIntentForRoute(routeKind);
+  const city = searchParams.get("city");
+  const experience = searchParams.get("experience");
+
+  return {
+    clientContext: {
+      timezone,
+      route: returnPath ?? "/",
+      source: searchParams.get("source") === "floating" ? "floating-trigger" : "muse-entry",
+      routeKind,
+      routeLabel,
+      roleIntent,
+      ...(isCitySlug(city) ? { city } : {}),
+      ...(isExperienceSlug(experience) ? { experience } : {}),
+      ...(companionId ? { companionId } : {}),
+      ...(inquiryId ? { inquiryId } : {}),
+      ...(planId ? { planId } : {}),
+    },
+    returnPath,
+    returnLabel: returnPath ? routeLabel : undefined,
+  };
+}
+
 export function MuseChatPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<MuseChatMessage[]>([initialMuseMessage]);
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -44,12 +171,34 @@ export function MuseChatPage() {
   const [lastResponse, setLastResponse] = useState<MuseChatResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [isChatActive, setIsChatActive] = useState(false);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const inputRef = useRef<HTMLInputElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const timezone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
+  const routeContext = useMemo(() => buildMuseRouteContext(searchParams, timezone), [searchParams, timezone]);
+  const stageLabel = stageLabels[stage];
   const museStatus = isSending ? "Reading" : lastResponse ? "Ready" : "Tuning";
+  const handoffAction =
+    lastResponse?.nextAction && lastResponse.nextAction.kind !== "continue" ? lastResponse.nextAction : null;
+  const activeChart = lastResponse?.chart ?? openingChart;
+  const shouldSimulateMuseError = searchParams.get("qa") === "muse-error";
+
+  useEffect(() => {
+    if (isChatActive) return;
+    const step = 100 / 60;
+    const id = window.setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          clearInterval(id);
+          return 100;
+        }
+        return Math.min(p + step, 100);
+      });
+    }, 50);
+    return () => clearInterval(id);
+  }, [isChatActive]);
 
   const sceneStyle = {
     "--muse-parallax-x": `${parallax.x}px`,
@@ -58,6 +207,7 @@ export function MuseChatPage() {
 
   function handlePointerMove(event: PointerEvent<HTMLElement>) {
     if (event.pointerType === "touch") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width - 0.5) * 18;
     const y = ((event.clientY - rect.top) / rect.height - 0.5) * 12;
@@ -87,14 +237,15 @@ export function MuseChatPage() {
     setIsSending(true);
 
     try {
+      if (shouldSimulateMuseError) {
+        throw new MuseApiError("Muse is paused. Your Tirak Plus workspace is still available.", 503, "MUSE_QA_ERROR");
+      }
       const response = await MuseService.chat({
         conversationId,
         message: trimmed,
         stage,
-        clientContext: {
-          timezone,
-          route: "/",
-        },
+        profileSignals: lastResponse?.profileSignals,
+        clientContext: routeContext.clientContext,
       });
       setConversationId(response.conversationId);
       setStage(response.stage);
@@ -102,7 +253,12 @@ export function MuseChatPage() {
       setLastResponse(response);
       setMessages((current) => [...current, response.reply]);
     } catch (caught) {
-      const apiError = caught instanceof MuseApiError ? caught.message : "Muse paused. Try again in a moment.";
+      const apiError =
+        caught instanceof MuseApiError && caught.status >= 500
+          ? "Muse is paused. Your Tirak Plus workspace is still available."
+          : caught instanceof MuseApiError
+          ? caught.message
+          : "Muse paused. Try again in a moment.";
       setError(apiError);
     } finally {
       setIsSending(false);
@@ -115,10 +271,32 @@ export function MuseChatPage() {
     void sendMuseMessage(message);
   }
 
+  function handleCloseChat() {
+    setMessages([initialMuseMessage]);
+    setMessage("");
+    setConversationId(undefined);
+    setStage("arrival");
+    setSuggestedPrompts(openingPrompts);
+    setLastResponse(null);
+    setError(null);
+    setIsSending(false);
+    setProgress(0);
+    setParallax({ x: 0, y: 0 });
+    setIsChatActive(false);
+    navigate("/", { replace: true });
+  }
+
   return (
     <section
       className="muse-entry-page"
       data-chat-active={isChatActive ? "true" : "false"}
+      data-secure-ready={progress >= 100 ? "true" : "false"}
+      data-muse-stage={stage}
+      data-muse-source={routeContext.clientContext.source}
+      data-muse-route-kind={routeContext.clientContext.routeKind}
+      data-muse-agent-mode={lastResponse?.agentMode ?? "none"}
+      data-muse-fallback={error ? "true" : "false"}
+      data-testid="muse-entry"
       aria-labelledby="muse-title"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => setParallax({ x: 0, y: 0 })}
@@ -165,18 +343,45 @@ export function MuseChatPage() {
             <strong>{lastResponse?.agentMode === "external" ? "Live" : museStatus}</strong>
           </div>
           <div className="muse-progress-track" aria-hidden="true">
-            <span />
+            <span style={{ width: `${progress}%` }} />
           </div>
+          {progress < 100 && (
+            <p className="muse-progress-note">
+              {progress < 40
+                ? "Tuning the frequency..."
+                : progress < 75
+                ? "Locking in privacy anchors..."
+                : "Almost there, tuning to your boundaries..."}
+            </p>
+          )}
         </aside>
 
         <div className="muse-chat-panel" aria-label="Muse chat">
-          <div className="muse-chat-header">
+          <div className="muse-chat-header" data-testid="muse-chat-panel">
             <div>
               <p className="eyebrow">Muse</p>
               <h2>{isChatActive ? "Private thread" : "Muse"}</h2>
             </div>
-            <span>{stage.replaceAll("_", " ")}</span>
+            <div className="muse-chat-header-actions">
+              <span data-testid="muse-stage">{stageLabel}</span>
+              <button
+                className="muse-chat-close"
+                type="button"
+                onClick={handleCloseChat}
+                aria-label="Close Muse chat and return home"
+                data-testid="muse-chat-close"
+              >
+                <span aria-hidden="true" />
+              </button>
+            </div>
           </div>
+
+          {routeContext.returnPath ? (
+            <div className="muse-route-pill" data-testid="muse-route-context">
+              <span>Opened from {routeContext.returnLabel}</span>
+              <Link to={routeContext.returnPath}>Return</Link>
+            </div>
+          ) : null}
 
           <div className="muse-transcript" aria-live="polite" ref={transcriptRef}>
             {messages.map((item) => (
@@ -190,6 +395,13 @@ export function MuseChatPage() {
               </article>
             ) : null}
           </div>
+
+          {handoffAction || routeContext.returnPath ? (
+            <div className="muse-handoff-card" data-testid="muse-handoff">
+              {handoffAction ? <Link to={handoffAction.href}>{handoffAction.label}</Link> : null}
+              {routeContext.returnPath ? <Link to={routeContext.returnPath}>Back to {routeContext.returnLabel}</Link> : null}
+            </div>
+          ) : null}
 
           <div className="muse-suggestions" aria-label="Suggested replies">
             {suggestedPrompts.map((prompt) => (
@@ -213,37 +425,42 @@ export function MuseChatPage() {
               Send
             </button>
           </form>
-          {error ? <p className="muse-error">{error}</p> : null}
+          {error ? (
+            <div className="muse-fallback-card" role="status" data-testid="muse-fallback">
+              <p>{error}</p>
+              <div>
+                {routeContext.returnPath ? <Link to={routeContext.returnPath}>Return to {routeContext.returnLabel}</Link> : null}
+                <Link to="/overview">Open overview</Link>
+                <Link to="/safety">Open safety</Link>
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        <MuseChartPanel chart={lastResponse?.chart ?? openingChart} compact className="muse-entry-chart" />
+        
 
-        <aside className="muse-routing-panel" aria-label="Muse routing state">
-          <p className="eyebrow">Current routing</p>
+        <aside className="muse-context-panel" aria-label="Muse context state">
+          <p className="eyebrow">Your thread</p>
+          <MuseChartPanel chart={activeChart} compact className="muse-context-chart" />
           <dl>
             <div>
-              <dt>Stage</dt>
-              <dd>{stage.replaceAll("_", " ")}</dd>
+              <dt>Focus</dt>
+              <dd>{stageLabel}</dd>
             </div>
             <div>
               <dt>Privacy</dt>
-              <dd>No public profile browsing before fit and boundaries are understood.</dd>
+              <dd>Profiles stay private until fit and boundaries are clear.</dd>
             </div>
             <div>
               <dt>Next</dt>
               <dd>{lastResponse?.nextAction?.label ?? "Continue with Muse"}</dd>
             </div>
           </dl>
-          <Link to="/overview">Open classic overview</Link>
+          <Link to="/safety">Safety and privacy</Link>
         </aside>
       </div>
 
-      <footer className="muse-trust-rail" aria-label="Muse trust assurances">
-        <span>Private by design</span>
-        <span>Thailand, curated</span>
-        <span>Discreet guidance</span>
-        <span>From Muse to you</span>
-      </footer>
+      
     </section>
   );
 }

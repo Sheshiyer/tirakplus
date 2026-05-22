@@ -59,10 +59,10 @@ export function createStagedDataProvider() {
       return {
         brand: {
           name: "Tirak Plus",
-          promise: "A private Thailand members path for reviewed travellers, companions, and introductions shaped by Muse.",
+          promise: "Start with Muse. Keep boundaries clear. Continue when the plan feels right.",
         },
         cities,
-        highlights: ["Muse before public browsing", "Visibility and inquiry review", "Payment gates before money moves"],
+        highlights: ["Muse first", "Visibility controls", "Payment after review"],
         entryPaths,
       };
     },
@@ -157,7 +157,7 @@ export function createStagedDataProvider() {
         safetyState: {
           reportingAvailable: true,
           paymentComplianceGate: "active",
-          note: "Payment creation remains disabled until provider and jurisdiction approval is recorded.",
+          note: "Payment stays unavailable until the plan is ready for checkout.",
         },
       };
     },

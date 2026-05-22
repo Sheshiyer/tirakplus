@@ -4,22 +4,19 @@ import { MusePoseImage } from "../components/muse/MusePoseImage";
 
 const discoverySteps = [
   {
-    label: "Read the moment",
-    title: "Muse starts with city, pace, and boundary.",
-    description:
-      "The first screen is a private conversation. It shapes the route before any protected profile or inquiry surface appears.",
+    label: "City",
+    title: "Bangkok, Phuket, Samui, or Phangan",
+    description: "Start with where the evening is happening.",
   },
   {
-    label: "Shape the route",
-    title: "Discovery opens only after context is clear.",
-    description:
-      "Cities, experience style, timing, and visibility preferences guide what the signed-in view can responsibly show.",
+    label: "Mood",
+    title: "Quiet, warm, social, or late",
+    description: "Set the tone before profiles appear.",
   },
   {
-    label: "Keep review close",
-    title: "Inquiry steps stay behind safety and support checks.",
-    description:
-      "Tirak Plus avoids public browse pressure. Review, privacy, and payment supportability remain part of the path.",
+    label: "Boundary",
+    title: "What stays off-limits",
+    description: "Keep the first read private and specific.",
   },
 ];
 
@@ -28,11 +25,10 @@ export function PublicDiscoveryPage() {
     <div className="public-business-page public-discovery-page">
       <section className="public-business-hero public-business-hero-dark" aria-labelledby="public-discovery-title">
         <div>
-          <p className="eyebrow">Private discovery</p>
-          <h1 id="public-discovery-title">Start with Muse before profiles appear.</h1>
+          <p className="eyebrow">Discovery</p>
+          <h1 id="public-discovery-title">Where are you tonight?</h1>
           <p className="lede">
-            Tirak Plus begins with a private read of the trip: where you are, what the evening should feel like,
-            and what should stay off-limits. The signed-in product opens after that context is understood.
+            Tell Muse the city, mood, timing, and boundaries.
           </p>
           <div className="action-row">
             <Button as={Link} to="/" variant="primary">Start with Muse</Button>
@@ -42,20 +38,16 @@ export function PublicDiscoveryPage() {
         <aside className="public-muse-aside" aria-label="Muse discovery guidance">
           <MusePoseImage variant="chat" label="Muse listening to discovery context" className="public-muse-figure" />
           <div className="public-muse-note">
-            <span>Context first</span>
-            <p>No public profile grid appears before boundaries, city, and fit are shaped.</p>
+            <span>Muse is ready</span>
+            <p>City, mood, time, boundaries.</p>
           </div>
         </aside>
       </section>
 
       <section className="public-section" aria-labelledby="discovery-flow-title">
         <div className="public-section-heading">
-          <p className="eyebrow">How it opens</p>
-          <h2 id="discovery-flow-title">A slower route by design.</h2>
-          <p>
-            The public site explains the shape of the product. The protected discovery workspace appears only after
-            sign-in because identity, safety, and visibility rules matter here.
-          </p>
+          <p className="eyebrow">Start points</p>
+          <h2 id="discovery-flow-title">Give Muse the basics.</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {discoverySteps.map((step) => (
@@ -70,13 +62,13 @@ export function PublicDiscoveryPage() {
 
       <section className="public-split-band" aria-labelledby="discovery-boundary-title">
         <div>
-          <p className="eyebrow">Public boundary</p>
-          <h2 id="discovery-boundary-title">Why discovery is not an open catalogue.</h2>
+          <p className="eyebrow">Continue</p>
+          <h2 id="discovery-boundary-title">Open your traveller workspace.</h2>
         </div>
         <div className="public-check-list">
-          <p>Companion visibility is controlled and reviewed.</p>
-          <p>Traveller intent is framed before inquiry routing.</p>
-          <p>Payment movement stays disabled until review and supportability gates are cleared.</p>
+          <p>Saved context</p>
+          <p>Reviewed profiles</p>
+          <p>Plans and messages</p>
         </div>
       </section>
     </div>
