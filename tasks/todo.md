@@ -1,5 +1,21 @@
 # Meta Copy Removal Pass
 
+## GitHub Issue Closeout
+
+- [x] Confirm the runnable checkout and avoid the adjacent planning/vault workspace.
+- [x] Pull the live open issue list from `Sheshiyer/tirakplus`.
+- [x] Run the release verification suite against the committed customer app.
+- [x] Push the committed customer app changes.
+- [ ] Close completed or intentionally superseded GitHub issues with evidence comments.
+- [x] Record final closeout status and any residual risks.
+
+## Review
+
+- Active customer app checkout confirmed as `standalone-repos/tirakplus`; the adjacent planning/vault workspace was dirty and left untouched.
+- Pushed `7c61a24 Harden Tirak Plus product readiness` to `origin/main` after confirming the branch was ahead of remote.
+- Release verification passed: `npm run quality:release`, `npm run contract:smoke`, `npm run stripe:smoke`, and `npm run app:smoke`.
+- Final preview, design score, rollback, and residual-risk notes are recorded in `docs/release/ui-repair-closeout-20260525.md`.
+
 ## Phase 4 Product Readiness Hardening
 
 - [x] Make Muse honest and usable when the external RAG binding is not live; no silent fake-live state.
