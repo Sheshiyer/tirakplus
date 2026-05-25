@@ -6,7 +6,7 @@
 - [x] Pull the live open issue list from `Sheshiyer/tirakplus`.
 - [x] Run the release verification suite against the committed customer app.
 - [x] Push the committed customer app changes.
-- [ ] Close completed or intentionally superseded GitHub issues with evidence comments.
+- [x] Close completed or intentionally superseded GitHub issues with evidence comments.
 - [x] Record final closeout status and any residual risks.
 
 ## Review
@@ -15,6 +15,8 @@
 - Pushed `7c61a24 Harden Tirak Plus product readiness` to `origin/main` after confirming the branch was ahead of remote.
 - Release verification passed: `npm run quality:release`, `npm run contract:smoke`, `npm run stripe:smoke`, and `npm run app:smoke`.
 - Final preview, design score, rollback, and residual-risk notes are recorded in `docs/release/ui-repair-closeout-20260525.md`.
+- Closed 36 completed GitHub issues and closed `UIR-059` / #298 as superseded by the PNG-only Wave 1 Muse asset direction.
+- Verified GitHub open issue count is now `0`.
 
 ## Phase 4 Product Readiness Hardening
 
