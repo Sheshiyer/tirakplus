@@ -48,7 +48,7 @@ export function HomeHero({ brandName, brandPromise }: HomeHeroProps) {
           <p className="meta">Muse read</p>
           <ol>
             <li>Start with city, pace, and boundaries.</li>
-            <li>Explore matches shaped around the plan.</li>
+            <li>See reviewed profiles shaped around the plan.</li>
             <li>Keep support close when a request needs care.</li>
           </ol>
         </div>

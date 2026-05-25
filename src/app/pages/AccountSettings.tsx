@@ -37,9 +37,9 @@ export function AccountSettings() {
       <div className="account-panel">
         <div className="account-row">
           <div>
-            <h2>Access mode</h2>
+            <h2>Signed-in role</h2>
             <p>
-              You are signed in as a <strong>{currentRole}</strong>. This account can open traveller and companion tools
+              You are signed in as a <strong>{currentRole}</strong>. This account can open traveller and companion areas
               without another login.
             </p>
           </div>
@@ -58,7 +58,7 @@ export function AccountSettings() {
           <div>
             <h2>Private session</h2>
             <p>
-              Signed in as {session.profile.email}. Verification documents, exact route details, and payment prompts
+              Signed in as {session.profile.email}. Verification documents, exact plan details, and payment prompts
               stay out of this account view.
             </p>
           </div>
@@ -69,10 +69,10 @@ export function AccountSettings() {
 
         <div className="account-controls-grid" aria-label="Privacy and notification settings">
           {[
-            ["Visibility", "Reviewed profile and inquiry details stay under your visibility controls."],
-            ["Notifications", "Inquiry and review updates use approved contact channels."],
+            ["Profile privacy", "Reviewed profile and inquiry details stay under your privacy controls."],
+            ["Notifications", "Inquiry and profile updates use email and in-app notices."],
             ["Data requests", "Export, correction, and deletion requests are handled by the Tirak support team."],
-            ["Safety reports", "Reports stay attached to review records and away from public pages."],
+            ["Safety reports", "Reports stay attached to the right plan and away from public pages."],
           ].map(([title, body]) => (
             <article className="account-control-card" key={title}>
               <span aria-hidden="true" />

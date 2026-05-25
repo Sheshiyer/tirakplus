@@ -91,29 +91,11 @@ export const AssetRegistry = {
     },
     scene: {
       backdrop: '/assets/muse/scene/muse-thailand-night-backdrop.png',
-      // The splash foreground is now derived from muse-splash-contrapposto.glb
-      // (UIR-035 strategy, owner decision 2026-05-22). The runtime PNG fallback
-      // is regenerated via scripts/render-muse-pose-fallbacks.mjs.
-      foreground: '/assets/muse/scene/muse-splash-foreground-hero-alpha.png',
-      // Direction/binding assets (provenance: generated/muse-assets/gpt-image-2/).
-      chatLandingHero: '/assets/muse/scene/muse-chat-landing-hero.png',
-      splashMobileStill: '/assets/muse/scene/muse-splash-mobile-still.png',
-      companionAssist: '/assets/muse/scene/muse-companion-assist.png',
+      foreground: '/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png',
+      mobilePortrait: '/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png',
+      tabletPortrait: '/assets/muse/scene/muse-tablet-portrait-foreground-alpha.png',
+      desktopPortrait: '/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png',
     },
-    // A1 — Chat character poses (identity-locked, all derive from the same Meshy rigged source).
-    // Source: generated/muse-character/3d/pose-pack/*.glb
-    // Wave 1 ships rendered PNG fallbacks (via scripts/render-muse-pose-fallbacks.mjs).
-    // Wave 2 ships the GLBs themselves through model-viewer.
-    poses: {
-      splash: '/assets/muse/png-poses/muse-splash-contrapposto.png',
-      chat: '/assets/muse/png-poses/muse-chat-attentive.png',
-      privacy: '/assets/muse/png-poses/muse-privacy-guarded.png',
-      companion: '/assets/muse/png-poses/muse-companion-presenting.png',
-      thinking: '/assets/muse/png-poses/muse-loading-thinking.png',
-    },
-    // Witness PNG proving the pose pack loads (screenshot of muse-pose-pack-viewer.html).
-    canonicalSnapshot: '/assets/muse/png-poses/_canonical-snapshot.png',
-    referenceBoard: '/assets/muse/png-poses/muse-splash-character.png',
   },
 
   /**

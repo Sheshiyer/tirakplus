@@ -69,7 +69,7 @@ export function CityOverviewPage({ citySlug }: CityOverviewPageProps) {
       <div className="city-page">
         <section className="error-panel" role="alert">
           <p className="eyebrow">City unavailable</p>
-          <h1>We could not load this city overview.</h1>
+          <h1>We could not load this city overview</h1>
           <p>{state.message}</p>
           <Button as={Link} to="/" variant="secondary">
             Return home
@@ -82,17 +82,16 @@ export function CityOverviewPage({ citySlug }: CityOverviewPageProps) {
   return (
     <div className="city-page">
       <section className="city-page-hero" aria-labelledby={`${state.city.slug}-page-title`}>
-        <p className="eyebrow">City context</p>
-        <h1 id={`${state.city.slug}-page-title`}>{state.city.name} starts with local rhythm.</h1>
+        <p className="eyebrow">City</p>
+        <h1 id={`${state.city.slug}-page-title`}>{state.city.name} starts with local rhythm</h1>
         <p className="lede">
-          Name timing, transport, and boundaries first. Muse keeps the read private while you choose the right next
-          step.
+          Name timing, transport, and boundaries first. Muse keeps the read private while you choose what comes next.
         </p>
       </section>
       <CityOverview city={state.city} experiences={state.experiences} />
       {state.experiences.length === 0 ? (
         <section className="empty-panel">
-          <p className="eyebrow">Experience contexts</p>
+          <p className="eyebrow">Experiences</p>
           <h2>No reviewed experience guides are ready for this city yet.</h2>
           <p>Try another city overview or return to traveller discovery.</p>
         </section>
@@ -100,7 +99,7 @@ export function CityOverviewPage({ citySlug }: CityOverviewPageProps) {
       <section className="city-page-cta" aria-labelledby={`${state.city.slug}-cta-title`}>
         <div>
           <p className="eyebrow">Next step</p>
-          <h2 id={`${state.city.slug}-cta-title`}>Carry this city context into discovery.</h2>
+          <h2 id={`${state.city.slug}-cta-title`}>Take this city into discovery.</h2>
         </div>
         <Button as={Link} to="/discovery" variant="primary">
           Open discovery

@@ -178,8 +178,15 @@ export function MuseChatPage() {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const timezone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const routeContext = useMemo(() => buildMuseRouteContext(searchParams, timezone), [searchParams, timezone]);
+  const isFocusedMuse = isChatActive || Boolean(routeContext.returnPath);
   const stageLabel = stageLabels[stage];
-  const museStatus = isSending ? "Reading" : lastResponse ? "Ready" : "Tuning";
+  const museStatus = isSending
+    ? "Reading"
+    : lastResponse?.agentMode === "external"
+    ? "Live read"
+    : lastResponse?.agentMode === "staged"
+    ? "Guided read"
+    : "Ready";
   const handoffAction =
     lastResponse?.nextAction && lastResponse.nextAction.kind !== "continue" ? lastResponse.nextAction : null;
   const activeChart = lastResponse?.chart ?? openingChart;
@@ -238,7 +245,7 @@ export function MuseChatPage() {
 
     try {
       if (shouldSimulateMuseError) {
-        throw new MuseApiError("Muse is paused. Your Tirak Plus workspace is still available.", 503, "MUSE_QA_ERROR");
+        throw new MuseApiError("Muse is paused. You can keep using Tirak Plus.", 503, "MUSE_QA_ERROR");
       }
       const response = await MuseService.chat({
         conversationId,
@@ -255,7 +262,7 @@ export function MuseChatPage() {
     } catch (caught) {
       const apiError =
         caught instanceof MuseApiError && caught.status >= 500
-          ? "Muse is paused. Your Tirak Plus workspace is still available."
+          ? "Muse is paused. You can keep using Tirak Plus."
           : caught instanceof MuseApiError
           ? caught.message
           : "Muse paused. Try again in a moment.";
@@ -289,7 +296,7 @@ export function MuseChatPage() {
   return (
     <section
       className="muse-entry-page"
-      data-chat-active={isChatActive ? "true" : "false"}
+      data-chat-active={isFocusedMuse ? "true" : "false"}
       data-secure-ready={progress >= 100 ? "true" : "false"}
       data-muse-stage={stage}
       data-muse-source={routeContext.clientContext.source}
@@ -324,7 +331,14 @@ export function MuseChatPage() {
         </div>
 
         <MusePoseImage variant="splash" label="Muse in the private welcome pose" className="muse-entry-character" />
-        <img className="muse-entry-character-mobile" src={AssetRegistry.muse.scene.foreground} alt="" aria-hidden="true" />
+        <img
+          className="muse-entry-character-mobile"
+          src={AssetRegistry.muse.scene.mobilePortrait}
+          srcSet={`${AssetRegistry.muse.scene.mobilePortrait} 903w, ${AssetRegistry.muse.scene.tabletPortrait} 1180w, ${AssetRegistry.muse.scene.desktopPortrait} 1500w`}
+          sizes="(min-width: 1024px) 36vw, (min-width: 640px) 46vw, 78vw"
+          alt=""
+          aria-hidden="true"
+        />
 
         <aside className="muse-secure-card" aria-label="Secure channel status">
           <p className="eyebrow muse-status-label" aria-live="polite">
@@ -339,7 +353,7 @@ export function MuseChatPage() {
             <span />
           </div>
           <div className="muse-progress-row">
-            <span>Secure channel established</span>
+            <span>Private channel ready</span>
             <strong>{lastResponse?.agentMode === "external" ? "Live" : museStatus}</strong>
           </div>
           <div className="muse-progress-track" aria-hidden="true">
@@ -430,7 +444,7 @@ export function MuseChatPage() {
               <p>{error}</p>
               <div>
                 {routeContext.returnPath ? <Link to={routeContext.returnPath}>Return to {routeContext.returnLabel}</Link> : null}
-                <Link to="/overview">Open overview</Link>
+                <Link to="/discovery">Open discovery</Link>
                 <Link to="/safety">Open safety</Link>
               </div>
             </div>

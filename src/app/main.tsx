@@ -5,9 +5,7 @@ import { PublicShell } from "./shells/PublicShell";
 import { TravellerShell } from "./shells/TravellerShell";
 import { CompanionShell } from "./shells/CompanionShell";
 import { MuseChatPage } from "./pages/MuseChatPage";
-import { PublicHome } from "./pages/PublicHome";
 import { PublicDiscoveryPage } from "./pages/PublicDiscoveryPage";
-import { PublicPaymentsPage } from "./pages/PublicPaymentsPage";
 import { PublicSafetyPage } from "./pages/PublicSafetyPage";
 import { CookiesPage, NotFoundPage, PrivacyPage, SupportPage, TermsPage } from "./pages/LegalPages";
 import { CityOverviewPage } from "./pages/CityOverviewPage";
@@ -41,7 +39,7 @@ const router = createBrowserRouter([
     element: <PublicShell />,
     children: [
       { index: true, element: <MuseChatPage /> },
-      { path: "overview", element: <PublicHome /> },
+      { path: "overview", element: <Navigate to="/discovery" replace /> },
       { path: "cities/bangkok", element: <CityOverviewPage citySlug="bangkok" /> },
       { path: "cities/phuket", element: <CityOverviewPage citySlug="phuket" /> },
       { path: "cities/koh-samui", element: <CityOverviewPage citySlug="koh-samui" /> },
@@ -53,7 +51,7 @@ const router = createBrowserRouter([
       { path: "experiences/local-guidance", element: <ExperiencePage experienceSlug="local-guidance" /> },
       { path: "discovery", element: <PublicDiscoveryPage /> },
       { path: "safety", element: <PublicSafetyPage /> },
-      { path: "payments", element: <PublicPaymentsPage /> },
+      { path: "payments", element: <Navigate to="/auth/login?role=traveller" replace /> },
       { path: "privacy", element: <PrivacyPage /> },
       { path: "terms", element: <TermsPage /> },
       { path: "cookies", element: <CookiesPage /> },

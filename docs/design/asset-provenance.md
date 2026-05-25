@@ -11,17 +11,12 @@ Brand:
 
 Muse scene (direction + runtime):
 - `public/assets/muse/scene/muse-thailand-night-backdrop.png`
-- `public/assets/muse/scene/muse-splash-foreground-hero-alpha.png` *(canonical splash; regenerated from `muse-splash-contrapposto.glb` via `scripts/render-muse-pose-fallbacks.mjs`)*
-- `public/assets/muse/scene/muse-chat-landing-hero.png` *(promoted 2026-05-22 from `generated/muse-assets/gpt-image-2/muse-chat-landing-hero.png` — binds `/` chat shell)*
-- `public/assets/muse/scene/muse-splash-mobile-still.png` *(promoted 2026-05-22)*
-- `public/assets/muse/scene/muse-companion-assist.png` *(promoted 2026-05-22 — binds companion-assist branch)*
+- `public/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png` *(mobile-first portrait foreground, generated 2026-05-24 with GPT Image 2 from approved Muse references; checkerboard raw output superseded)*
+- `public/assets/muse/scene/muse-tablet-portrait-foreground-alpha.png` *(tablet transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
+- `public/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png` *(desktop transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
 
 Muse floating mark (A2 — ambient presence):
 - `public/assets/muse/floating/muse-{appear,idle-float,listen-start,privacy-lock}-{start,end}.png` *(8 keyframes, promoted 2026-05-22 from `generated/muse-3d/keyframes/`)*
-
-Muse chat character poses (A1 — active presence, identity-locked via same Meshy rigged source):
-- `public/assets/muse/png-poses/muse-{splash-contrapposto,chat-attentive,privacy-guarded,companion-presenting,loading-thinking}.png` *(Wave 1 PNG fallbacks rendered from `generated/muse-character/3d/pose-pack/*.glb`)*
-- `public/assets/muse/png-poses/_canonical-snapshot.png` *(witness — screenshot of the pose-pack viewer proving all 5 poses load)*
 
 Profiles:
 - `public/assets/profiles/companion-*.png`
@@ -47,6 +42,8 @@ The sentinel is an opt-in: when an asset is intentionally board-shaped (e.g. a d
 ## Asset Migration Log
 
 - **2026-05-22**: 18 approved assets promoted from `generated/` per owner confirmation. 6 pre-pose-pack splash variants moved to `public/assets/_superseded/2026-05-22-pre-posepack/` (replaced by canonical render from `muse-splash-contrapposto.glb`). Registry and this file updated.
+- **2026-05-24**: Retired the full-body/side-profile Muse pose pack and unused full-screen Muse concept composites from active registry, then moved them to `public/assets/_superseded/2026-05-24-mood-board-muse-poses/`. Added a new mobile-first portrait foreground with alpha and pointed `MusePoseImage` at that foreground so product surfaces no longer render the mood-board poster assets.
+- **2026-05-25**: Added tablet and desktop transparent Muse foreground canvases derived from the approved mobile portrait family, then registered all three responsive portrait assets. No retired mood-board pose was restored.
 
 ## UI Repair Asset Gates
 

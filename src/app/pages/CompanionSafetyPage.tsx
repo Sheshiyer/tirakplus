@@ -9,6 +9,25 @@ type LoadState =
   | { status: "ready"; data: CompanionDashboardResponse; message?: undefined }
   | { status: "error"; data?: undefined; message: string };
 
+const companionSafetyDetails = [
+  {
+    title: "Public profile fields stay separate from private notes.",
+    description: "Edit what travellers can read without exposing documents, legal details, or internal notes.",
+  },
+  {
+    title: "Availability is a signal, not pressure.",
+    description: "Use windows to show calm timing. Hide anything that is uncertain or too broad.",
+  },
+  {
+    title: "You can pause city, timing, and inquiries separately.",
+    description: "Keep a profile visible while holding back details that need more care.",
+  },
+  {
+    title: "Payment and contact details wait for review.",
+    description: "Keep the conversation inside Tirak until the plan is clear and safe to continue.",
+  },
+];
+
 export function CompanionSafetyPage() {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
 
@@ -61,19 +80,17 @@ export function CompanionSafetyPage() {
           <p className="eyebrow">Companion safety</p>
           <h1 id="companion-safety-page-title">Visibility, review, and boundaries stay in your control.</h1>
           <p>
-            Tirak keeps private verification material hidden, avoids fake urgency, avoids ranking people, and keeps
-            payment inside reviewed plans.
+            Tirak keeps private documents hidden, avoids fake urgency, avoids ranking people, and keeps payment inside
+            reviewed plans.
           </p>
         </div>
       </div>
 
       <div className="companion-safety-grid">
-        {loadState.data.safetyGuidance.map((item) => (
-          <article key={item} className="companion-safety-card">
-            <h2>{item}</h2>
-            <p>
-              Use it for registration, profile visibility, availability, and every traveller request.
-            </p>
+        {companionSafetyDetails.map((item) => (
+          <article key={item.title} className="companion-safety-card">
+            <h2>{item.title}</h2>
+            <p>{item.description}</p>
           </article>
         ))}
       </div>

@@ -1,5 +1,32 @@
 # Lessons
 
+## 2026-05-25: Product Readiness Needs Rendered-State Proof
+
+- Correction: staged Muse/RAG, payment hold, and companion copy looked acceptable in source-level planning but still behaved like scaffolding in the rendered app.
+- Rule: when an integration is staged, label the state plainly in UI and keep the route usable without pretending the live provider is active.
+- Rule: payment UI must show a real current state. If checkout is blocked by compliance hold, remove checkout CTAs instead of leaving a dead payment button.
+- Rule: copy hygiene must include staged API payloads and worker route text, not just React page components.
+
+## 2026-05-25: Initial Chat Controls Must Be Verified Before Interaction
+
+- Correction: a Muse close button can exist after chat activation while still being absent or effectively hidden on the initial floating-trigger state.
+- Rule: verify floating Muse entry at the exact first frame after opening: close control visible, clickable, and returning to the prior public page before any message is sent.
+- Rule: full-screen or modal-like chat surfaces need mobile, tablet, and desktop exit checks as part of browser QA.
+
+## 2026-05-25: Complete Spec Issues Do Not Mean Readiness Copy Is Done
+
+- Correction: all 140 spec tasks were checked, but public/legal/account and staged Worker strings still carried doc-voice phrases like review states, flows, route suggestions, experience contexts, and private thread.
+- Rule: after spec completion, inspect `tasks/todo.md` for readiness slices that sit outside the generated issue list.
+- Rule: copy-structure audits must include all public-facing route files, not only the primary Muse, Discovery, Safety, and Auth pages.
+- Rule: loading and error states need the same copy hygiene as default states; hidden fallback H1s can leak old style even when happy-path screenshots look clean.
+
+## 2026-05-24: Mood-Board Muse Poses Are Not Product Assets
+
+- Correction: the side/full-body Muse pose was a reference and mood-board asset, but it was wired into logged-out and logged-in product surfaces as a production character image.
+- Rule: do not render reference or mood-board Muse poses in app surfaces; use them only as generation/style references for separate mobile, tablet, and desktop production assets.
+- Rule: if a production Muse asset is not ready, prefer the approved floating Muse mark, scene backdrop, or no character art over placing a distant full-body poster in a card.
+- Rule: asset QA must check both logged-out and logged-in flows for the same rejected Muse pose before calling the pass complete.
+
 ## 2026-05-18: Do Not Let 3D Assets Drive Tirak Plus UI
 
 - Correction: the Muse 3D/model-viewer route made the UI worse by forcing layout and interaction around an unstable asset pipeline.

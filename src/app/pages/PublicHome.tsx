@@ -68,7 +68,7 @@ export function PublicHome() {
       <div className="public-home">
         <section className="error-panel" role="alert">
           <p className="eyebrow">Content unavailable</p>
-          <h1>We could not load Tirak Plus.</h1>
+          <h1>We could not load Tirak Plus</h1>
           <p>{state.message}</p>
         </section>
       </div>
@@ -92,7 +92,7 @@ export function PublicHome() {
       )}
       <section className="city-link-band" aria-labelledby="city-link-title">
         <div>
-          <p className="eyebrow">More city contexts</p>
+          <p className="eyebrow">More cities</p>
           <h2 id="city-link-title">Choose the city first.</h2>
         </div>
         <div className="city-link-actions">
@@ -104,7 +104,7 @@ export function PublicHome() {
       <section className="experience-link-band" aria-labelledby="experience-link-title">
         <div>
           <p className="eyebrow">Experience styles</p>
-          <h2 id="experience-link-title">Choose the pace and setting for the plan.</h2>
+          <h2 id="experience-link-title">Choose the pace and setting.</h2>
         </div>
         <div className="city-link-actions">
           <Button as={Link} to="/experiences/nightlife" variant="secondary">Nightlife</Button>

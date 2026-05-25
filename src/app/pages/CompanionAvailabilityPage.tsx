@@ -82,9 +82,9 @@ export function CompanionAvailabilityPage() {
       {
         id: `av-draft-${current.length + 1}`,
         city: fallbackCity,
-        label: "New review window",
+        label: "New time window",
         status: "tentative",
-        note: "Describe planning context before making this visible.",
+        note: "Add the area, timing, and any limits you want clear first.",
       },
     ]);
   };
@@ -118,10 +118,9 @@ export function CompanionAvailabilityPage() {
       <div className="companion-hero">
         <div>
           <p className="eyebrow">Availability</p>
-          <h1 id="companion-availability-title">Set planning windows without creating public urgency.</h1>
+          <h1 id="companion-availability-title">Choose when you are open to plans</h1>
           <p>
-            Availability is always visibility-scoped. Hidden windows stay out of discovery, and even available windows
-            require review before they appear to travellers.
+            Keep timing, city, and notes practical. Hidden windows stay private until you decide to use them.
           </p>
         </div>
         <div className="companion-progress-panel">
@@ -174,7 +173,7 @@ export function CompanionAvailabilityPage() {
                 label="Planning note"
                 value={window.note}
                 error={fieldErrors[`availabilityWindows.${index}.note`]}
-                helperText="Use review-safe timing and context. Avoid urgency, demand, or explicit copy."
+                helperText="Keep timing practical. Avoid pressure, demands, or explicit details."
                 onChange={(event) => updateWindow(window.id, { ...window, note: event.target.value })}
               />
             </article>

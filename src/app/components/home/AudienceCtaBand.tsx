@@ -20,7 +20,7 @@ export function AudienceCtaBand({ entryPaths }: AudienceCtaBandProps) {
             <h3>{entry.heading}</h3>
             <p>{entry.description}</p>
             <Button as={Link} to={entry.href} variant={entry.role === "traveller" ? "primary" : "secondary"}>
-              {entry.role === "traveller" ? "Start traveller flow" : "Start companion flow"}
+              {entry.role === "traveller" ? "Continue as traveller" : "Continue as companion"}
             </Button>
           </article>
         ))}

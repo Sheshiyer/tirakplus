@@ -16,16 +16,19 @@ const banned = [
 ];
 
 const publicSurfaceFiles = new Set([
-  "src/app/pages/PublicHome.tsx",
+  "src/app/pages/MuseChatPage.tsx",
   "src/app/pages/PublicDiscoveryPage.tsx",
   "src/app/pages/PublicSafetyPage.tsx",
-  "src/app/pages/PublicPaymentsPage.tsx",
+  "src/app/pages/PublicHome.tsx",
   "src/app/pages/AuthStart.tsx",
   "src/app/pages/CityOverviewPage.tsx",
   "src/app/pages/ExperiencePage.tsx",
   "src/app/pages/LegalPages.tsx",
   "src/app/components/home/HomeHero.tsx",
-  "src/app/components/home/SafetyMessageBand.tsx",
+  "src/app/components/home/HomeTrustBand.tsx",
+  "src/app/components/home/AudienceCtaBand.tsx",
+  "src/app/components/home/CityOverview.tsx",
+  "src/app/shells/PublicShell.tsx",
 ]);
 
 const publicSurfaceBanned = [
@@ -43,6 +46,7 @@ const publicSurfaceBanned = [
   /\bopen catalogue\b/i,
   /\bpublic profile grid\b/i,
   /\bprotected discovery workspace\b/i,
+  /\bprivate workspace\b/i,
   /\bsigned-in product\b/i,
   /\bvisibility rules\b/i,
   /\binquiry routing\b/i,
@@ -52,11 +56,20 @@ const publicSurfaceBanned = [
   /\bjurisdiction-specific\b/i,
   /\bmarketplace\b/i,
   /\breview state\b/i,
+  /\breview states?\b/i,
   /\bstaged payment\b/i,
   /\bprovider status\b/i,
   /\bproduction\b/i,
   /\blaunch implementation\b/i,
   /\bpublic profile surfaces\b/i,
+  /\btraveller flows?\b/i,
+  /\bcompanion flows?\b/i,
+  /\bStart (?:traveller|companion) flow\b/i,
+  /\bCity context\b/i,
+  /\bExperience contexts?\b/i,
+  /\bRoute unavailable\b/i,
+  /\bpath yet\b/i,
+  /\bOpen overview\b/i,
   /\bshould\b/i,
 ];
 
@@ -106,6 +119,20 @@ const protectedSurfaceBanned = [
   /\bsafe preview\b/i,
   /\bpreview access\b/i,
   /\bpublic copy should\b/i,
+  /\bcompanion workspace\b/i,
+  /\btraveller workspace\b/i,
+  /\bvisibility-scoped\b/i,
+  /\bpublic urgency\b/i,
+  /\breview window\b/i,
+  /\bConcierge check\b/i,
+  /\bprivate thread\b/i,
+  /\bExperience contexts?\b/i,
+  /\bInquiry route is missing\b/i,
+  /\breview clears\b/i,
+  /\bTirak review\b/i,
+  /\breview thread\b/i,
+  /\bsession detail\b/i,
+  /\bpublic-pressure\b/i,
 ];
 
 const allowedGuardrail = /\b(?:never mention|must not expose|do not mention|replace|avoid in brand surfaces)\b/i;

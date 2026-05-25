@@ -11,7 +11,7 @@ const discoverySteps = [
   {
     label: "Mood",
     title: "Quiet, warm, social, or late",
-    description: "Set the tone before profiles appear.",
+    description: "Set the tone before you continue.",
   },
   {
     label: "Boundary",
@@ -32,7 +32,7 @@ export function PublicDiscoveryPage() {
           </p>
           <div className="action-row">
             <Button as={Link} to="/" variant="primary">Start with Muse</Button>
-            <Button as={Link} to="/auth/login?role=traveller" variant="secondary">Continue as traveller</Button>
+            <Button as={Link} to="/auth/login?role=traveller" variant="secondary">Sign in</Button>
           </div>
         </div>
         <aside className="public-muse-aside" aria-label="Muse discovery guidance">
@@ -47,7 +47,7 @@ export function PublicDiscoveryPage() {
       <section className="public-section" aria-labelledby="discovery-flow-title">
         <div className="public-section-heading">
           <p className="eyebrow">Start points</p>
-          <h2 id="discovery-flow-title">Give Muse the basics.</h2>
+          <h2 id="discovery-flow-title">Start with a private read</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {discoverySteps.map((step) => (
@@ -63,7 +63,7 @@ export function PublicDiscoveryPage() {
       <section className="public-split-band" aria-labelledby="discovery-boundary-title">
         <div>
           <p className="eyebrow">Continue</p>
-          <h2 id="discovery-boundary-title">Open your traveller workspace.</h2>
+          <h2 id="discovery-boundary-title">Keep your plans together</h2>
         </div>
         <div className="public-check-list">
           <p>Saved context</p>

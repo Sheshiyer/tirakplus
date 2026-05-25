@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuth } from "../api/AuthContext";
+import { AssetRegistry } from "../registry/assets";
 import type { UserRole } from "../../shared/contracts";
 
 export function AuthStart() {
@@ -10,7 +11,7 @@ export function AuthStart() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { login, verify, isLoading, error } = useAuth();
+  const { login, isLoading, error } = useAuth();
   const fromLocation = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
   const fromPath = fromLocation?.pathname ? `${fromLocation.pathname}${fromLocation.search ?? ""}` : undefined;
   const intendedRole: Extract<UserRole, "traveller" | "companion"> =
@@ -28,24 +29,24 @@ export function AuthStart() {
     }
   };
 
-  const handleDevAccess = async (role: Extract<UserRole, "traveller" | "companion">) => {
-    const devEmail = role === "traveller" ? "dev.traveller@tirakplus.local" : "dev.companion@tirakplus.local";
-    const fallbackPath = role === "traveller" ? "/traveller/dashboard" : "/companion/dashboard";
-    const targetPath =
-      fromPath && fromPath.startsWith(role === "traveller" ? "/traveller" : "/companion") ? fromPath : fallbackPath;
-    await verify(devEmail, "123456", role);
-    navigate(targetPath, { replace: true });
-  };
-
   return (
     <section className="auth-page">
       <div className="auth-panel">
+        <div className="auth-muse-card" aria-label="Muse private entry">
+          <span className="auth-muse-orb" aria-hidden="true">
+            <img src={AssetRegistry.muse.floating.idleStart} alt="" />
+          </span>
+          <div>
+            <p className="eyebrow">Muse entry</p>
+            <p>Use one private code to keep your trip, profile, and messages together.</p>
+          </div>
+        </div>
         <div className="auth-heading">
-          <h1>Sign in to continue</h1>
+          <h1>Enter privately</h1>
           <p>
             {intendedRole === "companion"
-              ? "Sign in to manage your profile, availability, and messages."
-              : "Sign in to keep your trip context, saved profiles, and messages private."}
+              ? "Open your profile, availability, and messages."
+              : "Open your trip context, saved profiles, and messages."}
           </p>
         </div>
 
@@ -73,26 +74,15 @@ export function AuthStart() {
             fullWidth
             disabled={!email || isLoading}
           >
-            {isLoading ? "Sending code..." : "Continue with email"}
+            {isLoading ? "Sending code..." : "Send private code"}
           </Button>
         </form>
 
         <p className="auth-terms">
-          By continuing, you agree to keep messages respectful and to use Tirak Plus for private, safety-aware plans.
+          By continuing, you agree to keep messages respectful and plans private.
           {" "}<Link to="/safety">Read the safety notes</Link>.
         </p>
 
-        <div className="auth-dev-panel" aria-label="Sample account access">
-          <p className="meta">Sample account</p>
-          <div className="auth-dev-actions">
-            <Button type="button" variant="secondary" onClick={() => void handleDevAccess("traveller")} disabled={isLoading}>
-              Traveller sample
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => void handleDevAccess("companion")} disabled={isLoading}>
-              Companion sample
-            </Button>
-          </div>
-        </div>
       </div>
     </section>
   );

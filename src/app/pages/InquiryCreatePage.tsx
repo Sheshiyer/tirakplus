@@ -37,7 +37,7 @@ export function InquiryCreatePage() {
 
   useEffect(() => {
     if (!companionId) {
-      setLoadState({ status: "error", message: "Inquiry route is missing a profile identifier." });
+      setLoadState({ status: "error", message: "Choose a profile before sending an inquiry." });
       return;
     }
 
@@ -150,7 +150,7 @@ export function InquiryCreatePage() {
       <section className="inquiry-page">
         <div className="inquiry-success-panel">
           <p className="eyebrow">Inquiry submitted</p>
-          <h1>Private review has started.</h1>
+          <h1>Tirak is checking the plan.</h1>
           <p>{createdInquiry.nextStep}</p>
           <div className="inquiry-timeline">
             {createdInquiry.timeline.map((item) => (
@@ -189,7 +189,7 @@ export function InquiryCreatePage() {
 
       <form className="inquiry-form" onSubmit={submitInquiry}>
         <Select
-          label="Experience context"
+          label="Experience style"
           value={form.experience}
           options={experienceOptions}
           error={fieldErrors.experience}
@@ -206,7 +206,7 @@ export function InquiryCreatePage() {
           label="Inquiry message"
           value={form.message}
           error={fieldErrors.message}
-          helperText="Share practical context: city, timing, route, boundaries, and expectations."
+          helperText="Share practical details: city, timing, plan, boundaries, and expectations."
           onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
         />
         <Checkbox

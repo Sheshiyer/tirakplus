@@ -28,13 +28,14 @@ import { join, relative } from "node:path";
 const root = process.cwd();
 
 const publicSurfaceFiles = [
+  "src/app/pages/MuseChatPage.tsx",
   "src/app/pages/PublicHome.tsx",
   "src/app/pages/PublicDiscoveryPage.tsx",
   "src/app/pages/PublicSafetyPage.tsx",
-  "src/app/pages/PublicPaymentsPage.tsx",
   "src/app/pages/AuthStart.tsx",
-  "src/app/components/home/HomeHero.tsx",
-  "src/app/components/home/AudienceCtaBand.tsx",
+  "src/app/pages/CityOverviewPage.tsx",
+  "src/app/pages/ExperiencePage.tsx",
+  "src/app/pages/LegalPages.tsx",
 ];
 
 const explainerHeadings = [
@@ -53,7 +54,7 @@ const explainerHeadings = [
   /Choose how/i,
 ];
 
-const rootRouteFile = "src/app/pages/PublicHome.tsx"; // update when MuseHomePage lands
+const rootRouteFile = "src/app/pages/MuseChatPage.tsx";
 const maxSectionsOnRoot = 2;
 
 const allowedPublicNav = new Set(["Muse", "Discovery", "Safety", "Login"]);

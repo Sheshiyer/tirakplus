@@ -20,6 +20,20 @@ export const CompassIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const MuseIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="3.5" />
+    <path d="M12 2.5v4" />
+    <path d="M12 17.5v4" />
+    <path d="m4.4 4.4 2.8 2.8" />
+    <path d="m16.8 16.8 2.8 2.8" />
+    <path d="M2.5 12h4" />
+    <path d="M17.5 12h4" />
+    <path d="m4.4 19.6 2.8-2.8" />
+    <path d="m16.8 7.2 2.8-2.8" />
+  </svg>
+);
+
 export const CalendarIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>

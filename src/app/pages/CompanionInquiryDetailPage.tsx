@@ -18,7 +18,7 @@ export function CompanionInquiryDetailPage() {
 
   useEffect(() => {
     if (!inquiryId) {
-      setState({ status: "error", message: "Inquiry route is missing an identifier." });
+      setState({ status: "error", message: "Choose an inquiry before opening its details." });
       return;
     }
 

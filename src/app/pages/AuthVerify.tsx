@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Icons } from "../components/navigation/Icons";
 import { useAuth } from "../api/AuthContext";
+import { AssetRegistry } from "../registry/assets";
 import type { UserRole } from "../../shared/contracts";
 
 export function AuthVerify() {
@@ -91,10 +92,19 @@ export function AuthVerify() {
       </Link>
 
       <div className="auth-panel">
+        <div className="auth-muse-card" aria-label="Muse code check">
+          <span className="auth-muse-orb" aria-hidden="true">
+            <img src={AssetRegistry.muse.floating.privacyLockStart} alt="" />
+          </span>
+          <div>
+            <p className="eyebrow">Private code</p>
+            <p>Muse keeps this entry tied to your {role} path.</p>
+          </div>
+        </div>
         <div className="auth-heading auth-heading-left">
-          <h1>Confirm your private entry</h1>
+          <h1>Confirm the code</h1>
           <p>
-            We sent a 6-digit code to <strong>{email}</strong>. This keeps the {role} path tied to a reviewed account.
+            We sent a 6-digit code to <strong>{email}</strong>.
           </p>
         </div>
 

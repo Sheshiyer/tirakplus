@@ -16,7 +16,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
       <div className="route-loading">
         <div className="route-loading-panel">
           <Icons.Loading />
-          <p>Muse is opening your private workspace.</p>
+          <p>Muse is opening your private area.</p>
         </div>
       </div>
     );

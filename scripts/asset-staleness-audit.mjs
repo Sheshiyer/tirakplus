@@ -33,40 +33,16 @@ const root = process.cwd();
 // `isApproved` filters out _quarantine / _superseded paths automatically.
 const GENERATED_TO_REGISTRY_MAP = [
   {
-    label: "Muse splash hero",
-    generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/png-poses"],
-    generatedMatch: /muse-splash|splash-foreground|splash-hero/i,
-    registryPath: "public/assets/muse/scene/muse-splash-foreground-hero-alpha.png",
-  },
-  {
     label: "Muse Thailand night backdrop",
     generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/scenes"],
     generatedMatch: /thailand-night|night-backdrop|scene-backdrop/i,
     registryPath: "public/assets/muse/scene/muse-thailand-night-backdrop.png",
   },
   {
-    label: "Muse chat pose",
+    label: "Muse mobile portrait foreground",
     generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/png-poses"],
-    generatedMatch: /muse-chat|chat-attentive/i,
-    registryPath: "public/assets/muse/png-poses/muse-chat-attentive.png",
-  },
-  {
-    label: "Muse privacy pose",
-    generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/png-poses"],
-    generatedMatch: /muse-privacy|privacy-guarded/i,
-    registryPath: "public/assets/muse/png-poses/muse-privacy-guarded.png",
-  },
-  {
-    label: "Muse companion-presenting pose",
-    generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/png-poses"],
-    generatedMatch: /muse-companion|companion-presenting/i,
-    registryPath: "public/assets/muse/png-poses/muse-companion-presenting.png",
-  },
-  {
-    label: "Muse thinking pose",
-    generatedDirs: ["generated/muse-assets/gpt-image-2", "generated/muse-character/png-poses"],
-    generatedMatch: /muse-thinking|loading-thinking/i,
-    registryPath: "public/assets/muse/png-poses/muse-loading-thinking.png",
+    generatedMatch: /muse-mobile|mobile-portrait|portrait-foreground/i,
+    registryPath: "public/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png",
   },
   {
     label: "Tirak Plus Muse app icon",

@@ -167,7 +167,7 @@ export function CompanionOnboardingPage() {
     <section className="companion-page companion-onboarding-page" aria-labelledby="companion-onboarding-title">
       <div className="companion-hero">
         <div>
-          <p className="eyebrow">Companion registration</p>
+          <p className="eyebrow">Hosting profile</p>
           <h1 id="companion-onboarding-title">Build your profile at your pace.</h1>
           <p>
             Keep verification details private, shape your public bio, and submit when your visibility settings feel
@@ -197,9 +197,9 @@ export function CompanionOnboardingPage() {
         <form className="companion-form" onSubmit={saveProfile}>
           <section className="companion-form-section">
             <p className="eyebrow">Welcome</p>
-            <h2>Companion agency comes first.</h2>
+            <h2>Your call, every step</h2>
             <p>
-              Draft information is private until review clears it. Visibility, availability, and inquiry controls can
+              Draft information is private until Tirak clears it. Visibility, availability, and inquiry controls can
               stay closed while your profile is prepared.
             </p>
           </section>
@@ -251,7 +251,7 @@ export function CompanionOnboardingPage() {
               error={fieldErrors.city}
               onChange={(event) => setDraft({ ...draft, city: event.target.value as CitySlug })}
             />
-            <div className="choice-grid" role="group" aria-label="Experience contexts">
+            <div className="choice-grid" role="group" aria-label="Experience styles">
               {data.options.experiences.map((experience) => (
                 <Checkbox
                   key={experience.value}

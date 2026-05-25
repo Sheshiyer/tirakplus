@@ -4,6 +4,7 @@ import type {
   DiscoveryFilterSelection,
   DiscoveryResponse,
   ExperienceSlug,
+  PaymentProviderSummary,
   PaymentSessionResult,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
@@ -132,6 +133,10 @@ export const TravellerService = {
         body: JSON.stringify({}),
       },
     );
+  },
+
+  getPaymentProviders(): Promise<PaymentProviderSummary[]> {
+    return apiRequest<PaymentProviderSummary[]>("/api/payments/providers");
   },
 };
 

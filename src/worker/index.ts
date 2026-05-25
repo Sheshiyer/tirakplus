@@ -248,7 +248,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       panels: [
         {
           title: "Profile draft",
-          description: "Edit public tone, private review fields, and traveller-facing details before submission.",
+          description: "Edit public tone, private notes, and traveller-facing details before submission.",
           href: "/companion/profile",
         },
         {
@@ -358,7 +358,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
         acceptInquiries: false,
       },
       reviewStatus: "pending_verification",
-      reviewNote: "Verification has been submitted. Public visibility and inquiries remain paused until review clears.",
+      reviewNote: "Verification has been submitted. Your profile and inquiries stay paused until Tirak clears them.",
       updatedAt: new Date().toISOString(),
     };
 
@@ -366,7 +366,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       {
         profile,
         submittedAt: profile.updatedAt,
-        nextStep: "Tirak review checks identity, public tone, visibility, availability, and safety before any traveller-facing profile appears.",
+        nextStep: "Tirak checks identity, public tone, privacy, availability, and safety before any traveller-facing profile appears.",
       },
       { status: 202 },
     );
@@ -502,9 +502,9 @@ function rateLimitGroupForPath(pathname: string): RateLimitGroup {
 
 const companionSafetyGuidance = [
   "Public profile fields stay separate from private review notes.",
-  "Availability is planning context, not instant booking or public urgency.",
-  "Visibility can pause discovery, city, availability, and inquiries independently.",
-  "No payment, off-platform contact, or introduction happens before review clears.",
+  "Availability sets timing without pressure.",
+  "You can pause profile, city, availability, and inquiries separately.",
+  "No payment, off-platform contact, or introduction happens before Tirak clears the plan.",
 ];
 
 const museSystemContract = {
@@ -883,7 +883,7 @@ function selectMuseNextAction(stage: MuseConversationStage, signals: MuseProfile
     return { label: "Continue with Muse", href: "/", kind: "continue" };
   }
   if (signals.routingHints.suggestedRole === "companion") {
-    return { label: "Open profile workspace", href: "/companion/profile?muse=1", kind: "route" };
+    return { label: "Open profile", href: "/companion/profile?muse=1", kind: "route" };
   }
   const params = new URLSearchParams({ muse: "1", source: "muse" });
   if (signals.travelContext.city) params.set("city", signals.travelContext.city);
@@ -1033,7 +1033,7 @@ function validateInquiry(body: TravellerInquiryRequest): Record<string, string> 
     errors.city = "Choose a supported Tirak city.";
   }
   if (!isExperienceSlug(body.experience)) {
-    errors.experience = "Choose a supported experience context.";
+    errors.experience = "Choose a supported experience style.";
   }
   if (typeof body.preferredWindow !== "string" || body.preferredWindow.trim().length < 4) {
     errors.preferredWindow = "Add a practical preferred window.";
@@ -1131,9 +1131,9 @@ function validateCompanionProfileUpdate(body: CompanionProfileUpdateRequest): Re
   }
   if (body.experienceTags !== undefined) {
     if (!Array.isArray(body.experienceTags) || body.experienceTags.length === 0) {
-      errors.experienceTags = "Choose at least one experience context.";
+      errors.experienceTags = "Choose at least one experience style.";
     } else if (body.experienceTags.some((value) => !isExperienceSlug(value))) {
-      errors.experienceTags = "Choose only supported experience contexts.";
+      errors.experienceTags = "Choose only supported experience styles.";
     }
   }
   if (body.bio !== undefined && body.bio.trim().length < 40) {
@@ -1275,13 +1275,13 @@ function createOnboardingState(profile: CompanionDraftProfile, companionOptions:
     {
       id: "verification",
       label: "Verification",
-      description: "Submit private context for review before public visibility.",
+      description: "Submit private details before your profile can be visible.",
       complete: profile.verificationReferences.length > 0 && profile.privateReviewNote.trim().length >= 20,
     },
     {
       id: "submitted",
       label: "Submitted",
-      description: "Pending review state blocks public visibility and inquiries.",
+      description: "The profile stays hidden while Tirak checks the details.",
       complete: profile.reviewStatus !== "draft" && profile.reviewStatus !== "changes_requested",
     },
   ] as const;
@@ -1341,7 +1341,7 @@ function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName
     status: "under_review",
     createdAt: now,
     updatedAt: now,
-    nextStep: "Private review has started before any introduction or payment.",
+    nextStep: "Tirak is checking the plan before any introduction or payment.",
     message: body.message.trim(),
     timeline: [
       {
@@ -1357,7 +1357,7 @@ function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName
       {
         label: "Introduction decision",
         status: "pending",
-        note: "No introduction or payment happens before review clears.",
+        note: "No introduction or payment happens before Tirak clears the plan.",
       },
     ],
     paymentState: {

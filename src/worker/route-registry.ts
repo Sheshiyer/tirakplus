@@ -202,7 +202,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:traveller",
     stagedProvider: "stagedDataProvider.createTravellerInquiry",
     productionTarget: "D1",
-    notes: "Creates a private review state before routing or payment.",
+    notes: "Creates a private inquiry before introduction or payment.",
   },
   {
     method: "GET",
@@ -268,7 +268,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "anonymous",
     stagedProvider: "payment-provider",
     productionTarget: "KV",
-    notes: "Lists payment adapter candidates and supportability status.",
+    notes: "Lists payment adapter candidates and current availability status.",
   },
   {
     method: "GET",
@@ -279,7 +279,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:companion",
     stagedProvider: "stagedDataProvider.getCompanionSession",
     productionTarget: "D1",
-    notes: "Companion-side routed inquiry/session detail with review-safe decision options.",
+    notes: "Companion-side inquiry view with private decision options.",
   },
   {
     method: "GET",
@@ -301,7 +301,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:companion",
     stagedProvider: "stagedDataProvider.getCompanionDashboard",
     productionTarget: "D1",
-    notes: "Private companion workspace state.",
+    notes: "Private companion home state.",
   },
   {
     method: "GET",

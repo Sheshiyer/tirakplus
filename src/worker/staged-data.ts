@@ -31,17 +31,17 @@ export const travellerMuseChart: MuseChartSignature = {
 };
 
 export const companionMuseChart: MuseChartSignature = {
-  title: "Muse signal",
-  tagline: "Let the right people understand you faster.",
-  summary: "Muse frames public tone, privacy controls, and availability so the profile reads polished without overexposure.",
+  title: "Muse read",
+  tagline: "A calmer profile starts here.",
+  summary: "Muse helps keep tone, privacy, and timing clear before your profile is shared.",
   axes: [
     { label: "Tone", value: "composed", tone: "rose" },
-    { label: "Visibility", value: "review first", tone: "green" },
+    { label: "Privacy", value: "your pace", tone: "green" },
     { label: "Fit", value: "hospitality", tone: "lavender" },
-    { label: "Pace", value: "controlled", tone: "pearl" },
+    { label: "Pace", value: "calm", tone: "pearl" },
   ],
-  cues: ["Keep profile language practical", "Separate private notes", "Open availability only after approval"],
-  nextPrompt: "Ask Muse to sharpen your public tone before you submit.",
+  cues: ["Keep the bio practical", "Separate private notes", "Share availability only when ready"],
+  nextPrompt: "Ask Muse to sharpen your profile tone before you submit.",
 };
 
 export const cities: CitySummary[] = [
@@ -49,7 +49,7 @@ export const cities: CitySummary[] = [
     slug: "bangkok",
     name: "Bangkok",
     tone: "Rooftops, fight nights, private bars, and late dinners work best when timing and transport are planned before introductions.",
-    trustNote: "Muse reads the city first; reviewed profiles appear only after context is clear.",
+    trustNote: "Muse reads the city first; reviewed profiles appear only after the plan is clear.",
   },
   {
     slug: "phuket",
@@ -77,21 +77,21 @@ export const experiences: ExperienceSummary[] = [
     city: "bangkok",
     title: "Bangkok Nightlife",
     summary: "A composed route through lounges, rooftops, and after-dark plans with transport and privacy named upfront.",
-    safetyNote: "No public pressure cues or browse-volume mechanics.",
+    safetyNote: "No pressure counters or hurry-up cues.",
   },
   {
     slug: "muay-thai-night",
     city: "bangkok",
     title: "Muay Thai Night",
     summary: "Fight-night planning that keeps local context, seating, timing, and the next step practical.",
-    safetyNote: "Itinerary context is separate from companion availability.",
+    safetyNote: "Plan details stay separate from companion availability.",
   },
   {
     slug: "island-explorer",
     city: "phuket",
     title: "Phuket Island Explorer",
     summary: "Beach clubs, coves, and dinner plans paced around resort geography and a quieter public footprint.",
-    safetyNote: "Profiles stay visibility-scoped until verification clears.",
+    safetyNote: "Profiles stay private until the details are checked.",
   },
   {
     slug: "private-dining",
@@ -119,14 +119,14 @@ export const experiences: ExperienceSummary[] = [
     city: "koh-phangan",
     title: "Koh Phangan Local Guidance",
     summary: "Local rhythm, transport awareness, and calmer planning without party-flyer energy.",
-    safetyNote: "Discovery copy avoids objectifying or explicit framing.",
+    safetyNote: "Requests stay practical and respectful.",
   },
   {
     slug: "nightlife",
     city: "koh-phangan",
     title: "Koh Phangan Night Energy",
     summary: "After-dark plans framed through boundaries, transport, and local rhythm from the start.",
-    safetyNote: "Plans prioritize context over public browsing.",
+    safetyNote: "Plans prioritize clarity over browsing.",
   },
 ];
 
@@ -177,7 +177,7 @@ export const companionProfiles: CompanionProfile[] = [
     ],
     safetyNote: "Start with a respectful plan, not a rushed request.",
     inquiryGuidance: [
-      "Use specific city and experience context.",
+      "Use specific city and experience details.",
       "Keep the message respectful and practical.",
       "Keep payment and contact details out of the first message.",
     ],
@@ -395,7 +395,7 @@ export const discoveryFilterOptions: DiscoveryFilterModel = {
     { value: "island-explorer", label: "Island explorer", description: "Beach clubs, coves, resorts, and calmer routes." },
     { value: "muay-thai-night", label: "Muay Thai night", description: "Fight-night context with respectful pacing." },
     { value: "private-dining", label: "Private dining", description: "Composed dinner and resort-area plans." },
-    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and route context." },
+    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and calm orientation." },
   ],
   availability: [
     { value: "any", label: "Any timing", description: "Show all visible options." },
@@ -427,9 +427,9 @@ export const travellerInquiries: TravellerInquiryDetail[] = [
         note: "Your city, timing, and plan were received.",
       },
       {
-        label: "Concierge check",
-        status: "active",
-        note: "A Tirak concierge is checking tone, timing, and route fit.",
+      label: "Tirak check",
+      status: "active",
+      note: "Tirak is checking tone, timing, and route fit.",
       },
       {
         label: "Introduction decision",
@@ -440,7 +440,7 @@ export const travellerInquiries: TravellerInquiryDetail[] = [
     paymentState: {
       status: "disabled_for_compliance",
       provider: "stripe",
-      note: "Use this only to verify the card checkout handoff in test mode. Live payment is not available yet.",
+      note: "Card checkout waits here until this plan is cleared.",
     },
     privacyNote: "Only you and the Tirak team can see this inquiry thread.",
   },
@@ -479,7 +479,7 @@ export const travellerSessions: TravellerSessionDetail[] = [
         note: "City, timing, experience, and first preferences are saved.",
       },
       {
-        label: "Concierge check",
+        label: "Tirak check",
         status: "active",
         note: "Tirak is checking whether the plan feels practical and respectful.",
       },
@@ -515,12 +515,12 @@ export const travellerSessions: TravellerSessionDetail[] = [
       },
     ],
     safetyNotes: [
-      "Exact meeting and contact details stay hidden until review clears.",
-      "Transport boundaries stay attached to the route.",
-      "Report off-platform payment requests from the session detail.",
+      "Exact meeting and contact details stay hidden until Tirak clears the plan.",
+      "Transport boundaries stay attached to the plan.",
+      "Report off-platform payment requests here.",
     ],
     paymentState: travellerInquiries[0].paymentState,
-    privacyNote: "This plan stays private inside your traveller workspace.",
+    privacyNote: "This plan stays private inside your traveller area.",
   },
   {
     id: "sess-phuket-mali-002",
@@ -548,7 +548,7 @@ export const travellerSessions: TravellerSessionDetail[] = [
       nextPrompt: "Tell Muse whether the route stays near the resort or opens toward a beach-club dinner.",
     },
     itinerary: [
-      { label: "Draft route", status: "complete", note: "Private dining context and area are saved." },
+      { label: "Draft plan", status: "complete", note: "Private dining area and timing are saved." },
       { label: "Traveller confirmation", status: "active", note: "Confirm pickup area and timing." },
       { label: "Companion fit", status: "pending", note: "Mali receives the plan once the context is clear." },
       { label: "Payment", status: "blocked", note: "Not needed yet." },
@@ -563,7 +563,7 @@ export const travellerSessions: TravellerSessionDetail[] = [
     ],
     safetyNotes: [
       "Do not reveal hotel room or personal contact details in chat.",
-      "Keep itinerary changes inside the review thread.",
+      "Keep itinerary changes inside Tirak Plus.",
     ],
     paymentState: {
       status: "disabled_for_compliance",
@@ -578,7 +578,7 @@ export const travellerDashboard: TravellerDashboardResponse = {
   chart: {
     ...travellerMuseChart,
     tagline: "Muse is already reading your Thailand rhythm.",
-    summary: "Your current routes, saved profiles, and Muse notes live here.",
+    summary: "Your current plans, saved profiles, and Muse notes live here.",
     nextPrompt: "Ask Muse to compare Bangkok energy with a quieter island route.",
   },
   greeting: "Welcome back.",
@@ -607,7 +607,7 @@ export const companionDraftProfile: CompanionDraftProfile = {
   experienceTags: ["nightlife", "private-dining"],
   bio: "Bangkok-based companion focused on composed evenings, private dining, and calm local planning.",
   profileTone: "Warm, composed, hospitality-minded, and clear about boundaries.",
-  privateReviewNote: "Prefers reviewed evening plans, hotel-aware logistics, and no public-pressure presentation.",
+  privateReviewNote: "Prefers reviewed evening plans, hotel-aware logistics, and no rushed presentation.",
   verificationReferences: ["Government ID pending secure review", "Profile media pending review"],
   visibilitySettings: {
     publicProfile: false,
@@ -619,20 +619,20 @@ export const companionDraftProfile: CompanionDraftProfile = {
     {
       id: "av-draft-maya-1",
       city: "bangkok",
-      label: "Evening review window",
+      label: "Evening window",
       status: "tentative",
-      note: "Visible only to review until verification clears.",
+    note: "Private until the profile is cleared.",
     },
     {
       id: "av-draft-maya-2",
       city: "bangkok",
-      label: "Private dining context",
+      label: "Private dining",
       status: "hidden",
-      note: "Hidden from discovery until public visibility is approved.",
+      note: "Hidden until the profile is approved.",
     },
   ],
   reviewStatus: "draft",
-  reviewNote: "Complete profile basics, visibility settings, and verification acknowledgements before review.",
+  reviewNote: "Finish the remaining detail, then send it for review.",
   updatedAt: "2026-05-13T10:10:00.000Z",
 };
 
@@ -647,7 +647,7 @@ export const companionOptions: CompanionOptionSet = {
     { value: "island-explorer", label: "Island explorer", description: "Beach clubs, coves, resorts, and calmer routes." },
     { value: "muay-thai-night", label: "Muay Thai night", description: "Fight-night context with respectful pacing." },
     { value: "private-dining", label: "Private dining", description: "Composed dinner and resort-area plans." },
-    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and route context." },
+    { value: "local-guidance", label: "Local guidance", description: "Locally fluent planning and calm orientation." },
   ],
 };
 
@@ -656,24 +656,24 @@ export const companionReviewStates = [
     status: "draft",
     label: "Draft",
     description: "Profile details are private and editable before submission.",
-    action: "Complete basics, visibility, availability, and verification acknowledgements.",
+    action: "Finish basics, availability, and safety acknowledgements.",
   },
   {
     status: "pending_verification",
     label: "Pending verification",
-    description: "Public visibility and inquiries stay paused while review is active.",
-    action: "Wait for review or respond if the team asks for more detail.",
+    description: "Your profile stays hidden while Tirak checks the details.",
+    action: "Wait for Tirak or respond if the team asks for more detail.",
   },
   {
     status: "changes_requested",
     label: "Changes requested",
-    description: "Specific public fields or private review fields need revision.",
-    action: "Edit only the requested sections and resubmit for review.",
+    description: "A few public or private fields need revision.",
+    action: "Edit only the requested sections and resubmit.",
   },
   {
     status: "approved",
     label: "Approved",
-    description: "The reviewed profile can appear through visibility-controlled discovery.",
+    description: "Your profile can appear when your visibility settings allow it.",
     action: "Keep availability current and pause inquiries whenever needed.",
   },
   {
@@ -691,10 +691,10 @@ export const companionInquiries: CompanionInquirySummary[] = [
     city: "bangkok",
     experience: "private-dining",
     status: "under_review",
-    preferredWindow: "Evening review window",
+    preferredWindow: "Evening window",
     receivedAt: "2026-05-13T11:00:00.000Z",
-    nextStep: "Tirak review checks safety and fit before sharing direct details.",
-    privacyNote: "Traveller identity and contact details stay private until review clears.",
+    nextStep: "Tirak checks safety and fit before sharing direct details.",
+    privacyNote: "Traveller identity and contact details stay private until Tirak clears the plan.",
   },
   {
     id: "cinq-staged-002",
@@ -704,7 +704,7 @@ export const companionInquiries: CompanionInquirySummary[] = [
     status: "payment_review",
     preferredWindow: "Resort-area evening",
     receivedAt: "2026-05-12T15:20:00.000Z",
-    nextStep: "Payment stays unavailable while Tirak checks whether this plan can move forward.",
+    nextStep: "Tirak is checking whether this plan can move forward.",
     privacyNote: "No off-platform payment or pressure cue is shown to the companion.",
   },
 ];
@@ -717,7 +717,7 @@ export const companionSessionDetails: CompanionSessionDetail[] = [
     museFit: {
       ...companionMuseChart,
       tagline: "A composed request that needs one more boundary check.",
-      summary: "Muse reads the request as practical and hospitality-led, with the introduction paused until Tirak review clears.",
+      summary: "Muse reads the request as practical and hospitality-led, with the introduction paused until Tirak clears the plan.",
       axes: [
         { label: "Tone", value: "polite", tone: "rose" },
         { label: "Route", value: "dinner", tone: "pearl" },
@@ -728,14 +728,14 @@ export const companionSessionDetails: CompanionSessionDetail[] = [
     },
     decisionOptions: [
       {
-        label: "Ask review to clarify",
+        label: "Ask Tirak to clarify",
         value: "request_review",
-        description: "Keep the request active while asking Tirak for more route or boundary context.",
+        description: "Keep the request active while asking Tirak for clearer plan details or boundaries.",
       },
       {
         label: "Accept after review",
         value: "accept_after_review",
-        description: "Mark willingness to proceed only if Tirak review clears the plan.",
+        description: "Mark willingness to proceed only if Tirak clears the plan.",
       },
       {
         label: "Decline safely",
@@ -747,13 +747,13 @@ export const companionSessionDetails: CompanionSessionDetail[] = [
       { label: "Traveller context", status: "complete", note: "The request includes city, timing, and tone." },
       { label: "Companion boundary", status: "active", note: "A response can name limits without exposing contact details." },
       { label: "Payment", status: "blocked", note: "Payment is not available for this request yet." },
-      { label: "Introduction", status: "pending", note: "Tirak review clears before any introduction." },
+      { label: "Introduction", status: "pending", note: "Tirak clears the plan before any introduction." },
     ],
     messageThread: [
       {
         id: "msg-companion-1",
         role: "muse",
-        content: "This reads respectful. Keep your answer warm, but let review carry the specifics.",
+        content: "This reads respectful. Keep your answer warm, but let Tirak carry the specifics.",
         createdAt: "2026-05-19T08:25:00.000Z",
       },
     ],
@@ -766,13 +766,13 @@ export const companionSessionDetails: CompanionSessionDetail[] = [
   {
     ...companionInquiries[1],
     travellerContext:
-      "Traveller is exploring a Phuket island route. The area is broad, so review is holding the plan until timing and transport are more precise.",
+      "Traveller is exploring a Phuket island route. The area is broad, so the plan is paused until timing and transport are more precise.",
     museFit: companionMuseChart,
     decisionOptions: [
       {
         label: "Request clearer route",
         value: "request_review",
-        description: "Ask review to narrow city area, timing, and transport before you decide.",
+        description: "Ask Tirak to narrow city area, timing, and transport before you decide.",
       },
       {
         label: "Decline safely",
@@ -782,14 +782,14 @@ export const companionSessionDetails: CompanionSessionDetail[] = [
     ],
     checklist: [
       { label: "Route clarity", status: "active", note: "The request needs a clearer resort corridor." },
-      { label: "Visibility control", status: "complete", note: "Your profile stays visibility-scoped." },
+      { label: "Privacy control", status: "complete", note: "Your profile stays private until you open it." },
       { label: "Payment", status: "blocked", note: "No payment request can be sent." },
     ],
     messageThread: [
       {
         id: "msg-companion-2",
         role: "muse",
-        content: "Keep this one in review until the island route stops feeling too wide.",
+        content: "Keep this paused until the island plan stops feeling too wide.",
         createdAt: "2026-05-19T08:32:00.000Z",
       },
     ],
@@ -806,14 +806,14 @@ export const entryPaths: HomeEntryPath[] = [
     role: "traveller",
     label: "Traveller path",
     heading: "Plan a discreet Thailand introduction.",
-    description: "Start with city and experience context, then send a private inquiry after reviewing safety guidance.",
+    description: "Start with city, style, and timing, then send a private inquiry after you review safety guidance.",
     href: "/auth/login?role=traveller",
   },
   {
     role: "companion",
     label: "Companion path",
-    heading: "Register with visibility control.",
-    description: "Create a reviewed profile, set boundaries and availability, and stay hidden until verification clears.",
+    heading: "Create your private profile.",
+    description: "Set boundaries, availability, and profile tone before you submit.",
     href: "/auth/login?role=companion",
   },
 ];

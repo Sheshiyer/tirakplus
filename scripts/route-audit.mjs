@@ -3,12 +3,8 @@ import { readFile, access } from "node:fs/promises";
 const main = await readFile("src/app/main.tsx", "utf8");
 const requiredRoutes = [
   "/",
-  "overview",
-  "cities/bangkok",
-  "cities/phuket",
   "discovery",
   "safety",
-  "payments",
   "privacy",
   "terms",
   "cookies",
@@ -30,6 +26,23 @@ const requiredFiles = [
 const missingRoutes = requiredRoutes.filter((route) => !main.includes(route));
 if (missingRoutes.length) {
   console.error(`Missing route declarations: ${missingRoutes.join(", ")}`);
+  process.exit(1);
+}
+
+const forbiddenPublicFloor = [
+  'label: "Payments"',
+  'label: "Overview"',
+  'label: "Cities"',
+  'label: "Experiences"',
+  '<PublicPaymentsPage',
+  'import { PublicPaymentsPage }',
+];
+
+const leakedPublicFloor = forbiddenPublicFloor.filter((snippet) => main.includes(snippet));
+const shell = await readFile("src/app/shells/PublicShell.tsx", "utf8");
+leakedPublicFloor.push(...forbiddenPublicFloor.filter((snippet) => shell.includes(snippet)));
+if (leakedPublicFloor.length) {
+  console.error(`Forbidden logged-out floor entries: ${[...new Set(leakedPublicFloor)].join(", ")}`);
   process.exit(1);
 }
 

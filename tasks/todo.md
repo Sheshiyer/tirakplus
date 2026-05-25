@@ -1,16 +1,64 @@
 # Meta Copy Removal Pass
 
-## Public And Account Copy Hygiene
+## Phase 4 Product Readiness Hardening
 
-- [ ] Audit public, auth, account, support, legal, city, experience, and API-shaped staged copy for meta/product-description language.
-- [ ] Replace H1, lede, card, and status copy with direct app-state language.
-- [ ] Expand copy audit coverage so planning terms do not re-enter visible surfaces.
-- [ ] Run copy/build checks and mobile-first browser QA on affected routes.
-- [ ] Record review notes and lessons from this correction.
+- [x] Make Muse honest and usable when the external RAG binding is not live; no silent fake-live state.
+- [x] Keep Muse close visible and clickable immediately from floating-route entry on mobile, tablet, and desktop.
+- [x] Mount the floating 3D Muse trigger on public non-Muse routes without adding the app icon overlay.
+- [x] Rewrite companion dashboard, profile, availability, inbox, safety, and staged payload copy so it reads as app UI, not implementation scope.
+- [x] Make auth feel Muse-led while preserving the existing email/code API contract.
+- [x] Fix payment-state UI so compliance hold and Stripe test mode are clear, with no misleading dead checkout action.
+- [x] Add separate registered mobile, tablet, and desktop Muse foreground assets from the approved portrait family.
+- [x] Verify copy audits, asset audits, route audits, build/check, smoke tests, and browser QA across mobile/tablet/desktop.
 
 ## Review
 
-- Pending.
+- Muse chat now labels staged responses as a guided read instead of implying a live RAG result; live/external mode keeps the live label.
+- Floating Muse is mounted on public non-Muse routes and opening it starts in focused chat state, with the close button visible and clickable before the first message.
+- Companion dashboard/profile/availability/safety and staged API payload copy were rewritten away from implementation terms like workspace, visibility-scoped, public urgency, review-safe, supportability, and Concierge check.
+- Auth keeps the email/code contract but now presents a Muse-led private entry with the 3D Muse keyframe asset.
+- Traveller inquiry payment state now distinguishes compliance hold from Stripe test mode and removes the dead checkout action while payments are paused.
+- Responsive Muse foreground assets are registered for mobile, tablet, and desktop: `muse-mobile-portrait-foreground-alpha.png`, `muse-tablet-portrait-foreground-alpha.png`, and `muse-desktop-portrait-foreground-alpha.png`.
+- Verification passed: `npm run copy:audit`, `npm run copy:structure-audit`, `npm run asset:staleness`, `npm run route:audit`, `npm run asset:board-crop`, `npm run check`, `npm run app:smoke`, `npm run stripe:smoke`, `npm run static:smoke`, `npm run muse:corpus`, `npm run muse:eval`, and `npm run contract:smoke`.
+- Browser QA covered public Discovery mobile, public Safety tablet, auth login desktop, Muse floating-close initial state mobile, Muse guided-read mobile, traveller payment-hold mobile, companion dashboard mobile, companion profile tablet, and companion safety desktop.
+- Screenshot evidence lives in `generated/qa-screenshots/phase4-product-readiness-20260525/`.
+
+## Public Floor And Muse Asset Correction
+
+- [x] Confirm every wired public nav/route still matches Muse, Discovery, Safety, and Login.
+- [x] Remove public Payments from the logged-out floor and update route audits so old routes cannot pass.
+- [x] Find every product surface that renders the side/full-body Muse mood-board pose.
+- [x] Replace those mood-board renders with approved scene/mark treatment or no character art until the mobile/tablet Muse renders are generated.
+- [x] Generate or stage a new mobile Muse character asset from the approved references without reusing the side-profile mood-board image.
+- [x] Verify copy gates, route gates, build, and browser screenshots for public and protected affected routes.
+
+## Review
+
+- Public navigation is now exactly Muse, Discovery, Safety, and Login on desktop and mobile.
+- `/payments` redirects to `/auth/login?role=traveller`; the public payment page component was removed from the active app.
+- Retired the full-body/side-profile Muse pose pack and unused full-screen Muse concept composites to `public/assets/_superseded/2026-05-24-mood-board-muse-poses/`.
+- Generated `public/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png` from approved Muse references, converted the false checkerboard background to alpha, and wired `MusePoseImage` to that active foreground.
+- Removed the visible login sample-account bypass and tightened the login H1/button copy.
+- Verification passed: `npm run copy:audit`, `npm run copy:structure-audit`, `npm run route:audit`, `npm run asset:staleness`, `npm run asset:board-crop`, `npm run check`, and `npm run app:smoke`.
+- CDP browser QA at `390x844` showed `scrollWidth=390`, bottom nav tabs `Muse, Discovery, Safety, Login`, `/payments` redirecting to `/auth/login?role=traveller`, and companion onboarding using the new portrait foreground with the floating Muse trigger still present.
+- Screenshot evidence lives in `generated/qa-screenshots/ui-repair-phase4-public-floor-asset-20260524/`.
+
+## Public And Account Copy Hygiene
+
+- [x] Audit public, auth, account, support, legal, city, experience, and API-shaped staged copy for meta/product-description language.
+- [x] Replace H1, lede, card, and status copy with direct app-state language.
+- [x] Expand copy audit coverage so planning terms do not re-enter visible surfaces.
+- [x] Run copy/build checks and mobile-first browser QA on affected routes.
+- [x] Record review notes and lessons from this correction.
+
+## Review
+
+- Legal, support, city, experience, account, inquiry, companion onboarding, traveller safety, and staged Worker payload copy were rewritten away from doc/planning terms such as review states, flows, route suggestions, route unavailable, path yet, experience contexts, private thread, and session detail.
+- `scripts/copy-audit.mjs` now scans public home and home components in addition to the public route pages, and blocks the newly cleaned copy leak patterns on public and protected surfaces.
+- `scripts/copy-structure-audit.mjs` now includes public home, city, experience, and legal pages; this caught and fixed loading-state H1s that still ended in periods.
+- Verification passed: `npm run copy:audit`, `npm run copy:structure-audit`, `npm run check`, `npm run asset:staleness`, `npm run route:audit`, `npm run asset:board-crop`, `npm run app:smoke`, `npm run static:smoke`, and `npm run contract:smoke`.
+- Browser QA covered root mobile, privacy desktop, support desktop, Bangkok city tablet, private dining tablet, and traveller account mobile with no target copy leaks and no horizontal overflow.
+- Screenshot evidence lives in `generated/qa-screenshots/public-account-copy-hygiene-20260525/`.
 
 # Tirak Plus Companion Phase
 

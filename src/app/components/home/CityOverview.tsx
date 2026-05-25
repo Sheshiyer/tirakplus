@@ -14,7 +14,7 @@ export function CityOverview({ city, experiences }: CityOverviewProps) {
         <p>{city.tone}</p>
         <p className="city-trust-note">{city.trustNote}</p>
       </div>
-      <div className="experience-list" aria-label={`${city.name} experience contexts`}>
+      <div className="experience-list" aria-label={`${city.name} experience options`}>
         {experiences.map((experience) => (
           <article className="experience-card" key={experience.slug}>
             <p className="meta">{experience.slug.replaceAll("-", " ")}</p>

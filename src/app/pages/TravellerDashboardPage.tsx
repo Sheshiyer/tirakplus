@@ -87,7 +87,7 @@ export function TravellerDashboardPage() {
         </aside>
       </div>
 
-      <div className="member-metric-grid" aria-label="Traveller workspace metrics">
+      <div className="member-metric-grid" aria-label="Traveller route metrics">
         {data.metrics.map((metric) => (
           <article key={metric.label} className="member-bento-card metric-card">
             <p className="meta">{metric.label}</p>

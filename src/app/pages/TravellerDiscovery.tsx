@@ -122,7 +122,7 @@ export function TravellerDiscovery() {
               <div className="muse-applied-panel" data-testid="muse-discovery-defaults">
                 <div>
                   <p className="eyebrow">Muse tuned</p>
-                  <p>City and style are prefilled from your private thread.</p>
+                  <p>City and style are prefilled from your Muse chat.</p>
                 </div>
                 <button type="button" onClick={clearMuseTuning}>
                   Clear

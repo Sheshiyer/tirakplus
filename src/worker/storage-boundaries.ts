@@ -42,7 +42,7 @@ export const storageBoundaryResponse: StorageBoundaryResponse = {
         "temporary uploads without lifecycle expiry",
       ],
       migrationNote:
-        "R2 stores objects only; D1 stores media records, review state, owner, visibility, and public-safe derivative references.",
+        "R2 stores objects only; D1 stores media records, owner, visibility, and public-safe derivative references.",
     },
     {
       kind: "KV",

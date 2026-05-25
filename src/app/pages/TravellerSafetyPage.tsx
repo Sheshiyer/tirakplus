@@ -16,7 +16,7 @@ const safetyCards = [
   },
   {
     title: "Muse assistance",
-    body: "Muse can help organize context and wording. You can still use every route, form, and support action without it.",
+    body: "Muse can help organize wording. You can still use every form, plan, and support action without it.",
   },
 ];
 

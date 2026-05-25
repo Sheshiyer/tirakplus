@@ -62,13 +62,13 @@ export function PublicSafetyPage() {
       <section className="public-business-hero" aria-labelledby="public-safety-title">
         <div>
           <p className="eyebrow">Safety and privacy</p>
-          <h1 id="public-safety-title">Keep the plan calm and private.</h1>
+          <h1 id="public-safety-title">Keep the plan calm and private</h1>
           <p className="lede">
             Share only what the plan needs, keep boundaries clear, and pause anything that feels rushed or wrong.
           </p>
           <div className="action-row">
             <Button as={Link} to="/" variant="primary">Talk to Muse</Button>
-            <Button as={Link} to="/payments" variant="secondary">Open payments guide</Button>
+            <Button as={Link} to="/auth/login?role=traveller" variant="secondary">Sign in</Button>
           </div>
         </div>
         <aside className="public-muse-aside public-muse-aside-light" aria-label="Muse privacy guidance">
@@ -78,14 +78,14 @@ export function PublicSafetyPage() {
 
       <section className="public-section" aria-labelledby="safety-principles-title">
         <div className="public-section-heading">
-          <p className="eyebrow">Operating principles</p>
+          <p className="eyebrow">Safety checks</p>
           <h2 id="safety-principles-title">{state.status === "ready" ? state.content.title : "Safety and discretion"}</h2>
           {state.status === "error" ? <p>{state.message}</p> : null}
         </div>
         <div className="public-card-grid public-card-grid-four">
           {(state.status === "ready"
             ? state.content.principles
-            : ["Loading verification guidance.", "Loading review guidance.", "Loading privacy guidance.", "Loading payment guidance."]
+            : ["Verification loading.", "Review loading.", "Privacy loading.", "Support loading."]
           ).map((principle) => (
             <article className="public-info-card public-info-card-quiet" key={principle}>
               <p>{principle}</p>
@@ -97,7 +97,7 @@ export function PublicSafetyPage() {
       <section className="public-section public-section-tight" aria-labelledby="safety-groups-title">
         <div className="public-section-heading">
           <p className="eyebrow">What to expect</p>
-          <h2 id="safety-groups-title">Clear controls for both sides.</h2>
+          <h2 id="safety-groups-title">Clear controls for both sides</h2>
         </div>
         <div className="public-card-grid public-card-grid-three">
           {safetyGroups.map((group) => (

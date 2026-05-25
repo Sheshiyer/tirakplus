@@ -80,7 +80,7 @@ export function ExperiencePage({ experienceSlug }: ExperiencePageProps) {
       <div className="experience-page">
         <section className="error-panel" role="alert">
           <p className="eyebrow">Experience unavailable</p>
-          <h1>We could not load this experience.</h1>
+          <h1>We could not load this experience</h1>
           <p>{state.message}</p>
           <Button as={Link} to="/" variant="secondary">
             Return home
@@ -106,10 +106,10 @@ export function ExperiencePage({ experienceSlug }: ExperiencePageProps) {
         </div>
       </section>
 
-      <section className="experience-context-section" aria-label={`${copy.title} city contexts`}>
+      <section className="experience-context-section" aria-label={`${copy.title} city options`}>
         {state.experiences.length === 0 ? (
           <div className="empty-panel">
-            <p className="eyebrow">Experience contexts</p>
+            <p className="eyebrow">Experience guide</p>
             <h2>This experience is still being prepared.</h2>
             <p>Return to city overviews while this guide is finished.</p>
           </div>

@@ -64,16 +64,15 @@ export function CompanionDashboardPage() {
     <section className="companion-page companion-dashboard-page" aria-labelledby="companion-dashboard-title">
       <div className="companion-hero">
         <div>
-          <p className="eyebrow">Companion workspace</p>
-          <h1 id="companion-dashboard-title">Set your visibility before discovery.</h1>
+          <p className="eyebrow">Home</p>
+          <h1 id="companion-dashboard-title">Prepare your profile calmly</h1>
           <p>
-            Your profile, availability, and inquiries stay private until review and your visibility settings allow them
-            to appear.
+            Edit your profile, choose when you are open, and keep requests paused until everything feels clear.
           </p>
         </div>
         <div className={`review-state-card review-state-card-${profile.reviewStatus}`}>
           <MuseChartPanel chart={loadState.data.chart} compact />
-          <p className="meta">Current state</p>
+          <p className="meta">Now</p>
           <h2>{activeReviewState?.label || statusLabel(profile.reviewStatus)}</h2>
           <p>{profile.reviewNote}</p>
           <p className="progress-label">{progress.label}</p>
@@ -97,7 +96,7 @@ export function CompanionDashboardPage() {
       <section className="companion-section companion-review-section" aria-labelledby="review-states-title">
         <div className="companion-section-heading">
           <p className="eyebrow">Review</p>
-          <h2 id="review-states-title">Know what travellers can see.</h2>
+          <h2 id="review-states-title">Control what travellers can see.</h2>
         </div>
         <div className="review-state-grid">
           {reviewStates.map((state) => (

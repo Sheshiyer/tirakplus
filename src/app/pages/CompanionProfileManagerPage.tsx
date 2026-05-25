@@ -136,15 +136,15 @@ export function CompanionProfileManagerPage() {
     <section className="companion-page companion-profile-page" aria-labelledby="companion-profile-title">
       <div className="companion-hero">
         <div>
-          <p className="eyebrow">Profile management</p>
-          <h1 id="companion-profile-title">Edit your profile details.</h1>
+          <p className="eyebrow">Profile</p>
+          <h1 id="companion-profile-title">Edit your profile</h1>
           <p>
             Public bio, private review notes, and account controls stay separated so you know what travellers can see.
           </p>
         </div>
         <div className="companion-progress-panel">
           <MuseChartPanel chart={data.chart} compact />
-          <p className="meta">Review state</p>
+          <p className="meta">Now</p>
           <h2>{draft.reviewStatus.replace(/_/g, " ")}</h2>
           <p>{draft.reviewNote}</p>
         </div>
@@ -153,7 +153,7 @@ export function CompanionProfileManagerPage() {
       <div className="companion-editor-grid">
         <form className="companion-form" onSubmit={saveDraft}>
           <section className="companion-form-section">
-            <p className="eyebrow">Draft editor</p>
+            <p className="eyebrow">Profile details</p>
             <div className="form-two-column">
               <Input
                 label="Display name"
@@ -202,7 +202,7 @@ export function CompanionProfileManagerPage() {
           </section>
 
           <section className="companion-form-section">
-            <p className="eyebrow">Visibility control</p>
+            <p className="eyebrow">Privacy controls</p>
             <div className="choice-grid">
               <Checkbox
                 label="Public profile after approval"
