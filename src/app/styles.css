@@ -4091,6 +4091,138 @@ p {
   gap: 8px;
 }
 
+/* Inline auth (in-chat sign-in). Reads as a Muse-spoken card — same
+   gold-hairline language as the Muse's Read panel, just lower contrast
+   so it sits inside the conversation rather than competing with it. */
+.muse-inline-auth {
+  padding: clamp(14px, 1.4vw, 20px);
+  display: grid;
+  gap: clamp(10px, 1.2vh, 14px);
+  background:
+    linear-gradient(160deg, rgba(28, 20, 22, 0.86), rgba(20, 14, 18, 0.86)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.42), rgba(244, 231, 193, 0.6) 38%, rgba(101, 73, 35, 0.42) 62%, rgba(201, 163, 107, 0.42)) border-box;
+  border: 1px solid transparent;
+  border-radius: clamp(14px, 1.4vw, 18px);
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.12),
+    0 18px 50px rgba(15, 7, 4, 0.36);
+}
+
+.muse-inline-auth-form {
+  display: grid;
+  gap: clamp(10px, 1.2vh, 14px);
+}
+
+.muse-inline-auth-eyebrow {
+  margin: 0;
+  color: rgba(244, 231, 193, 0.76);
+  font-size: clamp(10px, 0.74vw, 11px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.muse-inline-auth-prompt {
+  margin: 0;
+  color: #f7efe7;
+  font-size: clamp(13px, 0.95vw, 15px);
+  line-height: 1.45;
+}
+
+.muse-inline-auth-prompt strong {
+  color: rgba(244, 231, 193, 0.94);
+  font-weight: 600;
+}
+
+.muse-inline-auth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(8px, 1vw, 12px);
+  align-items: stretch;
+}
+
+/* The inline Input uses the design-system field styling but loses its
+   visible label (labelVisible={false}) and renders with a transparent
+   field-input that picks up gold-hairline framing instead of the
+   default field background. */
+.muse-inline-auth .muse-inline-auth-input.field {
+  margin: 0;
+  min-width: 0;
+}
+
+.muse-inline-auth .muse-inline-auth-input .field-input {
+  min-height: clamp(44px, 5.6vh, 50px);
+  padding: 0 clamp(12px, 1.2vw, 16px);
+  color: #f7efe7;
+  background: rgba(244, 231, 193, 0.06);
+  border: 1px solid rgba(201, 163, 107, 0.36);
+  border-radius: 999px;
+  font-size: clamp(13px, 0.95vw, 15px);
+}
+
+.muse-inline-auth .muse-inline-auth-input .field-input::placeholder {
+  color: rgba(247, 239, 231, 0.42);
+}
+
+.muse-inline-auth .muse-inline-auth-input .field-input:focus-visible {
+  border-color: rgba(244, 231, 193, 0.7);
+  outline: 2px solid rgba(244, 231, 193, 0.18);
+  outline-offset: 1px;
+}
+
+.muse-inline-auth-code-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(6px, 0.7vw, 10px);
+}
+
+.muse-inline-auth-code-cell {
+  min-height: clamp(44px, 6.2vh, 56px);
+  padding: 0;
+  color: #f7efe7;
+  background: rgba(244, 231, 193, 0.06);
+  border: 1px solid rgba(201, 163, 107, 0.36);
+  border-radius: clamp(8px, 0.9vw, 12px);
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.muse-inline-auth-code-cell:focus-visible {
+  border-color: rgba(244, 231, 193, 0.78);
+  outline: 2px solid rgba(244, 231, 193, 0.22);
+  outline-offset: 1px;
+}
+
+.muse-inline-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1vw, 12px);
+  align-items: center;
+}
+
+.muse-inline-auth-resend.button.secondary {
+  min-height: clamp(40px, 5.2vh, 46px);
+  padding: 0 clamp(14px, 1.2vw, 18px);
+  color: rgba(244, 231, 193, 0.88);
+  background: transparent;
+  border: 1px solid rgba(201, 163, 107, 0.36);
+  font-size: clamp(12px, 0.88vw, 13.5px);
+}
+
+.muse-inline-auth-resend.button.secondary:hover:not(:disabled),
+.muse-inline-auth-resend.button.secondary:focus-visible {
+  background: rgba(244, 231, 193, 0.08);
+  border-color: rgba(244, 231, 193, 0.5);
+}
+
+.muse-inline-auth-error {
+  margin: 0;
+  color: #f4c4c6;
+  font-size: clamp(12px, 0.85vw, 13px);
+}
+
 .muse-handoff-card a,
 .muse-fallback-card a {
   min-height: 36px;

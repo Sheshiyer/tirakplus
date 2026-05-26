@@ -4,6 +4,7 @@ import { useAuth } from "../api/AuthContext";
 import { MuseApiError, MuseService, museTranscriptStorageKey } from "../api/muse";
 import { isCitySlug, isExperienceSlug } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
+import { MuseInlineAuth } from "../components/muse/MuseInlineAuth";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -509,10 +510,40 @@ export function MuseChatPage() {
             ) : null}
           </div>
 
-          {handoffAction || routeContext.returnPath ? (
+          {/* Inline auth: when Muse signals an auth handoff AND the user
+              is not signed in, render the OTP flow IN the chat panel
+              instead of bouncing them to /auth/start. This keeps the
+              chat-first promise — the whole sign-in happens in-thread. */}
+          {handoffAction?.kind === "auth" && !session ? (
+            <MuseInlineAuth
+              role={
+                lastResponse?.roleIntent === "companion"
+                  ? "companion"
+                  : "traveller"
+              }
+              onAuthenticated={(email) => {
+                // Drop a Muse-spoken confirmation into the thread so the
+                // conversation continues naturally after the sign-in. The
+                // pending Muse transcript (this thread) is automatically
+                // adopted server-side by AuthContext.verify().
+                const welcome: MuseChatMessage = {
+                  id: `local_auth_${crypto.randomUUID()}`,
+                  role: "muse",
+                  content:
+                    handoffAction.kind === "auth"
+                      ? `Welcome. ${email} is now your private channel. ${handoffAction.label} when you are ready.`
+                      : `Welcome back. Your thread is saved.`,
+                  createdAt: new Date().toISOString(),
+                };
+                setMessages((current) => [...current, welcome]);
+              }}
+            />
+          ) : handoffAction || routeContext.returnPath ? (
             <div className="muse-handoff-card" data-testid="muse-handoff">
               {handoffAction ? <Link to={handoffAction.href}>{handoffAction.label}</Link> : null}
-              {routeContext.returnPath ? <Link to={routeContext.returnPath}>Back to {routeContext.returnLabel}</Link> : null}
+              {routeContext.returnPath ? (
+                <Link to={routeContext.returnPath}>Back to {routeContext.returnLabel}</Link>
+              ) : null}
             </div>
           ) : null}
 
