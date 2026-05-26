@@ -186,15 +186,28 @@ export function TravellerDashboardPage() {
       <section className="member-section" aria-labelledby="saved-profiles-title">
         <div className="member-section-heading">
           <p className="eyebrow">Saved profiles</p>
-          <h2 id="saved-profiles-title">Saved profiles</h2>
+          <h2 id="saved-profiles-title">Profiles you've kept close</h2>
         </div>
-        <div className="discovery-results-grid">
-          {data.savedProfiles.map((profile) => (
-            <Link key={profile.id} className="discovery-card-link" to={`/traveller/companions/${profile.id}`}>
-              <CompanionPreviewCard profile={profile} />
-            </Link>
-          ))}
-        </div>
+        {data.savedProfiles.length > 0 ? (
+          <div className="discovery-results-grid">
+            {data.savedProfiles.map((profile) => (
+              <Link key={profile.id} className="discovery-card-link" to={`/traveller/companions/${profile.id}`}>
+                <CompanionPreviewCard profile={profile} />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <article className="member-bento-card member-empty-state">
+            <p className="eyebrow">No saved profiles yet</p>
+            <p>
+              Tap the bookmark on a companion profile while you read it. Saved
+              profiles show here so they stay close as you plan.
+            </p>
+            <Button as={Link} to="/traveller/discovery" variant="secondary">
+              Open discovery
+            </Button>
+          </article>
+        )}
       </section>
     </section>
   );

@@ -66,7 +66,23 @@ export function TravellerSessionsPage() {
             {state.data.results.map((session) => (
               <article key={session.id} className="member-bento-card session-summary-card">
                 <div className="session-summary-media" aria-hidden="true">
-                  {session.companionAvatarUrl ? <img src={session.companionAvatarUrl} alt="" /> : null}
+                  {session.companionAvatarUrl ? (
+                    <img src={session.companionAvatarUrl} alt="" />
+                  ) : (
+                    /* Fallback: deterministic monogram from companion's
+                       display name. Keeps the media slot visually filled
+                       when an avatar URL isn't set rather than rendering
+                       an empty box. */
+                    <span className="session-summary-monogram">
+                      {session.companionDisplayName
+                        .split(/\s+/)
+                        .map((part) => part[0])
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase() || "·"}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p className="meta">{session.status.replace(/_/g, " ")}</p>

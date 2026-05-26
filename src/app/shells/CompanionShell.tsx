@@ -2,6 +2,7 @@ import { Outlet, Link } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
 import { LayoutDashboardIcon, CalendarIcon, MailIcon, UserIcon, ShieldIcon } from "../components/navigation/Icons";
+import { RoleChip } from "../components/navigation/RoleChip";
 import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 
 export function CompanionShell() {
@@ -30,6 +31,7 @@ export function CompanionShell() {
       <TopNav
         logo={<Link to="/companion/dashboard" className="brand-link">Tirak Plus</Link>}
         links={navLinks}
+        action={<RoleChip />}
         theme="night"
       />
       <BottomNav items={mobileNavItems} />

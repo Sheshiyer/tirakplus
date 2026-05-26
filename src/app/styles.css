@@ -294,6 +294,41 @@
   object-position: center 18%;
 }
 
+.session-summary-monogram {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(244, 231, 193, 0.78);
+  background:
+    linear-gradient(140deg, rgba(244, 231, 193, 0.12), rgba(201, 163, 107, 0.06));
+  font-size: clamp(28px, 2.4vw, 36px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant: small-caps;
+}
+
+/* Empty-state card variant (e.g. "No saved profiles yet"). Same
+   dossier-card vocabulary as the rest of the bento cards, just with
+   centered copy and tighter spacing. */
+.member-empty-state {
+  padding: clamp(22px, 3vw, 32px);
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  text-align: left;
+}
+
+.member-empty-state .eyebrow {
+  color: rgba(244, 231, 193, 0.74);
+}
+
+.member-empty-state p:not(.eyebrow) {
+  max-width: 56ch;
+  color: rgba(247, 239, 231, 0.78);
+}
+
 .session-checklist,
 .message-thread,
 .decision-grid {
@@ -1044,6 +1079,68 @@ a {
 .top-nav-action {
   display: flex;
   align-items: center;
+}
+
+/* Role chip — small "you are here" pill in the TopNav action slot.
+   Surfaces traveller/companion role on every logged-in screen + links
+   to /account for switch/sign-out. Gold-hairline language consistent
+   with the rest of the immersive UI. */
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  color: #fffaf3;
+  background:
+    linear-gradient(160deg, rgba(28, 20, 22, 0.74), rgba(20, 14, 18, 0.74)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.45), rgba(244, 231, 193, 0.58) 35%, rgba(201, 163, 107, 0.4) 65%, rgba(101, 73, 35, 0.45)) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: clamp(11px, 0.78vw, 12.5px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.12),
+    0 6px 18px rgba(0, 0, 0, 0.18);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.role-chip:hover,
+.role-chip:focus-visible {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.18),
+    0 10px 22px rgba(0, 0, 0, 0.28);
+  outline: none;
+}
+
+.role-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-rose-bronze);
+  box-shadow: 0 0 0 3px rgba(185, 111, 125, 0.18);
+}
+
+.role-chip[data-role="companion"] .role-chip-dot {
+  background: var(--color-trust-green);
+  box-shadow: 0 0 0 3px rgba(101, 122, 102, 0.22);
+}
+
+/* Mobile: shrink + drop the label, keep the dot as a "signed in" cue */
+@media (max-width: 640px) {
+  .role-chip {
+    padding: 0 10px;
+    min-height: 32px;
+    gap: 6px;
+  }
+
+  .role-chip-label {
+    display: none;
+  }
 }
 
 .bottom-nav {

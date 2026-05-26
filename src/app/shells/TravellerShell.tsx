@@ -2,6 +2,7 @@ import { Outlet, Link } from "react-router-dom";
 import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
 import { LayoutDashboardIcon, CompassIcon, CalendarIcon, MailIcon, ShieldIcon } from "../components/navigation/Icons";
+import { RoleChip } from "../components/navigation/RoleChip";
 import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 
 export function TravellerShell() {
@@ -28,6 +29,7 @@ export function TravellerShell() {
       <TopNav
         logo={<Link to="/traveller/dashboard" className="brand-link">Tirak Plus</Link>}
         links={navLinks}
+        action={<RoleChip />}
         theme="night"
       />
       <BottomNav items={mobileNavItems} />
