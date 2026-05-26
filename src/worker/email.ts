@@ -17,12 +17,21 @@
 type EmailEnv = {
   EMAIL?: SendEmail;
   AUTH_OTPS?: KVNamespace;
+  RESEND_API_KEY?: string;
+  RESEND_FROM?: string;
   ENVIRONMENT?: string;
 };
 
-/** From-address used for all auth emails. Must be on a tirak.app zone
- *  that has Email Sending enabled. */
-const AUTH_FROM = { email: "muse@tirak.app", name: "Muse · Tirak Plus" };
+/** From-address used by the Cloudflare paid send_email binding. Must
+ *  be on a tirak.app zone that has Email Sending enabled. */
+const AUTH_FROM_CF = { email: "muse@tirak.app", name: "Muse · Tirak Plus" };
+
+/** Default from-address used by Resend. `onboarding@resend.dev` is
+ *  Resend's shared shared-test sender that works WITHOUT any DNS
+ *  verification — great for instant testing. Once tirak.app's DKIM/SPF
+ *  records are verified in the Resend dashboard, set RESEND_FROM env
+ *  to e.g. "Muse · Tirak Plus <muse@tirak.app>" and that takes over. */
+const AUTH_FROM_RESEND_DEFAULT = "Muse · Tirak Plus <onboarding@resend.dev>";
 
 const OTP_TTL_SECONDS = 600; // 10 minutes
 const OTP_MAX_ATTEMPTS = 6;
@@ -103,19 +112,23 @@ export async function consumeOtp(env: EmailEnv, email: string): Promise<void> {
 }
 
 /**
- * Send the OTP email. Returns the delivery channel used so callers can
- * log meaningfully ("email" in prod, "console" in dev).
+ * Send the OTP email. Returns the delivery channel actually used so
+ * callers can log meaningfully.
  *
- * The Cloudflare Email Sending binding requires the `from` domain to
- * be activated. Until that's done, env.EMAIL.send() will throw and we
- * fall back to logging the code to the worker console so local + early
- * prod testing still works end-to-end.
+ * Provider priority (each falls through to the next on missing-binding
+ * or runtime failure):
+ *   1. env.EMAIL          — Cloudflare Email Sending (paid, requires
+ *                            Workers Paid + zone activation)
+ *   2. env.RESEND_API_KEY — Resend REST API (free tier: 3000/mo, 100/day)
+ *   3. console log         — dev fallback so the flow stays testable
+ *
+ * The HTML+text body is provider-agnostic — same content goes to both.
  */
 export async function sendOtpEmail(
   env: EmailEnv,
   email: string,
   code: string,
-): Promise<"email" | "console"> {
+): Promise<"cloudflare-email" | "resend" | "console"> {
   const subject = "Your Tirak Plus sign-in code";
   const text =
     `Your Tirak Plus sign-in code is ${code}.\n\n` +
@@ -131,36 +144,63 @@ export async function sendOtpEmail(
     `</body></html>`;
 
   // Dev convenience: ALWAYS log the OTP when not in production so the
-  // local + staging flow is testable without digging through miniflare's
-  // temp email files. In production (env.ENVIRONMENT === "production")
-  // this log is suppressed so OTPs never appear in shipped worker logs.
+  // local + staging flow is testable without inbox access. Suppressed
+  // in production so OTPs never appear in shipped worker logs.
   const isProd = env.ENVIRONMENT === "production";
   if (!isProd) {
     console.log(`[email/dev] OTP for ${email}: ${code}`);
   }
 
-  if (!env.EMAIL) {
-    return "console";
+  // 1) Cloudflare Email Sending (paid binding)
+  if (env.EMAIL) {
+    try {
+      await env.EMAIL.send({
+        to: email,
+        from: AUTH_FROM_CF,
+        subject,
+        html,
+        text,
+      });
+      return "cloudflare-email";
+    } catch (caught) {
+      console.warn(
+        `[email/cf] env.EMAIL.send failed (${caught instanceof Error ? caught.message : "unknown"}). Trying Resend fallback.`,
+      );
+    }
   }
 
-  try {
-    await env.EMAIL.send({
-      to: email,
-      from: AUTH_FROM,
-      subject,
-      html,
-      text,
-    });
-    return "email";
-  } catch (caught) {
-    // Common in pre-activation state: zone hasn't been onboarded for
-    // Email Sending yet. The OTP was already logged above (if non-prod);
-    // user reads it from the worker output. In production the user has
-    // to wait for the dashboard activation to land before the first
-    // real send succeeds.
-    console.warn(
-      `[email/fallback] env.EMAIL.send failed (${caught instanceof Error ? caught.message : "unknown"})`,
-    );
-    return "console";
+  // 2) Resend REST API (free fallback)
+  if (env.RESEND_API_KEY) {
+    try {
+      const from = env.RESEND_FROM?.trim() || AUTH_FROM_RESEND_DEFAULT;
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [email],
+          subject,
+          html,
+          text,
+        }),
+      });
+      if (response.ok) {
+        return "resend";
+      }
+      const body = await response.text();
+      console.warn(
+        `[email/resend] non-OK ${response.status}: ${body.slice(0, 240)}`,
+      );
+    } catch (caught) {
+      console.warn(
+        `[email/resend] fetch failed (${caught instanceof Error ? caught.message : "unknown"})`,
+      );
+    }
   }
+
+  // 3) Console fallback (already logged above in non-prod)
+  return "console";
 }
