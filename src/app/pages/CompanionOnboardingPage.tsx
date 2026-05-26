@@ -7,6 +7,8 @@ import type {
   ExperienceSlug,
 } from "../../shared/contracts";
 import { CompanionApiError, CompanionService } from "../api/companion";
+import { CompanionExperienceFields } from "../components/companion/CompanionExperienceFields";
+import { CompanionVisibilityFields } from "../components/companion/CompanionVisibilityFields";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { Checkbox } from "../components/ui/Checkbox";
@@ -251,69 +253,18 @@ export function CompanionOnboardingPage() {
               error={fieldErrors.city}
               onChange={(event) => setDraft({ ...draft, city: event.target.value as CitySlug })}
             />
-            <div className="choice-grid" role="group" aria-label="Experience styles">
-              {data.options.experiences.map((experience) => (
-                <Checkbox
-                  key={experience.value}
-                  label={experience.label}
-                  helperText={experience.description}
-                  checked={draft.experienceTags.includes(experience.value)}
-                  onChange={(event) => {
-                    const experienceTags = event.target.checked
-                      ? [...draft.experienceTags, experience.value]
-                      : draft.experienceTags.filter((tag) => tag !== experience.value);
-                    setDraft({ ...draft, experienceTags: experienceTags as ExperienceSlug[] });
-                  }}
-                />
-              ))}
-            </div>
-            {fieldErrors.experienceTags && <p className="field-error">{fieldErrors.experienceTags}</p>}
+            <CompanionExperienceFields
+              draft={draft}
+              options={data.options.experiences}
+              onChange={setDraft}
+              showDescriptions
+              error={fieldErrors.experienceTags}
+            />
           </section>
 
           <section className="companion-form-section">
             <p className="eyebrow">Visibility controls</p>
-            <div className="choice-grid">
-              <Checkbox
-                label="Allow public profile after review approval"
-                checked={draft.visibilitySettings.publicProfile}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    visibilitySettings: { ...draft.visibilitySettings, publicProfile: event.target.checked },
-                  })
-                }
-              />
-              <Checkbox
-                label="Show city after review approval"
-                checked={draft.visibilitySettings.showCity}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    visibilitySettings: { ...draft.visibilitySettings, showCity: event.target.checked },
-                  })
-                }
-              />
-              <Checkbox
-                label="Show availability after review approval"
-                checked={draft.visibilitySettings.showAvailability}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    visibilitySettings: { ...draft.visibilitySettings, showAvailability: event.target.checked },
-                  })
-                }
-              />
-              <Checkbox
-                label="Accept reviewed inquiries after approval"
-                checked={draft.visibilitySettings.acceptInquiries}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    visibilitySettings: { ...draft.visibilitySettings, acceptInquiries: event.target.checked },
-                  })
-                }
-              />
-            </div>
+            <CompanionVisibilityFields draft={draft} onChange={setDraft} mode="onboarding" />
             <Button type="button" variant="secondary" onClick={saveVisibility} disabled={isSaving}>
               Save visibility
             </Button>
