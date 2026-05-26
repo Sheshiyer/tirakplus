@@ -2,7 +2,6 @@ import { CSSProperties, PointerEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ApiEnvelope, SafetyContent } from "../../shared/contracts";
 import { Button } from "../components/ui/Button";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { AssetRegistry } from "../registry/assets";
 
 type SafetyState =
@@ -101,12 +100,8 @@ export function PublicSafetyPage() {
             </div>
           </div>
 
-          <MusePoseImage
-            variant="privacy"
-            label="Muse standing in a composed privacy posture"
-            className="public-immersive-figure"
-          />
-
+          {/* Muse pose figure removed 2026-05-26 — see PublicDiscoveryPage
+              note. The morning-suite backdrop carries the mood on its own. */}
           <aside className="public-immersive-readout" aria-label="Muse privacy readout">
             <p className="eyebrow">Quiet by design</p>
             <p>Boundaries held. Pace respected.</p>

@@ -1,6 +1,5 @@
 import { CSSProperties, PointerEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
 import { AssetRegistry } from "../registry/assets";
 
@@ -65,12 +64,11 @@ export function PublicDiscoveryPage() {
             </div>
           </div>
 
-          <MusePoseImage
-            variant="chat"
-            label="Muse listening to discovery context"
-            className="public-immersive-figure"
-          />
-
+          {/* Muse pose figure removed 2026-05-26 — the full-bust portrait
+              was not composed for the rooftop scene and read as a layered
+              PSD rather than a person standing in the space. The backdrop
+              now carries the mood on its own; the readout card on the
+              right grounds the brand presence. */}
           <aside className="public-immersive-readout" aria-label="Muse discovery readout">
             <p className="eyebrow">Muse is ready</p>
             <p>City, mood, time, boundaries.</p>
