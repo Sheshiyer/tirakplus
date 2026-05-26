@@ -520,13 +520,21 @@ body {
    Muse pages — every other route keeps the porcelain canvas. */
 body:has(.muse-entry-page),
 body:has(.public-business-page-immersive) {
+  /* Brand-aligned dark surface. Base color is Night Plum (#211B2C
+     per DESIGN.md §2 — the canonical dark surface color used for
+     footer, secure auth, admin dark rails) graded into a slightly
+     deeper plum at the bottom. Warm rose-bronze glow (#B96F7D, the
+     single action accent) drifts down from the top so the dark feels
+     warm and brand-aware rather than cold-blue noir.
+     Grain is dialed WAY down to ~5% effective opacity with a
+     warm-cream tint so it reads as subtle film grain over velvet —
+     never as concrete or cement texture. */
   background:
-    /* Film grain texture (inline SVG, no asset request) */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch' seed='11'/><feColorMatrix values='0 0 0 0 0.95   0 0 0 0 0.9   0 0 0 0 0.86   0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
-    /* Warm-vignette + base noir */
-    radial-gradient(ellipse at 50% 0%, rgba(120, 60, 70, 0.18), transparent 55%),
-    linear-gradient(180deg, #0c1018 0%, #090d17 50%, #07090f 100%);
-  background-size: 240px 240px, auto, auto;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch' seed='13'/><feColorMatrix values='0 0 0 0 0.94   0 0 0 0 0.88   0 0 0 0 0.78   0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(185, 111, 125, 0.16), transparent 60%),
+    radial-gradient(ellipse 90% 70% at 80% 110%, rgba(33, 27, 44, 0.6), transparent 60%),
+    linear-gradient(180deg, #2a2237 0%, #211B2C 38%, #1a1424 100%);
+  background-size: 320px 320px, auto, auto, auto;
 }
 
 /* Unlock the shell's overflow + width clip so the muse-entry-page and
@@ -3007,11 +3015,13 @@ p {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  /* Subtle film-grain matching the body. Inline SVG, browser-cached. */
-  opacity: 0.08;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch' seed='17'/><feColorMatrix values='0 0 0 0 0.95   0 0 0 0 0.9   0 0 0 0 0.86   0 0 0 1.0 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  background-size: 240px 240px;
+  /* Very subtle warm film grain — matches the body texture but at
+     hero-frame intensity. Soft-light blend mode keeps it from
+     reading as a flat overlay on top of the photographic backdrop. */
+  opacity: 0.045;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch' seed='17'/><feColorMatrix values='0 0 0 0 0.94   0 0 0 0 0.88   0 0 0 0 0.78   0 0 0 1.0 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
 }
 
 /* Scene-specific tints applied per-page via data-scene */
@@ -3830,10 +3840,12 @@ p {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.09;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch' seed='7'/><feColorMatrix values='0 0 0 0 0.95   0 0 0 0 0.9   0 0 0 0 0.86   0 0 0 1.2 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  background-size: 240px 240px;
+  /* Subtle warm grain — soft-light keeps it from looking like
+     concrete/cement on top of the Thailand-night backdrop. */
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch' seed='7'/><feColorMatrix values='0 0 0 0 0.94   0 0 0 0 0.88   0 0 0 0 0.78   0 0 0 1.0 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
 }
 
 .muse-entry-page[data-chat-active="true"] {
