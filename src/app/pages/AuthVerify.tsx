@@ -9,13 +9,14 @@ import type { UserRole } from "../../shared/contracts";
 export function AuthVerify() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { verify, isLoading, error } = useAuth();
+  const { verify, login, isLoading, error } = useAuth();
   const email = location.state?.email || "your email";
   const role: Extract<UserRole, "traveller" | "companion"> =
     location.state?.role === "companion" ? "companion" : "traveller";
   const fromPath = typeof location.state?.from === "string" ? location.state.from : undefined;
-  
+
   const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -95,9 +96,22 @@ export function AuthVerify() {
     }
   }
 
-  const handleResend = () => {
-    // Simulate resend
+  const handleResend = async () => {
+    if (resendState === "sending") return;
     setCode(["", "", "", "", "", ""]);
+    setResendState("sending");
+    try {
+      // Re-fires POST /api/auth/start which generates a fresh OTP,
+      // stores it in AUTH_OTPS KV (overwriting any previous one for
+      // this email), and sends via env.EMAIL (or falls back to a
+      // worker-console log if the binding is not active).
+      await login(email);
+      setResendState("sent");
+      window.setTimeout(() => setResendState("idle"), 4000);
+    } catch {
+      setResendState("error");
+      window.setTimeout(() => setResendState("idle"), 4000);
+    }
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
@@ -167,9 +181,15 @@ export function AuthVerify() {
         </form>
 
         <div className="auth-secondary-action">
-          <p>Didn't receive the code?</p>
-          <Button variant="secondary" onClick={handleResend} disabled={isLoading}>
-            Resend code
+          <p>
+            {resendState === "sent"
+              ? "Sent. Check your inbox again."
+              : resendState === "error"
+              ? "Could not resend. Try again in a moment."
+              : "Didn't receive the code?"}
+          </p>
+          <Button variant="secondary" onClick={handleResend} disabled={isLoading || resendState === "sending"}>
+            {resendState === "sending" ? "Sending…" : "Resend code"}
           </Button>
         </div>
       </div>

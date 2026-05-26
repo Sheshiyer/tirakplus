@@ -8,6 +8,7 @@ import type {
   SessionState,
   UserRole,
 } from "../shared/contracts";
+import { consumeOtp, generateOtpCode, readAndCountOtp, sendOtpEmail, storeOtp } from "./email.js";
 import { apiError, json } from "./http.js";
 import { checkRateLimit } from "./rate-limit.js";
 
@@ -17,7 +18,13 @@ const CSRF_HEADER = "X-Tirak-CSRF";
 
 type JsonRecord = Record<string, unknown>;
 
-export async function routeAuth(request: Request, pathname: string, requestId?: string): Promise<Response | null> {
+type AuthEnv = {
+  EMAIL?: Parameters<typeof sendOtpEmail>[0]["EMAIL"];
+  AUTH_OTPS?: KVNamespace;
+  ENVIRONMENT?: string;
+};
+
+export async function routeAuth(request: Request, pathname: string, requestId?: string, env?: AuthEnv): Promise<Response | null> {
   if (request.method === "GET" && pathname === "/api/session") {
     const session = readSessionCookie(request);
     return json<SessionState>({
@@ -39,9 +46,25 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
       return apiError(422, "EMAIL_REQUIRED", "Enter a valid email address.", undefined, { requestId });
     }
 
+    const normalizedEmail = body.email.trim().toLowerCase();
+
+    if (env) {
+      // Generate, store, and send. If env.EMAIL is unavailable or the
+      // send fails, sendOtpEmail logs to console and we still return
+      // success so the UX can proceed (the user reads the code from the
+      // dev console). In production this happens silently to the user;
+      // the worker log + observability show the fallback.
+      const code = generateOtpCode();
+      await storeOtp(env, normalizedEmail, code);
+      const channel = await sendOtpEmail(env, normalizedEmail, code);
+      console.log(`[auth/start] email=${normalizedEmail} channel=${channel}`);
+    } else {
+      console.warn(`[auth/start] env not provided — OTP generation skipped for ${normalizedEmail}`);
+    }
+
     return json<AuthStartResponse>(
       {
-        email: body.email.trim().toLowerCase(),
+        email: normalizedEmail,
         status: "verification_pending",
         delivery: "email",
         nextStep: "verify_code",
@@ -65,7 +88,38 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
       return apiError(422, "INVALID_CODE", "Enter the six digit verification code.", undefined, { requestId });
     }
 
-    const session = createSession(body.email, normalizeCustomerRole(body.role));
+    const normalizedEmail = body.email.trim().toLowerCase();
+
+    if (env?.AUTH_OTPS) {
+      const stored = await readAndCountOtp(env, normalizedEmail);
+      if (!stored) {
+        return apiError(
+          401,
+          "OTP_EXPIRED",
+          "That code expired or was tried too many times. Request a new one.",
+          undefined,
+          { requestId },
+        );
+      }
+      if (stored.code !== body.code) {
+        return apiError(
+          401,
+          "OTP_MISMATCH",
+          "That code does not match. Check the email and try again.",
+          undefined,
+          { requestId },
+        );
+      }
+      // Burn the OTP on success — single-use.
+      await consumeOtp(env, normalizedEmail);
+    } else {
+      // No KV binding (legacy / test mode) — fall through to staged
+      // behavior where any 6-digit code passes. This preserves the
+      // current dev experience until the binding is wired everywhere.
+      console.warn(`[auth/verify] AUTH_OTPS KV missing — accepting any 6-digit code (staged mode)`);
+    }
+
+    const session = createSession(normalizedEmail, normalizeCustomerRole(body.role));
     return json<AuthVerifyResponse>(
       { session, csrfToken: session.csrfToken },
       {

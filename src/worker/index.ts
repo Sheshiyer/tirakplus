@@ -1,3 +1,4 @@
+// SendEmail is declared globally by worker-configuration.d.ts; no import needed.
 import { json, apiError, createRequestId, STATIC_SECURITY_HEADERS } from "./http.js";
 import {
   createStagedDataProvider,
@@ -46,6 +47,8 @@ import type {
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
 type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
+  AUTH_OTPS?: KVNamespace;
+  EMAIL?: SendEmail;
   MUSE_AGENT_API_KEY?: string;
   MUSE_AGENT_CONFIG?: KVNamespace;
   MUSE_AGENT_CONFIG_KEY?: string;
@@ -74,7 +77,7 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     init: ResponseInit = {},
   ) => apiError(status, code, message, fieldErrors, { ...init, requestId });
 
-  const authResponse = await routeAuth(request, pathname, requestId);
+  const authResponse = await routeAuth(request, pathname, requestId, env);
   if (authResponse) return authResponse;
 
   const guardResponse = guardApiMutation(request, pathname, fail);
