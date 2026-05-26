@@ -1,8 +1,11 @@
 # MUSE_CONVERSATIONS KV — Production Setup
 
 The `MUSE_CONVERSATIONS` KV namespace stores adopted Muse transcripts under
-`user:{userId}:conv:{conversationId}`. Local dev uses a placeholder ID in
-`wrangler.jsonc`; production needs a real Cloudflare namespace.
+`user:{userId}:conv:{conversationId}`.
+
+**Status (2026-05-26):** namespace created in production
+(account `2c0c96c68f0ee73b6d980054557bca5b`, ID `442973720cba46129bc0118f96b0f4eb`).
+`wrangler.jsonc` is already updated. No further action needed unless rotating.
 
 ## One-time production setup
 

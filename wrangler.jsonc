@@ -18,10 +18,10 @@
     {
       // Pre-auth Muse conversation adoption store. Keys:
       //   user:{userId}:conv:{conversationId} → MuseTranscriptSnapshot JSON
-      // Local dev: any 32-hex ID works (wrangler --local stores under .wrangler/state).
-      // Production: replace with output of `wrangler kv namespace create MUSE_CONVERSATIONS`.
+      // Created 2026-05-26 in the tirak.court@gmail.com CF account
+      // (acct 2c0c96c68f0ee73b6d980054557bca5b).
       "binding": "MUSE_CONVERSATIONS",
-      "id": "a1b2c3d4e5f60718293a4b5c6d7e8f00"
+      "id": "442973720cba46129bc0118f96b0f4eb"
     }
   ],
   "services": [
