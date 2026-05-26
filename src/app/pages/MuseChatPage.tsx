@@ -559,8 +559,8 @@ export function MuseChatPage() {
           ) : null}
 
           {/* Suggestion chips are the PRIMARY interaction pre-auth.
-              Free-text input is gated below — chips are always
-              available so users can advance the conversation. */}
+              Free-text input is locked below until sign-in — chips
+              are always available so users can advance the conversation. */}
           {!forceInlineAuth ? (
             <div className="muse-suggestions" aria-label="Suggested replies">
               {suggestedPrompts.map((prompt) => (
