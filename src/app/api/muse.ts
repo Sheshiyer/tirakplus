@@ -1,4 +1,11 @@
-import type { ApiEnvelope, MuseChatRequest, MuseChatResponse } from "../../shared/contracts";
+import type {
+  ApiEnvelope,
+  MuseAdoptRequest,
+  MuseAdoptResponse,
+  MuseChatRequest,
+  MuseChatResponse,
+  MuseTranscriptSnapshot,
+} from "../../shared/contracts";
 
 type ApiFailure = {
   code?: string;
@@ -51,10 +58,30 @@ async function readJson<T>(response: Response): Promise<T> {
   }
 }
 
+export const MUSE_TRANSCRIPT_STORAGE_PREFIX = "museTranscript:";
+
+export function museTranscriptStorageKey(conversationId: string): string {
+  return `${MUSE_TRANSCRIPT_STORAGE_PREFIX}${conversationId}`;
+}
+
 export const MuseService = {
   chat(payload: MuseChatRequest): Promise<MuseChatResponse> {
     return apiRequest<MuseChatResponse>("/api/muse/chat", {
       method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Adopt a pre-auth Muse transcript into the signed-in user's account.
+   * Requires a live session cookie + X-Tirak-CSRF header (guardApiMutation
+   * enforces both on the worker side).
+   */
+  adopt(snapshot: MuseTranscriptSnapshot, csrfToken: string): Promise<MuseAdoptResponse> {
+    const payload: MuseAdoptRequest = { snapshot };
+    return apiRequest<MuseAdoptResponse>("/api/muse/conversations/adopt", {
+      method: "POST",
+      headers: { "X-Tirak-CSRF": csrfToken },
       body: JSON.stringify(payload),
     });
   },

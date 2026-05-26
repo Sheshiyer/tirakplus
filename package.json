@@ -21,6 +21,8 @@
     "muse:corpus": "node scripts/muse-corpus-verify.mjs",
     "quality:release": "npm run check && npm run copy:audit && npm run copy:structure-audit && npm run asset:staleness && npm run asset:board-crop && npm run route:audit && npm run static:smoke && npm run muse:corpus && npm run muse:eval",
     "dev": "npm run build && wrangler dev --local --port 8787 --inspector-port 9237",
+    "dev:muse-rag": "cd workers/muse-rag && wrangler dev --local --port 8788 --inspector-port 9238",
+    "muse:seed-local-kv": "node scripts/seed-muse-local-kv.mjs",
     "deploy": "npm run check && wrangler deploy"
   },
   "dependencies": {

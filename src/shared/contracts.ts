@@ -223,6 +223,34 @@ export type MuseChatResponse = {
   };
 };
 
+/**
+ * Snapshot of a pre-auth Muse conversation, captured on the client in
+ * localStorage and adopted into the user's account on auth completion.
+ *
+ * Stored under `museTranscript:${conversationId}` while anonymous; uploaded
+ * to MUSE_CONVERSATIONS KV under `user:${userId}:conv:${conversationId}`
+ * on successful auth verify().
+ */
+export type MuseTranscriptSnapshot = {
+  conversationId: string;
+  stage: MuseConversationStage;
+  messages: MuseChatMessage[];
+  profileSignals?: MuseProfileSignals;
+  clientContext?: MuseClientContext;
+  capturedAt: string;
+};
+
+export type MuseAdoptRequest = {
+  snapshot: MuseTranscriptSnapshot;
+};
+
+export type MuseAdoptResponse = {
+  conversationId: string;
+  adoptedAt: string;
+  ownerUserId: string;
+  messageCount: number;
+};
+
 export type SessionProfile = {
   id: string;
   email: string;

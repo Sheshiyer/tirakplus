@@ -26,10 +26,14 @@ import type {
   CompanionVisibilityUpdateRequest,
   DiscoveryFilterSelection,
   ExperienceSlug,
+  MuseAdoptRequest,
+  MuseAdoptResponse,
+  MuseChatMessage,
   MuseChatRequest,
   MuseChatResponse,
   MuseConversationStage,
   MuseProfileSignals,
+  MuseTranscriptSnapshot,
   SafetyReportRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
@@ -43,6 +47,7 @@ type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   MUSE_AGENT_CONFIG?: KVNamespace;
   MUSE_AGENT_CONFIG_KEY?: string;
   MUSE_AGENT_MODE?: "staged" | "external";
+  MUSE_CONVERSATIONS?: KVNamespace;
   MUSE_RAG?: Fetcher;
   PAYMENT_PROVIDER_MODE?: PaymentProviderMode;
   SELEMENE_ENGINE_API_KEY?: string;
@@ -110,6 +115,60 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     }
 
     return ok(await createMuseChatResponse(body, env));
+  }
+
+  if (request.method === "POST" && pathname === "/api/muse/conversations/adopt") {
+    // CSRF + session are enforced by guardApiMutation (we did NOT add this
+    // path to the bypass list, so it requires session cookie + X-Tirak-CSRF).
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before adopting a Muse transcript.");
+    }
+
+    if (!env.MUSE_CONVERSATIONS) {
+      return fail(503, "MUSE_CONVERSATIONS_UNBOUND", "Conversation adoption store is unavailable.");
+    }
+
+    const body = await readJsonBody<MuseAdoptRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateMuseAdoptRequest(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "MUSE_ADOPT_VALIDATION_FAILED", "Adoption payload could not be accepted.", fieldErrors);
+    }
+
+    const snapshot: MuseTranscriptSnapshot = body.snapshot;
+    const userId = session.profile.id;
+    const adoptedAt = new Date().toISOString();
+    const stored: MuseTranscriptSnapshot & { adoptedAt: string; ownerUserId: string } = {
+      ...snapshot,
+      adoptedAt,
+      ownerUserId: userId,
+    };
+    const key = `user:${userId}:conv:${snapshot.conversationId}`;
+
+    try {
+      await env.MUSE_CONVERSATIONS.put(key, JSON.stringify(stored), {
+        // 90 day TTL on adopted transcripts; the dashboard will surface
+        // these as recent Muse threads. Adjust when the surfacing UI lands.
+        expirationTtl: 60 * 60 * 24 * 90,
+      });
+    } catch (caught) {
+      console.warn("MUSE_CONVERSATIONS put failed", {
+        userId,
+        conversationId: snapshot.conversationId,
+        message: caught instanceof Error ? caught.message : "unknown",
+      });
+      return fail(500, "MUSE_ADOPT_STORE_FAILED", "Muse could not save your thread. Try again later.");
+    }
+
+    const response: MuseAdoptResponse = {
+      conversationId: snapshot.conversationId,
+      adoptedAt,
+      ownerUserId: userId,
+      messageCount: snapshot.messages.length,
+    };
+    return ok(response);
   }
 
   if (pathname.startsWith("/api/traveller/")) {
@@ -527,6 +586,44 @@ function validateMuseChatRequest(body: MuseChatRequest): Record<string, string> 
   }
   if (body.stage !== undefined && !isMuseConversationStage(body.stage)) {
     errors.stage = "Use a supported Muse conversation stage.";
+  }
+  return errors;
+}
+
+function validateMuseAdoptRequest(body: MuseAdoptRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const snapshot = body?.snapshot;
+  if (!snapshot || typeof snapshot !== "object") {
+    errors.snapshot = "Adoption requires a transcript snapshot.";
+    return errors;
+  }
+  if (typeof snapshot.conversationId !== "string" || !/^[a-zA-Z0-9_-]{8,80}$/.test(snapshot.conversationId)) {
+    errors.conversationId = "Adoption requires a valid conversation identifier.";
+  }
+  if (!isMuseConversationStage(snapshot.stage)) {
+    errors.stage = "Adoption requires a supported Muse stage.";
+  }
+  if (!Array.isArray(snapshot.messages)) {
+    errors.messages = "Adoption requires a message array.";
+  } else if (snapshot.messages.length === 0) {
+    errors.messages = "Adoption requires at least one message.";
+  } else if (snapshot.messages.length > 200) {
+    errors.messages = "Adoption is limited to 200 messages per thread.";
+  } else if (
+    !snapshot.messages.every(
+      (msg: MuseChatMessage) =>
+        msg &&
+        typeof msg.id === "string" &&
+        (msg.role === "user" || msg.role === "muse") &&
+        typeof msg.content === "string" &&
+        msg.content.length <= 4000 &&
+        typeof msg.createdAt === "string",
+    )
+  ) {
+    errors.messages = "Each adopted message must include id, role, content, and createdAt.";
+  }
+  if (typeof snapshot.capturedAt !== "string" || Number.isNaN(Date.parse(snapshot.capturedAt))) {
+    errors.capturedAt = "capturedAt must be a valid ISO timestamp.";
   }
   return errors;
 }

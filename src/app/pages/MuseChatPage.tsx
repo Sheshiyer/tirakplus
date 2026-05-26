@@ -1,6 +1,7 @@
 import { FormEvent, PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { MuseApiError, MuseService } from "../api/muse";
+import { useAuth } from "../api/AuthContext";
+import { MuseApiError, MuseService, museTranscriptStorageKey } from "../api/muse";
 import { isCitySlug, isExperienceSlug } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
@@ -12,8 +13,10 @@ import type {
   MuseChatResponse,
   MuseClientContext,
   MuseConversationStage,
+  MuseProfileSignals,
   MuseRoleIntent,
   MuseRouteKind,
+  MuseTranscriptSnapshot,
 } from "../../shared/contracts";
 
 const initialMuseMessage: MuseChatMessage = {
@@ -160,9 +163,49 @@ function buildMuseRouteContext(searchParams: URLSearchParams, timezone: string):
   };
 }
 
+/**
+ * Persist the current Muse transcript to localStorage so the conversation
+ * survives auth interstitials. After a successful useAuth().verify(), the
+ * stored snapshot is adopted into the user's account via
+ * MuseService.adopt() — see AuthContext for the adoption trigger.
+ */
+function persistMuseTranscript(snapshot: MuseTranscriptSnapshot): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      museTranscriptStorageKey(snapshot.conversationId),
+      JSON.stringify(snapshot),
+    );
+    // Index of pending conversation IDs so AuthContext can find them on
+    // verify() without scanning every localStorage key.
+    const indexKey = "museTranscript:pendingIds";
+    const raw = window.localStorage.getItem(indexKey);
+    const ids = new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+    ids.add(snapshot.conversationId);
+    window.localStorage.setItem(indexKey, JSON.stringify([...ids]));
+  } catch {
+    // Quota exceeded or storage disabled — drop silently; transcript is
+    // still in component state for the active session.
+  }
+}
+
+function restoreMuseTranscript(conversationId: string | undefined): MuseTranscriptSnapshot | null {
+  if (typeof window === "undefined" || !conversationId) return null;
+  try {
+    const raw = window.localStorage.getItem(museTranscriptStorageKey(conversationId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as MuseTranscriptSnapshot;
+    if (parsed?.conversationId !== conversationId) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function MuseChatPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { session } = useAuth();
   const [messages, setMessages] = useState<MuseChatMessage[]>([initialMuseMessage]);
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -225,6 +268,41 @@ export function MuseChatPage() {
     if (!isChatActive) return;
     transcriptRef.current?.scrollTo({ top: transcriptRef.current.scrollHeight, behavior: "smooth" });
   }, [isChatActive, messages, isSending]);
+
+  // Persist transcript to localStorage while the user is anonymous so the
+  // conversation survives the auth interstitial. AuthContext picks this up
+  // on verify() success and calls MuseService.adopt().
+  useEffect(() => {
+    if (!conversationId) return;
+    if (session) return; // Signed-in users don't need the local copy.
+    if (messages.length <= 1) return; // Only the initial Muse greeting — nothing meaningful to persist.
+    const snapshot: MuseTranscriptSnapshot = {
+      conversationId,
+      stage,
+      messages,
+      profileSignals: lastResponse?.profileSignals as MuseProfileSignals | undefined,
+      clientContext: routeContext.clientContext,
+      capturedAt: new Date().toISOString(),
+    };
+    persistMuseTranscript(snapshot);
+  }, [conversationId, session, messages, stage, lastResponse?.profileSignals, routeContext.clientContext]);
+
+  // On mount: if the URL carries a `?resume=<convId>` (set after the auth
+  // round-trip), restore the transcript from localStorage so the user lands
+  // back inside their pre-auth thread instead of an empty Muse welcome.
+  useEffect(() => {
+    const resumeId = searchParams.get("resume");
+    if (!resumeId) return;
+    const restored = restoreMuseTranscript(resumeId);
+    if (!restored) return;
+    setConversationId(restored.conversationId);
+    setStage(restored.stage);
+    setMessages(restored.messages);
+    setIsChatActive(true);
+    // Once restored, the adoption flow in AuthContext (if user is signed in)
+    // will move this transcript server-side and clear localStorage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function sendMuseMessage(value: string) {
     const trimmed = value.trim();
