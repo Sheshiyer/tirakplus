@@ -29,12 +29,23 @@ export type MuseProfileSignals = {
   };
 };
 
+/**
+ * Subset of MuseClientContext that muse-rag actually needs to read.
+ * The UI shell sends a much fuller object (timezone, route, source, etc.)
+ * but role disambiguation only needs roleIntent + routeKind.
+ */
+export type MuseClientContextLite = {
+  roleIntent?: MuseRoleIntent;
+  routeKind?: string;
+};
+
 export type MuseChatRequest = {
   conversationId?: string;
   message?: string;
   query?: string;
   stage?: MuseConversationStage;
   roleIntent?: MuseRoleIntent;
+  clientContext?: MuseClientContextLite;
   appId?: string;
   responseMode?: "fast" | "best";
   input?: {
@@ -42,6 +53,7 @@ export type MuseChatRequest = {
     message?: string;
     stage?: MuseConversationStage;
     roleIntent?: MuseRoleIntent;
+    clientContext?: MuseClientContextLite;
   };
 };
 

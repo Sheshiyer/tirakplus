@@ -4,15 +4,52 @@ export function extractMessage(body: MuseChatRequest): string {
   return (body.message ?? body.query ?? body.input?.message ?? "").trim();
 }
 
+/**
+ * Detection of "I AM a companion" vs "I want a companion" — the former is
+ * the COMPANION role; the latter is a TRAVELLER. Checked BEFORE the
+ * generic "companion" keyword in inferRoleIntent so the words don't collide.
+ */
+const COMPANION_SELF_DECLARATION = /\b(?:i am (?:a )?(?:new )?companion|i'?m (?:a )?(?:new )?companion|join(?:ing)? as (?:a )?companion|sign up as (?:a )?companion|companion (?:onboarding|signup|profile|account)|host my profile|list myself|provide companionship)\b/i;
+const COMPANION_TASK_KEYWORDS = /\b(?:bio|profile|my services|my availability|visibility|verification|onboard(?:ing)?|client boundaries|set my (?:rate|hours|availability)|booking calendar|inquiry inbox|public tone)\b/i;
+const TRAVELLER_KEYWORDS = /\b(?:trip|travel(?:ling|ing|er|ler)?|holiday|vacation|land(?:ing)? in|fly(?:ing)? to|visit(?:ing)?|bangkok|phuket|samui|phangan|nightlife|dining|find (?:a |me a )?(?:companion|guide)|private evening|book(?:ing)? an? (?:experience|companion|guide)|looking for (?:a |the )?(?:companion|guide))\b/i;
+
 export function inferRoleIntent(message: string): MuseRoleIntent {
-  const lower = message.toLowerCase();
-  if (/\b(?:bio|profile|services|availability|visibility|verification|onboard(?:ing)?|client boundaries)\b/.test(lower)) {
-    return "companion";
-  }
-  if (/\b(?:trip|travel|bangkok|phuket|samui|phangan|nightlife|dining|guide|companion|private evening)\b/.test(lower)) {
-    return "traveller";
-  }
+  if (COMPANION_SELF_DECLARATION.test(message)) return "companion";
+  if (COMPANION_TASK_KEYWORDS.test(message)) return "companion";
+  if (TRAVELLER_KEYWORDS.test(message)) return "traveller";
   return "unknown";
+}
+
+/**
+ * Authoritative role resolution for a Muse turn. Priority order:
+ *   1. Explicit client-context roleIntent (set by the UI shell, never inferred)
+ *   2. routeKind (companion-* → companion, traveller-* → traveller)
+ *   3. Inference from the message text (last resort)
+ *
+ * The UI tells us the role MOST of the time via routeKind/roleIntent —
+ * trusting those before guessing keeps Muse from misreading "I want a
+ * companion" as "I AM a companion" or vice-versa.
+ */
+export function resolveRoleIntent(body: MuseChatRequest): MuseRoleIntent {
+  const explicit =
+    asKnownRole(body.clientContext?.roleIntent) ??
+    asKnownRole(body.input?.clientContext?.roleIntent) ??
+    asKnownRole(body.roleIntent) ??
+    asKnownRole(body.input?.roleIntent);
+  if (explicit) return explicit;
+
+  const routeKind = body.clientContext?.routeKind ?? body.input?.clientContext?.routeKind;
+  if (typeof routeKind === "string") {
+    if (routeKind.startsWith("companion")) return "companion";
+    if (routeKind.startsWith("traveller")) return "traveller";
+  }
+
+  return inferRoleIntent(extractMessage(body));
+}
+
+function asKnownRole(value: unknown): "traveller" | "companion" | null {
+  if (value === "traveller" || value === "companion") return value;
+  return null;
 }
 
 export function inferSignals(message: string): MuseProfileSignals {

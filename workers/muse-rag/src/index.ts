@@ -1,6 +1,6 @@
 import { getAppConfig, getDefaults, isAuthorizedRequest, type Env } from "./config";
 import { createEvolutionCandidate } from "./evolution";
-import { detectPromptInjection, extractMessage, inferRoleIntent, inferSignals } from "./intent";
+import { detectPromptInjection, extractMessage, inferSignals, resolveRoleIntent } from "./intent";
 import { nextAction } from "./next-action";
 import { createChatCompletion } from "./nvidia";
 import { evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, refusalForSafety, sanitizeMuseCopy } from "./policy";
@@ -69,7 +69,11 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
   if (!(await isAuthorizedRequest(env, request, appId))) return json({ error: "Unauthorized" }, 401);
 
   const appConfig = await getEnabledAppConfig(env, appId);
-  const roleIntent = body.roleIntent ?? body.input?.roleIntent ?? inferRoleIntent(message);
+  // Authoritative role resolution: client-context > routeKind > message inference.
+  // This is the fix for the 2026-05-26 issue where Muse was asking the
+  // user (a traveller) about a *companion's* birth date — it had collapsed
+  // the role distinction and treated every conversation as a search.
+  const roleIntent = resolveRoleIntent(body);
   const safetyDecision = classifySafety(message);
   const promptInjection = detectPromptInjection(message);
   const context = await searchCorpus(env, appConfig, message, {
