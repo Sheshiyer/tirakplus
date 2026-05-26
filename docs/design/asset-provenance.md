@@ -14,8 +14,8 @@ Muse scene (direction + runtime):
 - `public/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png` *(mobile-first portrait foreground, generated 2026-05-24 with GPT Image 2 from approved Muse references; checkerboard raw output superseded)*
 - `public/assets/muse/scene/muse-tablet-portrait-foreground-alpha.png` *(tablet transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
 - `public/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png` *(desktop transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
-- `public/assets/muse/scene/muse-discovery-rooftop-dusk.png` *(promoted 2026-05-26 — generated via gpt-image-2 for `/discovery` immersive hero; Bangkok rooftop dusk with bronze lanterns left foreground, marble bar midground, distant skyline; Muse pose PNG overlays with parallax)*
-- `public/assets/muse/scene/muse-safety-morning-suite.png` *(promoted 2026-05-26 — generated via gpt-image-2 for `/safety` immersive hero; private suite at warm morning, brass tea kettle + porcelain cup foreground, linen armchair + books midground, sheer-curtain garden window background)*
+- `public/assets/muse/scene/muse-discovery-atmosphere.png` *(promoted 2026-05-26-v2 — generated via gpt-image-2 for `/discovery` immersive hero; pure abstract atmosphere with warm amber + Rose Bronze bokeh, Night Plum shadows, no recognizable objects; replaces earlier stock-photo rooftop variant now superseded)*
+- `public/assets/muse/scene/muse-safety-atmosphere.png` *(promoted 2026-05-26-v2 — generated via gpt-image-2 for `/safety` immersive hero; abstract soft warm morning light catching on sheer linen / silk with Night Plum shadows, no recognizable furniture; replaces earlier stock-photo morning-suite variant now superseded)*
 
 Muse floating mark (A2 — ambient presence):
 - `public/assets/muse/floating/muse-{appear,idle-float,listen-start,privacy-lock}-{start,end}.png` *(8 keyframes, promoted 2026-05-22 from `generated/muse-3d/keyframes/`)*
@@ -46,6 +46,7 @@ The sentinel is an opt-in: when an asset is intentionally board-shaped (e.g. a d
 - **2026-05-22**: 18 approved assets promoted from `generated/` per owner confirmation. 6 pre-pose-pack splash variants moved to `public/assets/_superseded/2026-05-22-pre-posepack/` (replaced by canonical render from `muse-splash-contrapposto.glb`). Registry and this file updated.
 - **2026-05-24**: Retired the full-body/side-profile Muse pose pack and unused full-screen Muse concept composites from active registry, then moved them to `public/assets/_superseded/2026-05-24-mood-board-muse-poses/`. Added a new mobile-first portrait foreground with alpha and pointed `MusePoseImage` at that foreground so product surfaces no longer render the mood-board poster assets.
 - **2026-05-25**: Added tablet and desktop transparent Muse foreground canvases derived from the approved mobile portrait family, then registered all three responsive portrait assets. No retired mood-board pose was restored.
+- **2026-05-26**: Replaced the stock-photo-feeling Discovery and Safety backdrops (`muse-discovery-rooftop-dusk.png`, `muse-safety-morning-suite.png`) with brand-true atmospheric variants (`muse-discovery-atmosphere.png`, `muse-safety-atmosphere.png`) generated via gpt-image-2 with pure-mood prompts — Night Plum + Rose Bronze palette, painterly bokeh / soft-light-through-silk, no recognizable architecture or furniture. Stock-photo variants moved to `public/assets/_superseded/2026-05-26-stock-photo-backdrops/`. Registry and this file updated.
 
 ## UI Repair Asset Gates
 
