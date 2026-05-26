@@ -545,6 +545,168 @@ body:has(.public-business-page-immersive) {
   padding-bottom: 0;
 }
 
+/* =================================================================
+   IMMERSIVE PAGE THEME OVERRIDES
+   When a page is marked .public-business-page-immersive, EVERY
+   section/card/band inside it re-themes to the dark gold-hairline
+   vocabulary. Public surfaces stop flipping between dark hero and
+   light cards — the whole page reads as one immersive surface.
+   ================================================================= */
+
+.public-business-page-immersive {
+  color: #f7efe7;
+}
+
+.public-business-page-immersive .public-section {
+  background: transparent;
+  color: #f7efe7;
+}
+
+.public-business-page-immersive .public-section-heading h2 {
+  color: #fffaf3;
+}
+
+.public-business-page-immersive .public-section-heading p:not(.eyebrow) {
+  color: rgba(247, 239, 231, 0.78);
+}
+
+.public-business-page-immersive .public-section-heading .eyebrow,
+.public-business-page-immersive .eyebrow {
+  color: rgba(244, 231, 193, 0.78);
+  letter-spacing: 0.22em;
+}
+
+/* Cards become dark-glass dossiers with gold hairline (same vocab as
+   Muse's Read panel). Uses the two-layer background-clip trick so
+   the gold sits as a hairline ring around a warm-noir interior. */
+.public-business-page-immersive .public-info-card {
+  color: #f7efe7;
+  background:
+    linear-gradient(165deg, rgba(28, 20, 22, 0.82), rgba(20, 14, 18, 0.82)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.55), rgba(244, 231, 193, 0.78) 30%, rgba(201, 163, 107, 0.4) 55%, rgba(101, 73, 35, 0.55) 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(14px);
+}
+
+.public-business-page-immersive .public-info-card h2,
+.public-business-page-immersive .public-info-card h3 {
+  color: #fffaf3;
+}
+
+.public-business-page-immersive .public-info-card p:not(.meta) {
+  color: rgba(247, 239, 231, 0.82);
+}
+
+.public-business-page-immersive .public-info-card .meta {
+  color: rgba(244, 231, 193, 0.7);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: clamp(10px, 0.74vw, 11px);
+}
+
+/* The bottom band keeps its night-plum dark base but gains gold
+   hairline + tighter integration with the rest of the page. */
+.public-business-page-immersive .public-split-band {
+  background:
+    linear-gradient(165deg, rgba(33, 27, 44, 0.95), rgba(15, 12, 22, 0.95)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.45), rgba(244, 231, 193, 0.6) 30%, rgba(201, 163, 107, 0.35) 55%, rgba(101, 73, 35, 0.45) 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.12),
+    0 28px 70px rgba(0, 0, 0, 0.36);
+}
+
+.public-business-page-immersive .public-check-list p,
+.public-business-page-immersive .public-provider-row {
+  background: rgba(244, 231, 193, 0.05);
+  border-color: rgba(201, 163, 107, 0.28);
+  color: #fffaf3;
+}
+
+/* Secondary buttons on immersive pages get a dark-surface palette so
+   they don't read as white-on-white pearl pills sitting on a noir
+   field. Same vocab as .public-immersive-copy already established. */
+.public-business-page-immersive .button.secondary {
+  color: #f7efe7;
+  background: rgba(244, 231, 193, 0.08);
+  border-color: rgba(244, 231, 193, 0.4);
+}
+
+.public-business-page-immersive .button.secondary:hover {
+  background: rgba(244, 231, 193, 0.14);
+  border-color: rgba(244, 231, 193, 0.62);
+}
+
+/* Auth pages (Login / Verify) inherit the same immersive vocabulary.
+   The narrow centered column keeps its width; the cards/inputs/
+   secondary surfaces all flip to dark gold-hairline. */
+.auth-page.public-business-page-immersive {
+  padding-top: clamp(96px, 12vh, 140px);
+  color: #f7efe7;
+}
+
+.auth-page.public-business-page-immersive .auth-muse-card {
+  color: #f7efe7;
+  background:
+    linear-gradient(160deg, rgba(28, 20, 22, 0.82), rgba(20, 14, 18, 0.82)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.45), rgba(244, 231, 193, 0.6) 30%, rgba(201, 163, 107, 0.35) 55%, rgba(101, 73, 35, 0.45) 100%) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.12),
+    0 18px 50px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(14px);
+}
+
+.auth-page.public-business-page-immersive .auth-muse-card p:not(.eyebrow) {
+  color: rgba(247, 239, 231, 0.82);
+}
+
+.auth-page.public-business-page-immersive .auth-muse-orb {
+  background: rgba(244, 231, 193, 0.06);
+  border-color: rgba(201, 163, 107, 0.36);
+}
+
+.auth-page.public-business-page-immersive .auth-heading h1 {
+  color: #fffaf3;
+}
+
+.auth-page.public-business-page-immersive .auth-heading p,
+.auth-page.public-business-page-immersive .auth-secondary-action p,
+.auth-page.public-business-page-immersive .auth-terms {
+  color: rgba(247, 239, 231, 0.78);
+}
+
+.auth-page.public-business-page-immersive .auth-heading strong {
+  color: #fffaf3;
+}
+
+/* The 6-digit code grid + email field inherit the same dark
+   gold-hairline language so the form feels part of the same scene. */
+.auth-page.public-business-page-immersive .code-input,
+.auth-page.public-business-page-immersive .field-input {
+  color: #f7efe7;
+  background: rgba(244, 231, 193, 0.06);
+  border-color: rgba(201, 163, 107, 0.36);
+}
+
+.auth-page.public-business-page-immersive .code-input:focus-visible,
+.auth-page.public-business-page-immersive .field-input:focus-visible {
+  border-color: rgba(244, 231, 193, 0.7);
+  outline: 2px solid rgba(244, 231, 193, 0.18);
+  outline-offset: 1px;
+}
+
+.auth-page.public-business-page-immersive .auth-back-link {
+  color: rgba(247, 239, 231, 0.82);
+}
+
+.auth-page.public-business-page-immersive .auth-back-link:hover {
+  color: #fffaf3;
+}
+
 a {
   color: inherit;
   text-decoration: none;

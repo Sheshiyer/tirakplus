@@ -30,7 +30,7 @@ export function AuthStart() {
   };
 
   return (
-    <section className="auth-page">
+    <section className="auth-page public-business-page-immersive">
       <div className="auth-panel">
         <div className="auth-muse-card" aria-label="Muse private entry">
           <span className="auth-muse-orb" aria-hidden="true">

@@ -118,7 +118,7 @@ export function AuthVerify() {
   };
 
   return (
-    <section className="auth-page">
+    <section className="auth-page public-business-page-immersive">
       <Link 
         to="/auth/login" 
         className="auth-back-link"
