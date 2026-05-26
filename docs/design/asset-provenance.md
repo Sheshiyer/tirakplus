@@ -14,6 +14,8 @@ Muse scene (direction + runtime):
 - `public/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png` *(mobile-first portrait foreground, generated 2026-05-24 with GPT Image 2 from approved Muse references; checkerboard raw output superseded)*
 - `public/assets/muse/scene/muse-tablet-portrait-foreground-alpha.png` *(tablet transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
 - `public/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png` *(desktop transparent foreground derived 2026-05-25 from the approved mobile portrait family)*
+- `public/assets/muse/scene/muse-discovery-rooftop-dusk.png` *(promoted 2026-05-26 — generated via gpt-image-2 for `/discovery` immersive hero; Bangkok rooftop dusk with bronze lanterns left foreground, marble bar midground, distant skyline; Muse pose PNG overlays with parallax)*
+- `public/assets/muse/scene/muse-safety-morning-suite.png` *(promoted 2026-05-26 — generated via gpt-image-2 for `/safety` immersive hero; private suite at warm morning, brass tea kettle + porcelain cup foreground, linen armchair + books midground, sheer-curtain garden window background)*
 
 Muse floating mark (A2 — ambient presence):
 - `public/assets/muse/floating/muse-{appear,idle-float,listen-start,privacy-lock}-{start,end}.png` *(8 keyframes, promoted 2026-05-22 from `generated/muse-3d/keyframes/`)*

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { CSSProperties, PointerEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ApiEnvelope, SafetyContent } from "../../shared/contracts";
 import { Button } from "../components/ui/Button";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
+import { AssetRegistry } from "../registry/assets";
 
 type SafetyState =
   | { status: "loading" }
@@ -45,6 +46,7 @@ const safetyGroups = [
 
 export function PublicSafetyPage() {
   const [state, setState] = useState<SafetyState>({ status: "loading" });
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     getSafetyContent()
@@ -57,23 +59,59 @@ export function PublicSafetyPage() {
       });
   }, []);
 
+  function handlePointerMove(event: PointerEvent<HTMLElement>) {
+    if (event.pointerType === "touch") return;
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 18;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 12;
+    setParallax({ x, y });
+  }
+
+  const sceneStyle = {
+    "--muse-parallax-x": `${parallax.x}px`,
+    "--muse-parallax-y": `${parallax.y}px`,
+  } as CSSProperties;
+
   return (
-    <div className="public-business-page public-safety-page">
-      <section className="public-business-hero" aria-labelledby="public-safety-title">
-        <div>
-          <p className="eyebrow">Safety and privacy</p>
-          <h1 id="public-safety-title">Keep the plan calm and private</h1>
-          <p className="lede">
-            Share only what the plan needs, keep boundaries clear, and pause anything that feels rushed or wrong.
-          </p>
-          <div className="action-row">
-            <Button as={Link} to="/" variant="primary">Talk to Muse</Button>
-            <Button as={Link} to="/auth/login?role=traveller" variant="secondary">Sign in</Button>
+    <div className="public-business-page public-safety-page public-business-page-immersive">
+      <section
+        className="public-immersive-hero"
+        data-scene="safety"
+        aria-labelledby="public-safety-title"
+        onPointerMove={handlePointerMove}
+        onPointerLeave={() => setParallax({ x: 0, y: 0 })}
+        style={sceneStyle}
+      >
+        <img className="public-immersive-backdrop" src={AssetRegistry.muse.scene.safetyBackdrop} alt="" aria-hidden="true" />
+        <div className="public-immersive-vignette" aria-hidden="true" />
+        <div className="public-immersive-ambient" aria-hidden="true" />
+
+        <div className="public-immersive-shell">
+          <div className="public-immersive-copy">
+            <p className="eyebrow">Safety and privacy</p>
+            <h1 id="public-safety-title">Keep the plan calm and private</h1>
+            <p className="lede">
+              Share only what the plan needs, keep boundaries clear, and pause anything that feels rushed or wrong.
+            </p>
+            <div className="action-row">
+              <Button as={Link} to="/" variant="primary">Talk to Muse</Button>
+              <Button as={Link} to="/auth/login?role=traveller" variant="secondary">Sign in</Button>
+            </div>
           </div>
+
+          <MusePoseImage
+            variant="privacy"
+            label="Muse standing in a composed privacy posture"
+            className="public-immersive-figure"
+          />
+
+          <aside className="public-immersive-readout" aria-label="Muse privacy readout">
+            <p className="eyebrow">Quiet by design</p>
+            <p>Boundaries held. Pace respected.</p>
+          </aside>
         </div>
-        <aside className="public-muse-aside public-muse-aside-light" aria-label="Muse privacy guidance">
-          <MusePoseImage variant="privacy" label="Muse standing in a composed privacy posture" className="public-muse-figure" />
-        </aside>
       </section>
 
       <section className="public-section" aria-labelledby="safety-principles-title">

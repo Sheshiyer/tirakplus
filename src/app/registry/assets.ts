@@ -95,6 +95,11 @@ export const AssetRegistry = {
       mobilePortrait: '/assets/muse/scene/muse-mobile-portrait-foreground-alpha.png',
       tabletPortrait: '/assets/muse/scene/muse-tablet-portrait-foreground-alpha.png',
       desktopPortrait: '/assets/muse/scene/muse-desktop-portrait-foreground-alpha.png',
+      // Per-page immersive backdrops generated 2026-05-26 via gpt-image-2,
+      // brand-true rooftop-dusk + morning-suite scenes; the Muse pose PNG
+      // overlays each with parallax depth.
+      discoveryBackdrop: '/assets/muse/scene/muse-discovery-rooftop-dusk.png',
+      safetyBackdrop: '/assets/muse/scene/muse-safety-morning-suite.png',
     },
   },
 
