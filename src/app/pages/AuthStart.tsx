@@ -6,45 +6,139 @@ import { useAuth } from "../api/AuthContext";
 import { AssetRegistry } from "../registry/assets";
 import type { UserRole } from "../../shared/contracts";
 
+type AuthRole = Extract<UserRole, "traveller" | "companion">;
+type Step = "role" | "email";
+
 export function AuthStart() {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { login, isLoading, error } = useAuth();
+
   const fromLocation = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
   const fromPath = fromLocation?.pathname ? `${fromLocation.pathname}${fromLocation.search ?? ""}` : undefined;
-  const intendedRole: Extract<UserRole, "traveller" | "companion"> =
-    searchParams.get("role") === "companion" || fromPath?.startsWith("/companion") ? "companion" : "traveller";
+
+  // Honor explicit role hints (URL param ?role=…, or arriving from a
+  // protected /companion/* path). If neither is present we make the
+  // user pick explicitly — the dashboard the user lands on depends on
+  // this choice, so it must be a deliberate selection, not inferred
+  // from URL accident.
+  const hintedRole: AuthRole | null =
+    searchParams.get("role") === "companion" || fromPath?.startsWith("/companion")
+      ? "companion"
+      : searchParams.get("role") === "traveller" || fromPath?.startsWith("/traveller")
+      ? "traveller"
+      : null;
+
+  const [step, setStep] = useState<Step>(hintedRole ? "email" : "role");
+  const [role, setRole] = useState<AuthRole | null>(hintedRole);
+
+  const handleRoleSelect = (chosen: AuthRole) => {
+    setRole(chosen);
+    setStep("email");
+  };
 
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (email && role) {
       try {
         await login(email);
-        navigate("/auth/verify", { state: { email, role: intendedRole, from: fromPath } });
+        // Pass role to /auth/verify — verify() uses it both to set the
+        // session profile.role AND to choose the dashboard to land on
+        // (post-auth navigation in AuthVerify checks role).
+        navigate("/auth/verify", { state: { email, role, from: fromPath } });
       } catch (err) {
         // Handle error if needed (T034)
       }
     }
   };
 
+  // ---- STEP 1: Role selection ----------------------------------------
+  if (step === "role") {
+    return (
+      <section className="auth-page public-business-page-immersive">
+        <div className="auth-panel">
+          <div className="auth-muse-card" aria-label="Muse private entry">
+            <span className="auth-muse-orb" aria-hidden="true">
+              <img src={AssetRegistry.muse.floating.idleStart} alt="" />
+            </span>
+            <div>
+              <p className="eyebrow">Muse entry</p>
+              <p>Pick your side first — your dashboard, tools, and messages all follow this choice.</p>
+            </div>
+          </div>
+
+          <div className="auth-heading">
+            <h1>How are you joining?</h1>
+            <p>You can switch later from the account menu.</p>
+          </div>
+
+          <div className="auth-role-grid" role="group" aria-label="Choose your role">
+            <button
+              type="button"
+              className="auth-role-card"
+              data-role="traveller"
+              onClick={() => handleRoleSelect("traveller")}
+            >
+              <p className="eyebrow">Traveller</p>
+              <h2>I'm planning a Thailand trip</h2>
+              <p>Find a private guide, save companion profiles, and keep your plans together.</p>
+              <span className="auth-role-card-cta">Continue as traveller →</span>
+            </button>
+
+            <button
+              type="button"
+              className="auth-role-card"
+              data-role="companion"
+              onClick={() => handleRoleSelect("companion")}
+            >
+              <p className="eyebrow">Companion</p>
+              <h2>I'm joining to host travellers</h2>
+              <p>Set up your profile, manage availability, and review inquiries privately.</p>
+              <span className="auth-role-card-cta">Continue as companion →</span>
+            </button>
+          </div>
+
+          <p className="auth-terms">
+            By continuing, you agree to keep messages respectful and plans private.
+            {" "}<Link to="/safety">Read the safety notes</Link>.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // ---- STEP 2: Email entry (role is locked in) -----------------------
   return (
     <section className="auth-page public-business-page-immersive">
       <div className="auth-panel">
+        <button
+          type="button"
+          className="auth-back-link"
+          onClick={() => setStep("role")}
+        >
+          ← Change role
+        </button>
+
         <div className="auth-muse-card" aria-label="Muse private entry">
           <span className="auth-muse-orb" aria-hidden="true">
             <img src={AssetRegistry.muse.floating.idleStart} alt="" />
           </span>
           <div>
-            <p className="eyebrow">Muse entry</p>
-            <p>Use one private code to keep your trip, profile, and messages together.</p>
+            <p className="eyebrow">{role === "companion" ? "Companion entry" : "Traveller entry"}</p>
+            <p>
+              {role === "companion"
+                ? "We will keep your profile, availability, and inquiries on this email."
+                : "We will keep your trip context, saved profiles, and messages on this email."}
+            </p>
           </div>
         </div>
+
         <div className="auth-heading">
           <h1>Enter privately</h1>
           <p>
-            {intendedRole === "companion"
+            {role === "companion"
               ? "Open your profile, availability, and messages."
               : "Open your trip context, saved profiles, and messages."}
           </p>
@@ -61,7 +155,7 @@ export function AuthStart() {
             required
             disabled={isLoading}
           />
-          
+
           {error && (
             <p className="auth-error">
               {error.message || "Failed to send verification code."}
@@ -82,7 +176,6 @@ export function AuthStart() {
           By continuing, you agree to keep messages respectful and plans private.
           {" "}<Link to="/safety">Read the safety notes</Link>.
         </p>
-
       </div>
     </section>
   );
