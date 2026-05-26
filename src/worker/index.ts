@@ -57,6 +57,7 @@ type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   MUSE_RAG?: Fetcher;
   PAYMENT_PROVIDER_MODE?: PaymentProviderMode;
   RESEND_API_KEY?: string;
+  RESEND_FORCE?: string;
   RESEND_FROM?: string;
   SELEMENE_ENGINE_API_KEY?: string;
   STRIPE_CHECKOUT_CURRENCY?: string;

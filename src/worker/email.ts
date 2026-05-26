@@ -19,6 +19,12 @@ type EmailEnv = {
   AUTH_OTPS?: KVNamespace;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
+  /** Dev affordance: set to "true" to skip env.EMAIL entirely and
+   *  force the Resend path. Useful for local testing because
+   *  `wrangler dev --local` mocks env.EMAIL successfully (miniflare
+   *  intercepts the call), which means Resend is never exercised
+   *  unless explicitly forced. In production this should NOT be set. */
+  RESEND_FORCE?: string;
   ENVIRONMENT?: string;
 };
 
@@ -151,8 +157,11 @@ export async function sendOtpEmail(
     console.log(`[email/dev] OTP for ${email}: ${code}`);
   }
 
-  // 1) Cloudflare Email Sending (paid binding)
-  if (env.EMAIL) {
+  // 1) Cloudflare Email Sending (paid binding). Skipped when
+  //    RESEND_FORCE is set so dev/local can exercise the Resend path
+  //    end-to-end (miniflare mocks env.EMAIL successfully otherwise).
+  const forceResend = env.RESEND_FORCE === "true" || env.RESEND_FORCE === "1";
+  if (env.EMAIL && !forceResend) {
     try {
       await env.EMAIL.send({
         to: email,
