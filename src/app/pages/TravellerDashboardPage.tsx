@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { TravellerDashboardResponse } from "../../shared/contracts";
+import type { MuseConversationSummary, TravellerDashboardResponse } from "../../shared/contracts";
+import { MuseService } from "../api/muse";
 import { TravellerService } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { CompanionPreviewCard } from "../components/ui/CompanionPreviewCard";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
+
+const MUSE_STAGE_LABELS: Record<string, string> = {
+  arrival: "Opening",
+  birth_context: "Birth details",
+  travel_context: "City and timing",
+  desire_mapping: "Mood",
+  safety_boundaries: "Boundaries",
+  recommendation_ready: "Ready",
+};
 
 type LoadState =
   | { status: "loading"; data?: undefined; message?: undefined }
@@ -15,6 +25,7 @@ type LoadState =
 
 export function TravellerDashboardPage() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [museThreads, setMuseThreads] = useState<MuseConversationSummary[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +40,15 @@ export function TravellerDashboardPage() {
             message: error instanceof Error ? error.message : "Traveller dashboard could not be loaded.",
           });
         }
+      });
+
+    // Adopted Muse threads — silent on failure, surfaces only if any exist.
+    MuseService.listConversations()
+      .then((res) => {
+        if (!cancelled) setMuseThreads(res.conversations);
+      })
+      .catch(() => {
+        // Leave empty; the dashboard section just won't render.
       });
 
     return () => {
@@ -134,6 +154,34 @@ export function TravellerDashboardPage() {
           </ul>
         </article>
       </div>
+
+      {museThreads.length > 0 ? (
+        <section className="member-section" aria-labelledby="muse-threads-title">
+          <div className="member-section-heading">
+            <p className="eyebrow">Muse threads</p>
+            <h2 id="muse-threads-title">Continue a private read</h2>
+          </div>
+          <div className="member-bento-grid">
+            {museThreads.slice(0, 6).map((thread) => (
+              <article key={thread.conversationId} className="member-bento-card">
+                <p className="meta">{MUSE_STAGE_LABELS[thread.stage] ?? thread.stage}</p>
+                <p>
+                  {thread.lastMessageRole === "muse" ? "Muse: " : "You: "}
+                  {thread.lastMessagePreview}
+                  {thread.lastMessagePreview.length >= 140 ? "…" : ""}
+                </p>
+                <div className="status-pill-row">
+                  <span>{thread.messageCount} message{thread.messageCount === 1 ? "" : "s"}</span>
+                  <span>{new Date(thread.adoptedAt).toLocaleDateString()}</span>
+                </div>
+                <Button as={Link} to={`/?resume=${encodeURIComponent(thread.conversationId)}`} variant="secondary">
+                  Continue thread
+                </Button>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="member-section" aria-labelledby="saved-profiles-title">
         <div className="member-section-heading">

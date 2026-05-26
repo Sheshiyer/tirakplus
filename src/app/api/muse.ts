@@ -4,6 +4,8 @@ import type {
   MuseAdoptResponse,
   MuseChatRequest,
   MuseChatResponse,
+  MuseConversationDetailResponse,
+  MuseConversationListResponse,
   MuseTranscriptSnapshot,
 } from "../../shared/contracts";
 
@@ -84,5 +86,20 @@ export const MuseService = {
       headers: { "X-Tirak-CSRF": csrfToken },
       body: JSON.stringify(payload),
     });
+  },
+
+  /** List the signed-in user's adopted Muse threads (newest first). */
+  listConversations(): Promise<MuseConversationListResponse> {
+    return apiRequest<MuseConversationListResponse>("/api/muse/conversations", {
+      method: "GET",
+    });
+  },
+
+  /** Fetch the full transcript of a single adopted thread. */
+  getConversation(conversationId: string): Promise<MuseConversationDetailResponse> {
+    return apiRequest<MuseConversationDetailResponse>(
+      `/api/muse/conversations/${encodeURIComponent(conversationId)}`,
+      { method: "GET" },
+    );
   },
 };

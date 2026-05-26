@@ -290,17 +290,30 @@ export function MuseChatPage() {
   // On mount: if the URL carries a `?resume=<convId>` (set after the auth
   // round-trip), restore the transcript from localStorage so the user lands
   // back inside their pre-auth thread instead of an empty Muse welcome.
+  // If localStorage has already been cleared by adoption, fall back to
+  // GET /api/muse/conversations/:id.
   useEffect(() => {
     const resumeId = searchParams.get("resume");
     if (!resumeId) return;
-    const restored = restoreMuseTranscript(resumeId);
-    if (!restored) return;
-    setConversationId(restored.conversationId);
-    setStage(restored.stage);
-    setMessages(restored.messages);
-    setIsChatActive(true);
-    // Once restored, the adoption flow in AuthContext (if user is signed in)
-    // will move this transcript server-side and clear localStorage.
+
+    function applySnapshot(restored: MuseTranscriptSnapshot) {
+      setConversationId(restored.conversationId);
+      setStage(restored.stage);
+      setMessages(restored.messages);
+      setIsChatActive(true);
+    }
+
+    const local = restoreMuseTranscript(resumeId);
+    if (local) {
+      applySnapshot(local);
+      return;
+    }
+    // Fall back to server-side adopted thread.
+    MuseService.getConversation(resumeId)
+      .then((res) => applySnapshot(res.conversation))
+      .catch(() => {
+        // Silent — user lands on the normal Muse welcome.
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

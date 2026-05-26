@@ -60,9 +60,19 @@ export function AuthVerify() {
     e.preventDefault();
     const fullCode = code.join("");
     if (fullCode.length === 6) {
+      // Capture pre-auth Muse transcript ID BEFORE verify() runs.
+      // AuthContext fires adoptPendingMuseTranscripts() inside verify(),
+      // which clears localStorage on success — so we read it first.
+      const pendingMuseConvId = readMostRecentPendingMuseId();
       try {
         await verify(email, fullCode, role);
-        navigate(fromPath || (role === "companion" ? "/companion" : "/traveller"));
+        if (pendingMuseConvId) {
+          // User had an in-flight Muse conversation before signing in;
+          // drop them back into that thread instead of the dashboard.
+          navigate(`/?resume=${encodeURIComponent(pendingMuseConvId)}`);
+        } else {
+          navigate(fromPath || (role === "companion" ? "/companion" : "/traveller"));
+        }
       } catch (err) {
         // T034: Auth error state will be shown
         setCode(["", "", "", "", "", ""]);
@@ -72,6 +82,18 @@ export function AuthVerify() {
       }
     }
   };
+
+  function readMostRecentPendingMuseId(): string | null {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem("museTranscript:pendingIds");
+      if (!raw) return null;
+      const ids = JSON.parse(raw) as string[];
+      return ids.length > 0 ? ids[ids.length - 1] : null;
+    } catch {
+      return null;
+    }
+  }
 
   const handleResend = () => {
     // Simulate resend

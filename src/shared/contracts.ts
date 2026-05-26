@@ -251,6 +251,31 @@ export type MuseAdoptResponse = {
   messageCount: number;
 };
 
+/**
+ * Summary surface for a user's adopted Muse threads (dashboard list).
+ * The full transcript is fetched separately via GET conversations/:id.
+ */
+export type MuseConversationSummary = {
+  conversationId: string;
+  stage: MuseConversationStage;
+  messageCount: number;
+  capturedAt: string;
+  adoptedAt: string;
+  lastMessagePreview: string;
+  lastMessageRole: MuseChatRole;
+};
+
+export type MuseConversationListResponse = {
+  conversations: MuseConversationSummary[];
+};
+
+export type MuseConversationDetailResponse = {
+  conversation: MuseTranscriptSnapshot & {
+    adoptedAt: string;
+    ownerUserId: string;
+  };
+};
+
 export type SessionProfile = {
   id: string;
   email: string;

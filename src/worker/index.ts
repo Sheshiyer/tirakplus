@@ -31,7 +31,10 @@ import type {
   MuseChatMessage,
   MuseChatRequest,
   MuseChatResponse,
+  MuseConversationDetailResponse,
+  MuseConversationListResponse,
   MuseConversationStage,
+  MuseConversationSummary,
   MuseProfileSignals,
   MuseTranscriptSnapshot,
   SafetyReportRequest,
@@ -168,6 +171,75 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       ownerUserId: userId,
       messageCount: snapshot.messages.length,
     };
+    return ok(response);
+  }
+
+  if (request.method === "GET" && pathname === "/api/muse/conversations") {
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to see your Muse threads.");
+    if (!env.MUSE_CONVERSATIONS) {
+      return fail(503, "MUSE_CONVERSATIONS_UNBOUND", "Conversation store is unavailable.");
+    }
+
+    const userId = session.profile.id;
+    const prefix = `user:${userId}:conv:`;
+    const summaries: MuseConversationSummary[] = [];
+    try {
+      const list = await env.MUSE_CONVERSATIONS.list({ prefix, limit: 50 });
+      for (const k of list.keys) {
+        const raw = await env.MUSE_CONVERSATIONS.get(k.name);
+        if (!raw) continue;
+        const stored = JSON.parse(raw) as MuseTranscriptSnapshot & {
+          adoptedAt: string;
+          ownerUserId: string;
+        };
+        const lastMessage = stored.messages[stored.messages.length - 1];
+        summaries.push({
+          conversationId: stored.conversationId,
+          stage: stored.stage,
+          messageCount: stored.messages.length,
+          capturedAt: stored.capturedAt,
+          adoptedAt: stored.adoptedAt,
+          lastMessagePreview: lastMessage ? lastMessage.content.slice(0, 140) : "",
+          lastMessageRole: lastMessage ? lastMessage.role : "muse",
+        });
+      }
+    } catch (caught) {
+      console.warn("MUSE_CONVERSATIONS list failed", {
+        userId,
+        message: caught instanceof Error ? caught.message : "unknown",
+      });
+      return fail(500, "MUSE_CONVERSATIONS_LIST_FAILED", "Muse could not load your threads.");
+    }
+
+    // Newest first
+    summaries.sort((a, b) => (a.adoptedAt < b.adoptedAt ? 1 : -1));
+    const response: MuseConversationListResponse = { conversations: summaries };
+    return ok(response);
+  }
+
+  if (request.method === "GET" && pathname.startsWith("/api/muse/conversations/")) {
+    const conversationId = pathname.slice("/api/muse/conversations/".length);
+    if (!/^[a-zA-Z0-9_-]{8,80}$/.test(conversationId)) {
+      return fail(404, "MUSE_CONVERSATION_NOT_FOUND", "That Muse thread could not be found.");
+    }
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to read this thread.");
+    if (!env.MUSE_CONVERSATIONS) {
+      return fail(503, "MUSE_CONVERSATIONS_UNBOUND", "Conversation store is unavailable.");
+    }
+
+    const userId = session.profile.id;
+    const key = `user:${userId}:conv:${conversationId}`;
+    const raw = await env.MUSE_CONVERSATIONS.get(key);
+    if (!raw) {
+      return fail(404, "MUSE_CONVERSATION_NOT_FOUND", "That Muse thread could not be found.");
+    }
+    const stored = JSON.parse(raw) as MuseTranscriptSnapshot & {
+      adoptedAt: string;
+      ownerUserId: string;
+    };
+    const response: MuseConversationDetailResponse = { conversation: stored };
     return ok(response);
   }
 
