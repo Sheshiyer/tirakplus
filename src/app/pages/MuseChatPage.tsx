@@ -406,8 +406,9 @@ export function MuseChatPage() {
 
       <div className="muse-entry-shell">
         <header className="muse-entry-brand" aria-label="Muse">
-          <p className="eyebrow">Tirak Plus</p>
-          <img className="muse-mark" src={AssetRegistry.brand.museMark} alt="" aria-hidden="true" />
+          {/* "Tirak Plus" eyebrow + Muse-mark image removed 2026-05-26 —
+              both are already shown in the top nav; rendering them here
+              again duplicates the brand on the landing surface. */}
           <h1 id="muse-title">Muse</h1>
           <p>Private Thailand, tuned to your rhythm.</p>
         </header>
