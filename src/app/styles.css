@@ -519,7 +519,8 @@ body {
    instead of cream peeking through. Uses :has() to scope only to
    Muse pages — every other route keeps the porcelain canvas. */
 body:has(.muse-entry-page),
-body:has(.public-business-page-immersive) {
+body:has(.public-business-page-immersive),
+body:has(.member-shell) {
   /* Brand-aligned dark surface. Base color is Night Plum (#211B2C
      per DESIGN.md §2 — the canonical dark surface color used for
      footer, secure auth, admin dark rails) graded into a slightly

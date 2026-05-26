@@ -62,11 +62,10 @@ export function CompanionInboxPage() {
     <section className="companion-page companion-inbox-page" aria-labelledby="companion-inbox-title">
       <div className="companion-hero">
         <div>
-          <p className="eyebrow">Private inquiries</p>
-          <h1 id="companion-inbox-title">Review traveller requests when checks are complete.</h1>
+          <p className="eyebrow">Inbox</p>
+          <h1 id="companion-inbox-title">Requests from travellers</h1>
           <p>
-            Inquiries show planning context first. Contact details and payment actions stay private until the request
-            is ready.
+            Planning context first. Contact details and payment actions stay private until the request is ready.
           </p>
         </div>
       </div>

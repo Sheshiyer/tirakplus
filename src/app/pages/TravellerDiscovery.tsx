@@ -115,8 +115,8 @@ export function TravellerDiscovery() {
         <div className="discovery-layout">
           <aside className="filter-panel" aria-label="Discovery filters">
             <div className="filter-panel-heading">
-              <p className="eyebrow">Tune discovery</p>
-              <h2>Filter by city, style, and timing.</h2>
+              <p className="eyebrow">Tune the read</p>
+              <h2>Narrow by city, style, and timing</h2>
             </div>
             {hasMuseTuning ? (
               <div className="muse-applied-panel" data-testid="muse-discovery-defaults">

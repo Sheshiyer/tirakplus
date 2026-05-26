@@ -197,10 +197,10 @@ export function CompanionOnboardingPage() {
         <form className="companion-form" onSubmit={saveProfile}>
           <section className="companion-form-section">
             <p className="eyebrow">Welcome</p>
-            <h2>Your call, every step</h2>
+            <h2>You control what becomes public</h2>
             <p>
-              Draft information is private until Tirak clears it. Visibility, availability, and inquiry controls can
-              stay closed while your profile is prepared.
+              Draft information stays private until Tirak's review clears it. Visibility, availability, and inquiry
+              controls remain closed while your profile is prepared.
             </p>
           </section>
 

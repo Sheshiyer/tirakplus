@@ -39,8 +39,8 @@ export function TravellerInquiriesPage() {
   return (
     <section className="inquiry-page" aria-labelledby="inquiries-title">
       <div className="inquiry-heading">
-        <p className="eyebrow">Traveller inbox</p>
-        <h1 id="inquiries-title">Your conversations.</h1>
+        <p className="eyebrow">Inbox</p>
+        <h1 id="inquiries-title">Open inquiries</h1>
         <p>Review open requests, timing, and next steps in one place.</p>
       </div>
 

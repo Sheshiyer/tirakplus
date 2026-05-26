@@ -64,10 +64,20 @@ export function CompanionDashboardPage() {
     <section className="companion-page companion-dashboard-page" aria-labelledby="companion-dashboard-title">
       <div className="companion-hero">
         <div>
-          <p className="eyebrow">Home</p>
-          <h1 id="companion-dashboard-title">Prepare your profile calmly</h1>
+          <p className="eyebrow">Today</p>
+          <h1 id="companion-dashboard-title">
+            {profile.reviewStatus === "approved"
+              ? "Your profile is open"
+              : profile.reviewStatus === "pending_verification" || profile.reviewStatus === "changes_requested"
+              ? "Profile in review"
+              : profile.reviewStatus === "rejected"
+              ? "Review needs another pass"
+              : "Prepare your profile"}
+          </h1>
           <p>
-            Edit your profile, choose when you are open, and keep requests paused until everything feels clear.
+            {profile.reviewStatus === "approved"
+              ? "Review open inquiries, tune availability, and keep boundaries clear."
+              : "Edit your profile, choose when you are open, and keep requests paused until everything feels clear."}
           </p>
         </div>
         <div className={`review-state-card review-state-card-${profile.reviewStatus}`}>

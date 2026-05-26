@@ -27,9 +27,9 @@ export function AccountSettings() {
   const targetRole = currentRole === "traveller" ? "companion" : "traveller";
 
   return (
-    <section className="account-page account-page-light">
+    <section className="account-page">
       <div className="account-heading">
-        <p className="eyebrow">Account and privacy</p>
+        <p className="eyebrow">Account</p>
         <h1>Account and privacy</h1>
         <p>Manage access, visibility, notifications, and safety controls.</p>
       </div>

@@ -97,8 +97,8 @@ export function TravellerDashboardPage() {
         <aside className="member-route-support-card" aria-label="Muse route support">
           <MuseChartPanel chart={data.chart} compact />
           <div className="member-route-support-copy">
-            <p className="eyebrow">Muse support</p>
-            <h2>Keep the route calm.</h2>
+            <p className="eyebrow">Muse</p>
+            <h2>Tune the next move</h2>
             <p>{data.chart.nextPrompt}</p>
           </div>
           <Button as={Link} to="/" variant="secondary">

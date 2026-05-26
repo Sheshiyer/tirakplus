@@ -5,9 +5,11 @@ import { LayoutDashboardIcon, CalendarIcon, MailIcon, UserIcon, ShieldIcon } fro
 import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 
 export function CompanionShell() {
-  // Navigation for a logged-in companion
+  // Navigation for a logged-in companion. "Board" matches the
+  // traveller shell — same word for the same surface, so the product
+  // doesn't feel like two different apps.
   const navLinks = [
-    { href: "/companion/dashboard", label: "Dashboard" },
+    { href: "/companion/dashboard", label: "Board" },
     { href: "/companion/inbox", label: "Inbox" },
     { href: "/companion/plans", label: "Availability" },
     { href: "/companion/profile", label: "Profile" },
@@ -15,8 +17,8 @@ export function CompanionShell() {
   ];
 
   const mobileNavItems = [
-    { id: "dashboard", label: "Dashboard", href: "/companion/dashboard", icon: <LayoutDashboardIcon /> },
-    { id: "plans", label: "Avail.", href: "/companion/plans", icon: <CalendarIcon /> },
+    { id: "dashboard", label: "Board", href: "/companion/dashboard", icon: <LayoutDashboardIcon /> },
+    { id: "plans", label: "Availability", href: "/companion/plans", icon: <CalendarIcon /> },
     { id: "inbox", label: "Inbox", href: "/companion/inbox", icon: <MailIcon /> },
     { id: "profile", label: "Profile", href: "/companion/profile", icon: <UserIcon /> },
     { id: "safety", label: "Safety", href: "/companion/safety", icon: <ShieldIcon /> },
