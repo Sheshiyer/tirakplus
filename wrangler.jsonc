@@ -49,7 +49,13 @@
     "ENVIRONMENT": "staging",
     "PAYMENT_PROVIDER_MODE": "compliance_hold",
     "MUSE_AGENT_MODE": "external",
-    "MUSE_AGENT_CONFIG_KEY": "muse:agent-config"
+    "MUSE_AGENT_CONFIG_KEY": "muse:agent-config",
+    // Resend transactional sender. tirak.app is already verified on
+    // Resend (status: verified, sending: enabled, region: ap-northeast-1
+    // — set up 2025-09-23). Using this verified sender unlocks delivery
+    // to ANY recipient; the previous onboarding@resend.dev shared
+    // sender was free-tier-restricted to the account owner.
+    "RESEND_FROM": "Muse · Tirak Plus <muse@tirak.app>"
   },
   "observability": {
     "enabled": true,
