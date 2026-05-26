@@ -243,6 +243,21 @@ export function MuseChatPage() {
   const activeChart = lastResponse?.chart ?? openingChart;
   const shouldSimulateMuseError = searchParams.get("qa") === "muse-error";
 
+  // Guided-mode gate: while the user is anonymous, the chat surface is
+  // strictly chip-driven (no free-text input) and forced into the inline
+  // auth widget after at most MAX_ANON_TURNS exchanges. This closes the
+  // prompt-injection surface — Muse never receives arbitrary strings
+  // pre-auth, only chip-selected scripted replies.
+  // Once authenticated, the chat opens up to free text + name/DOB inputs
+  // because the user is now known, rate-limited, and adoption-tied.
+  const MAX_ANON_TURNS = 3;
+  const anonUserTurns = messages.filter((m) => m.role === "user").length;
+  const isAnonymous = !session;
+  const reachedAuthGate = isAnonymous && anonUserTurns >= MAX_ANON_TURNS;
+  const forceInlineAuth = reachedAuthGate || handoffAction?.kind === "auth";
+  // Allow free text once signed in. Pre-auth: chips only.
+  const allowFreeText = !isAnonymous;
+
   useEffect(() => {
     if (isChatActive) return;
     const step = 100 / 60;
@@ -510,11 +525,12 @@ export function MuseChatPage() {
             ) : null}
           </div>
 
-          {/* Inline auth: when Muse signals an auth handoff AND the user
-              is not signed in, render the OTP flow IN the chat panel
-              instead of bouncing them to /auth/start. This keeps the
-              chat-first promise — the whole sign-in happens in-thread. */}
-          {handoffAction?.kind === "auth" && !session ? (
+          {/* Inline auth widget: appears when EITHER
+              (a) Muse explicitly returns nextAction.kind === "auth", or
+              (b) the anonymous user has used their MAX_ANON_TURNS budget.
+              Until the user signs in, this is the only forward path —
+              guided chips above + inline OTP here. Free text stays locked. */}
+          {forceInlineAuth && isAnonymous ? (
             <MuseInlineAuth
               role={
                 lastResponse?.roleIntent === "companion"
@@ -522,17 +538,12 @@ export function MuseChatPage() {
                   : "traveller"
               }
               onAuthenticated={(email) => {
-                // Drop a Muse-spoken confirmation into the thread so the
-                // conversation continues naturally after the sign-in. The
-                // pending Muse transcript (this thread) is automatically
-                // adopted server-side by AuthContext.verify().
                 const welcome: MuseChatMessage = {
                   id: `local_auth_${crypto.randomUUID()}`,
                   role: "muse",
-                  content:
-                    handoffAction.kind === "auth"
-                      ? `Welcome. ${email} is now your private channel. ${handoffAction.label} when you are ready.`
-                      : `Welcome back. Your thread is saved.`,
+                  content: handoffAction?.kind === "auth"
+                    ? `Welcome. ${email} is now your private channel. ${handoffAction.label} when you are ready.`
+                    : `Welcome. ${email} is now your private channel. Tell me a little more so I can tune the path.`,
                   createdAt: new Date().toISOString(),
                 };
                 setMessages((current) => [...current, welcome]);
@@ -547,42 +558,60 @@ export function MuseChatPage() {
             </div>
           ) : null}
 
-          <div className="muse-suggestions" aria-label="Suggested replies">
-            {suggestedPrompts.map((prompt) => (
-              <Button
-                key={prompt}
-                type="button"
-                variant="secondary"
-                onClick={() => void sendMuseMessage(prompt)}
-                disabled={isSending}
-                className="muse-suggestion"
-              >
-                {prompt}
-              </Button>
-            ))}
-          </div>
+          {/* Suggestion chips are the PRIMARY interaction pre-auth.
+              Free-text input is gated below — chips are always
+              available so users can advance the conversation. */}
+          {!forceInlineAuth ? (
+            <div className="muse-suggestions" aria-label="Suggested replies">
+              {suggestedPrompts.map((prompt) => (
+                <Button
+                  key={prompt}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void sendMuseMessage(prompt)}
+                  disabled={isSending}
+                  className="muse-suggestion"
+                >
+                  {prompt}
+                </Button>
+              ))}
+            </div>
+          ) : null}
 
-          <form className="muse-entry-form" onSubmit={handleSubmit}>
-            <Input
-              ref={inputRef}
-              label="Message Muse"
-              labelVisible={false}
-              type="text"
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="Tell Muse what you are looking for…"
-              maxLength={1200}
-              className="muse-composer-field"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSending || message.trim().length === 0}
-              className="muse-composer-send"
-            >
-              Send
-            </Button>
-          </form>
+          {/* Free-text composer: only available POST-AUTH. While the user
+              is anonymous, the chat surface is strictly chip-driven so
+              Muse never receives arbitrary strings that could carry
+              prompt injection. The remaining-turn hint nudges the user
+              toward the auth gate without surprise. */}
+          {allowFreeText ? (
+            <form className="muse-entry-form" onSubmit={handleSubmit}>
+              <Input
+                ref={inputRef}
+                label="Message Muse"
+                labelVisible={false}
+                type="text"
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="Tell Muse what you are looking for…"
+                maxLength={1200}
+                className="muse-composer-field"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSending || message.trim().length === 0}
+                className="muse-composer-send"
+              >
+                Send
+              </Button>
+            </form>
+          ) : !forceInlineAuth ? (
+            <p className="muse-guided-mode-hint" role="note">
+              Muse keeps the first read guided. Tap a suggestion above —
+              you have {Math.max(MAX_ANON_TURNS - anonUserTurns, 0)} more
+              {MAX_ANON_TURNS - anonUserTurns === 1 ? " turn" : " turns"} before a private sign-in.
+            </p>
+          ) : null}
           {error ? (
             <div className="muse-fallback-card" role="status" data-testid="muse-fallback">
               <p>{error}</p>
