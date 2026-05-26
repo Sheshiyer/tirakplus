@@ -19,8 +19,9 @@ const CSRF_HEADER = "X-Tirak-CSRF";
 type JsonRecord = Record<string, unknown>;
 
 type AuthEnv = {
-  EMAIL?: Parameters<typeof sendOtpEmail>[0]["EMAIL"];
   AUTH_OTPS?: KVNamespace;
+  RESEND_API_KEY?: string;
+  RESEND_FROM?: string;
   ENVIRONMENT?: string;
 };
 

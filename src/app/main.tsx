@@ -57,6 +57,11 @@ const router = createBrowserRouter([
       { path: "cookies", element: <CookiesPage /> },
       { path: "support", element: <SupportPage /> },
       { path: "auth/login", element: <AuthStart /> },
+      // Alias: every Muse handoff, suggested chip, inline-auth widget
+      // welcome message, and AuthContext.login() flow link reference
+      // /auth/start?role=... — they all need to resolve to AuthStart.
+      // Without this alias the Muse → discovery handoff 404s.
+      { path: "auth/start", element: <AuthStart /> },
       { path: "auth/verify", element: <AuthVerify /> },
       { path: "*", element: <NotFoundPage /> },
     ],

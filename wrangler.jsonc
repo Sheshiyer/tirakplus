@@ -37,18 +37,14 @@
       "service": "tirakplus-muse-rag"
     }
   ],
-  // Cloudflare Email Sending binding. Sends transactional email via
-  // env.EMAIL.send({ to, from, subject, html, text }). Requires Email
-  // Sending to be enabled on the `tirak.app` zone via Dashboard →
-  // Email → Email Sending → Enable (one-time activation; the wrangler
-  // CLI `email sending enable` returns Unauthorized until the zone is
-  // activated in UI first). Once enabled, `from` may be any address
-  // on `tirak.app` (e.g. `muse@tirak.app`).
-  "send_email": [
-    {
-      "name": "EMAIL"
-    }
-  ],
+  // NOTE: Cloudflare Email Sending binding (send_email) removed 2026-05-26.
+  // It requires Workers Paid ($5/mo) AND a zone-level Dashboard
+  // activation, neither of which we have today. Until both land, the
+  // OTP path is Resend-only (env.RESEND_API_KEY → api.resend.com).
+  // Re-add this block alongside Resend if/when we upgrade — sendOtpEmail
+  // will pick CF first automatically (provider priority chain).
+  //
+  // "send_email": [{ "name": "EMAIL" }],
   "vars": {
     "ENVIRONMENT": "staging",
     "PAYMENT_PROVIDER_MODE": "compliance_hold",

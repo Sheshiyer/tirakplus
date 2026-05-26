@@ -48,7 +48,7 @@ type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
 type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   AUTH_OTPS?: KVNamespace;
-  EMAIL?: SendEmail;
+  // EMAIL?: SendEmail; — CF send_email binding removed 2026-05-26
   MUSE_AGENT_API_KEY?: string;
   MUSE_AGENT_CONFIG?: KVNamespace;
   MUSE_AGENT_CONFIG_KEY?: string;
@@ -57,7 +57,6 @@ type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   MUSE_RAG?: Fetcher;
   PAYMENT_PROVIDER_MODE?: PaymentProviderMode;
   RESEND_API_KEY?: string;
-  RESEND_FORCE?: string;
   RESEND_FROM?: string;
   SELEMENE_ENGINE_API_KEY?: string;
   STRIPE_CHECKOUT_CURRENCY?: string;

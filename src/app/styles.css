@@ -615,6 +615,20 @@ body:has(.public-business-page-immersive) {
   font-size: clamp(10px, 0.74vw, 11px);
 }
 
+/* Bullet lists inside immersive cards (Safety "For travellers" /
+   "For companions" / "What stays close") inherit the global
+   --color-soft-slate (#5E5964) which is unreadable on Night Plum.
+   Lift to the same porcelain tone as body text inside cards. */
+.public-business-page-immersive .public-bullet-list li,
+.public-business-page-immersive .public-info-card ul li,
+.public-business-page-immersive .public-info-card ol li {
+  color: rgba(247, 239, 231, 0.86);
+}
+
+.public-business-page-immersive .public-bullet-list li::marker {
+  color: rgba(201, 163, 107, 0.6);
+}
+
 /* The bottom band keeps its night-plum dark base but gains gold
    hairline + tighter integration with the rest of the page. */
 .public-business-page-immersive .public-split-band {

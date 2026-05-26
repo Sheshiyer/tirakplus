@@ -12,19 +12,18 @@
  * remains testable end-to-end without leaking real email infra.
  */
 
-// SendEmail + KVNamespace types are declared globally by the generated
+// KVNamespace type is declared globally by the generated
 // worker-configuration.d.ts — no import needed.
+// NOTE: The CF send_email binding (env.EMAIL) was removed from
+// wrangler.jsonc on 2026-05-26 because it requires Workers Paid +
+// zone activation neither of which we have today. Resend is the
+// sole transactional email provider. If/when CF Email Sending is
+// re-enabled, restore the EMAIL?: SendEmail field here and the
+// `if (env.EMAIL)` block in sendOtpEmail below.
 type EmailEnv = {
-  EMAIL?: SendEmail;
   AUTH_OTPS?: KVNamespace;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
-  /** Dev affordance: set to "true" to skip env.EMAIL entirely and
-   *  force the Resend path. Useful for local testing because
-   *  `wrangler dev --local` mocks env.EMAIL successfully (miniflare
-   *  intercepts the call), which means Resend is never exercised
-   *  unless explicitly forced. In production this should NOT be set. */
-  RESEND_FORCE?: string;
   ENVIRONMENT?: string;
 };
 
@@ -118,23 +117,18 @@ export async function consumeOtp(env: EmailEnv, email: string): Promise<void> {
 }
 
 /**
- * Send the OTP email. Returns the delivery channel actually used so
- * callers can log meaningfully.
- *
- * Provider priority (each falls through to the next on missing-binding
- * or runtime failure):
- *   1. env.EMAIL          — Cloudflare Email Sending (paid, requires
- *                            Workers Paid + zone activation)
- *   2. env.RESEND_API_KEY — Resend REST API (free tier: 3000/mo, 100/day)
- *   3. console log         — dev fallback so the flow stays testable
- *
- * The HTML+text body is provider-agnostic — same content goes to both.
+ * Send the OTP email via Resend (the sole transactional provider as of
+ * 2026-05-26 — the CF send_email binding was removed because it needs
+ * Workers Paid + a zone-level Dashboard activation neither of which
+ * we have today). Returns "resend" on a successful POST, "console" if
+ * the API key is missing or the call fails — the OTP is still logged
+ * in non-production so testing keeps working.
  */
 export async function sendOtpEmail(
   env: EmailEnv,
   email: string,
   code: string,
-): Promise<"cloudflare-email" | "resend" | "console"> {
+): Promise<"resend" | "console"> {
   const subject = "Your Tirak Plus sign-in code";
   const text =
     `Your Tirak Plus sign-in code is ${code}.\n\n` +
@@ -157,28 +151,7 @@ export async function sendOtpEmail(
     console.log(`[email/dev] OTP for ${email}: ${code}`);
   }
 
-  // 1) Cloudflare Email Sending (paid binding). Skipped when
-  //    RESEND_FORCE is set so dev/local can exercise the Resend path
-  //    end-to-end (miniflare mocks env.EMAIL successfully otherwise).
-  const forceResend = env.RESEND_FORCE === "true" || env.RESEND_FORCE === "1";
-  if (env.EMAIL && !forceResend) {
-    try {
-      await env.EMAIL.send({
-        to: email,
-        from: AUTH_FROM_CF,
-        subject,
-        html,
-        text,
-      });
-      return "cloudflare-email";
-    } catch (caught) {
-      console.warn(
-        `[email/cf] env.EMAIL.send failed (${caught instanceof Error ? caught.message : "unknown"}). Trying Resend fallback.`,
-      );
-    }
-  }
-
-  // 2) Resend REST API (free fallback)
+  // Resend REST API — sole transactional provider.
   if (env.RESEND_API_KEY) {
     try {
       const from = env.RESEND_FROM?.trim() || AUTH_FROM_RESEND_DEFAULT;
