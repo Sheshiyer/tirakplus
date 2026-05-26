@@ -165,6 +165,39 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
     );
   }
 
+  // Dev-only direct-session endpoint — skips email/OTP for QA. Creates
+  // a session cookie for a fixed dev email and redirects to the role's
+  // dashboard. Gated on env.ENVIRONMENT !== "production" so it
+  // auto-disables when the production env var flips. Idempotent — same
+  // email each time so KV writes don't grow per-call.
+  //
+  //   GET  /api/dev/login?role=traveller    → /traveller
+  //   GET  /api/dev/login?role=companion    → /companion
+  //
+  // The session is identical to a real verified session (same Session
+  // type, same cookie, same CSRF) — every downstream guard, role check,
+  // and CSRF mutation works exactly as in production.
+  if (request.method === "GET" && pathname === "/api/dev/login") {
+    if (env?.ENVIRONMENT === "production") {
+      return apiError(404, "NOT_FOUND", "Not found.", undefined, { requestId });
+    }
+    const url = new URL(request.url);
+    const roleParam = url.searchParams.get("role");
+    const role: Extract<UserRole, "traveller" | "companion"> =
+      roleParam === "companion" ? "companion" : "traveller";
+    const fixedEmail = role === "companion" ? "dev.companion@tirak.app" : "dev.traveller@tirak.app";
+    const session = createSession(fixedEmail, role);
+    const dashboard = role === "companion" ? "/companion" : "/traveller";
+    console.log(`[dev/login] role=${role} → ${fixedEmail} → ${dashboard}`);
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: dashboard,
+        "Set-Cookie": buildSessionCookie(request, session),
+      },
+    });
+  }
+
   if (request.method === "POST" && pathname === "/api/auth/logout") {
     const csrfError = requireCsrf(request, requestId);
     if (csrfError) return csrfError;

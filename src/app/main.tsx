@@ -12,6 +12,7 @@ import { CityOverviewPage } from "./pages/CityOverviewPage";
 import { ExperiencePage } from "./pages/ExperiencePage";
 import { AuthStart } from "./pages/AuthStart";
 import { AuthVerify } from "./pages/AuthVerify";
+import { DevLogin } from "./pages/DevLogin";
 import { AccountSettings } from "./pages/AccountSettings";
 import { TravellerDashboardPage } from "./pages/TravellerDashboardPage";
 import { TravellerDiscovery } from "./pages/TravellerDiscovery";
@@ -63,6 +64,9 @@ const router = createBrowserRouter([
       // Without this alias the Muse → discovery handoff 404s.
       { path: "auth/start", element: <AuthStart /> },
       { path: "auth/verify", element: <AuthVerify /> },
+      // QA shortcut — direct-session entry, gated server-side on
+      // env.ENVIRONMENT !== "production". Skips email + OTP.
+      { path: "dev/login", element: <DevLogin /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
