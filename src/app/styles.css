@@ -4056,33 +4056,32 @@ p {
 .muse-suggestions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: clamp(6px, 0.8vw, 10px);
   align-content: end;
 }
 
-.muse-suggestions button {
-  min-height: 38px;
-  padding: 9px 12px;
-  color: #dcc9b5;
-  background: rgba(247, 239, 231, 0.06);
-  border: 1px solid rgba(247, 239, 231, 0.12);
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.25;
-  text-align: left;
-  cursor: pointer;
-}
-
-.muse-suggestions button:hover,
-.muse-suggestions button:focus-visible {
+/* Suggestion chips now use the design-system Button (variant=secondary).
+   Override only the bits that need to look like dark chips instead of
+   pearl-surface action buttons — kept inside .muse-suggestions scope
+   so the global .button.secondary stays correct on light surfaces. */
+.muse-suggestions .muse-suggestion.button.secondary {
+  min-height: clamp(36px, 4.4vh, 42px);
+  padding: clamp(8px, 1vh, 10px) clamp(12px, 1.2vw, 16px);
   color: #f7efe7;
-  border-color: rgba(247, 239, 231, 0.34);
+  background: rgba(244, 231, 193, 0.08);
+  border: 1px solid rgba(201, 163, 107, 0.32);
+  font-size: clamp(12px, 0.9vw, 13.5px);
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(244, 231, 193, 0.08);
+  transition: background 160ms ease, border-color 160ms ease, transform 200ms ease;
 }
 
-.muse-suggestions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+.muse-suggestions .muse-suggestion.button.secondary:hover:not(:disabled),
+.muse-suggestions .muse-suggestion.button.secondary:focus-visible {
+  background: rgba(244, 231, 193, 0.14);
+  border-color: rgba(244, 231, 193, 0.5);
 }
 
 .muse-handoff-card {
@@ -4125,37 +4124,39 @@ p {
   background: rgba(255, 255, 255, 0.06);
 }
 
-.muse-entry-form input,
-.muse-entry-form button {
-  min-height: 46px;
-  border: 0;
-  font: inherit;
+/* Chat composer is now a design-system Input + Button. The wrapping
+   pill (.muse-entry-form) is just the visual surround — the Input
+   field and Button keep their own design-system shape but lose the
+   field's own background so they read as one composer surface. */
+.muse-entry-form .muse-composer-field.field {
+  margin: 0;
+  min-width: 0;
+  gap: 0;
 }
 
-.muse-entry-form input {
-  width: 100%;
-  padding: 0 14px;
+.muse-entry-form .muse-composer-field .field-input {
+  min-height: clamp(44px, 6vh, 50px);
+  padding: 0 clamp(12px, 1.2vw, 18px);
   color: #f7efe7;
   background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-size: clamp(13px, 0.95vw, 15px);
   outline: none;
 }
 
-.muse-entry-form input::placeholder {
-  color: rgba(247, 239, 231, 0.52);
+.muse-entry-form .muse-composer-field .field-input::placeholder {
+  color: rgba(247, 239, 231, 0.5);
 }
 
-.muse-entry-form button {
-  min-width: 98px;
-  padding: 0 20px;
-  color: #171116;
-  background: #dcc9b5;
+.muse-entry-form .muse-composer-send.button {
+  min-height: clamp(44px, 6vh, 50px);
+  min-width: clamp(78px, 8vw, 110px);
+  padding: 0 clamp(16px, 1.4vw, 22px);
+  /* Keep design-system primary color (rose-bronze) but tighten the
+     border radius to a pill that nests inside the composer surround. */
   border-radius: 999px;
-  cursor: pointer;
-}
-
-.muse-entry-form button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
+  font-size: clamp(13px, 0.9vw, 14px);
 }
 
 .muse-error {
@@ -4272,34 +4273,63 @@ p {
   text-align: center;
 }
 
+/* "Muse's Read" — premium embossed dossier (2026-05-26 redesign).
+   Champagne-bronze hairline edge via two-layer background-clip; the
+   inner surface is a warm-espresso noir so the gold reads as warm,
+   not gaudy. Inset highlight + warm drop-shadow gives the embossed
+   feel without a thick gilded frame. */
 .muse-chart-panel {
+  --muse-gold-soft: rgba(201, 163, 107, 0.55);
+  --muse-gold-bright: rgba(244, 231, 193, 0.92);
+  --muse-gold-deep: rgba(101, 73, 35, 0.55);
   min-width: 0;
-  padding: 16px;
+  padding: clamp(14px, 1.6vw, 20px);
   display: grid;
-  gap: 14px;
+  gap: clamp(10px, 1.4vw, 16px);
   color: #fffaf3;
+  /* Two-layer trick: solid dark interior on padding-box, gradient
+     "gold leaf" on border-box. Border is transparent so the gradient
+     shows through only on the border ring. */
   background:
-    linear-gradient(145deg, rgba(247, 239, 231, 0.14), rgba(183, 166, 216, 0.08)),
-    rgba(17, 16, 26, 0.88);
-  border: 1px solid rgba(247, 239, 231, 0.2);
-  border-radius: 18px;
+    linear-gradient(165deg, rgba(28, 20, 22, 0.96), rgba(20, 14, 18, 0.96)) padding-box,
+    linear-gradient(140deg,
+      rgba(201, 163, 107, 0.85) 0%,
+      rgba(244, 231, 193, 0.95) 18%,
+      rgba(201, 163, 107, 0.75) 38%,
+      rgba(101, 73, 35, 0.65) 58%,
+      rgba(201, 163, 107, 0.85) 100%) border-box;
+  border: 1.5px solid transparent;
+  border-radius: clamp(16px, 1.6vw, 22px);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 22px 60px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(16px) saturate(1.16);
+    inset 0 1px 0 rgba(244, 231, 193, 0.16),     /* top champagne highlight */
+    inset 0 -1px 0 rgba(101, 73, 35, 0.32),       /* bottom bronze shadow */
+    0 28px 72px rgba(15, 7, 4, 0.5),              /* warm drop */
+    0 2px 6px rgba(244, 231, 193, 0.05);          /* gold halo */
+  backdrop-filter: blur(18px) saturate(1.2);
 }
 
+.muse-chart-eyebrow {
+  margin: 0;
+  color: rgba(244, 231, 193, 0.78);
+  font-size: clamp(10px, 0.78vw, 11px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Legacy header h2/p (the duplicated tagline + summary) — not rendered
+   by the new MuseChartPanel, but keep these zeroed in case another
+   surface still uses the older shape. */
 .muse-chart-panel h2 {
-  margin: 4px 0 8px;
+  margin: 0;
   color: #fffaf3;
-  font-size: 18px;
+  font-size: clamp(15px, 1.05vw, 17px);
   line-height: 1.2;
 }
 
 .muse-chart-panel p {
   margin: 0;
-  color: rgba(255, 250, 243, 0.84);
-  font-size: 13px;
+  color: rgba(255, 250, 243, 0.86);
+  font-size: clamp(12px, 0.85vw, 13px);
   line-height: 1.45;
 }
 
@@ -4372,15 +4402,23 @@ p {
 .muse-chart-axis-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: clamp(8px, 0.8vw, 12px);
 }
 
+/* Each axis tile is a sub-dossier: thin gold hairline + dark inset
+   surface + subtle top highlight. Same gold-leaf gradient as the parent
+   but at lower saturation so the tiles read as nested, not competing. */
 .muse-chart-axis {
   min-width: 0;
-  padding: 9px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(247, 239, 231, 0.15);
-  border-radius: 12px;
+  padding: clamp(10px, 1vw, 14px) clamp(10px, 1vw, 13px);
+  background:
+    linear-gradient(155deg, rgba(244, 231, 193, 0.05), rgba(244, 231, 193, 0.02)) padding-box,
+    linear-gradient(140deg, rgba(201, 163, 107, 0.45), rgba(101, 73, 35, 0.32) 50%, rgba(201, 163, 107, 0.42)) border-box;
+  border: 1px solid transparent;
+  border-radius: clamp(10px, 1vw, 14px);
+  box-shadow:
+    inset 0 1px 0 rgba(244, 231, 193, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .muse-chart-axis span,
@@ -4391,16 +4429,20 @@ p {
 }
 
 .muse-chart-axis span {
-  color: rgba(255, 250, 243, 0.68);
-  font-size: 11px;
+  color: rgba(244, 231, 193, 0.62);
+  font-size: clamp(9px, 0.68vw, 10.5px);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .muse-chart-axis strong {
-  margin-top: 3px;
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: clamp(12px, 0.95vw, 14px);
   font-weight: 600;
-  text-transform: capitalize;
+  line-height: 1.25;
+  /* Don't title-case "Asks before showing" — let the value sit as
+     written so multi-word observations read naturally. */
+  text-transform: none;
 }
 
 .muse-chart-cues {
@@ -4417,19 +4459,39 @@ p {
 }
 
 .muse-chart-next {
-  padding-top: 10px;
-  color: rgba(255, 250, 243, 0.9);
-  border-top: 1px solid rgba(247, 239, 231, 0.16);
+  margin: 0;
+  padding-top: clamp(8px, 1vh, 12px);
+  color: rgba(244, 231, 193, 0.78);
+  font-size: clamp(11px, 0.82vw, 13px);
+  font-style: italic;
+  line-height: 1.45;
+  /* Hairline gold separator above the closing aside. */
+  border-top: 1px solid rgba(201, 163, 107, 0.32);
 }
 
 .companion-progress-panel .muse-chart-next,
 .review-state-card .muse-chart-next {
-  color: rgba(255, 250, 243, 0.92);
+  color: rgba(244, 231, 193, 0.84);
 }
 
 .muse-chart-panel-compact {
-  gap: 10px;
-  padding: 12px;
+  gap: clamp(8px, 1vh, 12px);
+  padding: clamp(12px, 1.2vw, 16px);
+}
+
+/* Visually hide, keep accessible. Used by <Input labelVisible={false}>
+   so the chat composer can be label-less visually without losing
+   screen-reader context. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .muse-chart-panel-compact .muse-chart-orbit {

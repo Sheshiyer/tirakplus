@@ -5,6 +5,8 @@ import { MuseApiError, MuseService, museTranscriptStorageKey } from "../api/muse
 import { isCitySlug, isExperienceSlug } from "../api/traveller";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
 import { AssetRegistry } from "../registry/assets";
 import type { CSSProperties } from "react";
 import type {
@@ -33,18 +35,23 @@ const openingPrompts = [
   "I am a companion and need help writing my profile.",
 ];
 
+// "Muse's Read" — the dossier shown at first contact, before any signal
+// has been picked up from the user. Copy moved from generic metric
+// labels (Mood / Pace / Boundary / Path) to active observations
+// (Rhythm: Listening, Cadence: Asks first, etc.) so the panel reads as
+// what Muse is *doing* rather than what Muse is *measuring*.
 const openingChart = {
-  title: "Muse signal",
-  tagline: "Private Thailand, tuned to your rhythm.",
-  summary: "Start with mood, timing, boundary, and city fit. Muse keeps the private read quiet.",
+  title: "Muse's read",
+  tagline: "",
+  summary: "",
   axes: [
-    { label: "Mood", value: "unread", tone: "rose" },
-    { label: "Pace", value: "ask first", tone: "lavender" },
-    { label: "Boundary", value: "private", tone: "green" },
-    { label: "Path", value: "open", tone: "pearl" },
+    { label: "Rhythm", value: "Listening", tone: "rose" },
+    { label: "Cadence", value: "Asks before showing", tone: "lavender" },
+    { label: "Privacy", value: "Held inside", tone: "green" },
+    { label: "Fit", value: "Forming", tone: "pearl" },
   ],
-  cues: ["Share birth context when ready", "Name the first city", "Say what stays off-limits"],
-  nextPrompt: "Tell Muse the city, mood, and boundary.",
+  cues: [],
+  nextPrompt: "She is keeping the read quiet until the fit is clean.",
 } satisfies MuseChartSignature;
 
 type MuseRouteContext = {
@@ -511,25 +518,39 @@ export function MuseChatPage() {
 
           <div className="muse-suggestions" aria-label="Suggested replies">
             {suggestedPrompts.map((prompt) => (
-              <button type="button" key={prompt} onClick={() => void sendMuseMessage(prompt)} disabled={isSending}>
+              <Button
+                key={prompt}
+                type="button"
+                variant="secondary"
+                onClick={() => void sendMuseMessage(prompt)}
+                disabled={isSending}
+                className="muse-suggestion"
+              >
                 {prompt}
-              </button>
+              </Button>
             ))}
           </div>
 
           <form className="muse-entry-form" onSubmit={handleSubmit}>
-            <input
+            <Input
               ref={inputRef}
+              label="Message Muse"
+              labelVisible={false}
               type="text"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Tell Muse what you are looking for..."
-              aria-label="Message Muse"
+              placeholder="Tell Muse what you are looking for…"
               maxLength={1200}
+              className="muse-composer-field"
             />
-            <button type="submit" disabled={isSending || message.trim().length === 0}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSending || message.trim().length === 0}
+              className="muse-composer-send"
+            >
               Send
-            </button>
+            </Button>
           </form>
           {error ? (
             <div className="muse-fallback-card" role="status" data-testid="muse-fallback">
@@ -546,7 +567,8 @@ export function MuseChatPage() {
         
 
         <aside className="muse-context-panel" aria-label="Muse context state">
-          <p className="eyebrow">Your thread</p>
+          {/* "Your thread" eyebrow removed 2026-05-26 — duplicated the
+              chart's own "Muse's read" eyebrow inside the same column. */}
           <MuseChartPanel chart={activeChart} compact className="muse-context-chart" />
           <dl>
             <div>

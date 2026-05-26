@@ -6,6 +6,16 @@ type MuseChartPanelProps = {
   className?: string;
 };
 
+/**
+ * "Muse's Read" — premium observational card (2026-05-26 redesign).
+ *
+ * Visual concept: a single embossed dossier panel with champagne-bronze
+ * hairline edges instead of the previous flat-glass card. Drops the
+ * duplicated tagline (now lives only on the page H1), drops the
+ * freestanding orbit decoration, and renders the 2×2 axis tiles each
+ * with their own gold hairline + label/value split. The footer "next"
+ * line reads as a quiet aside, not a chat command.
+ */
 export function MuseChartPanel({ chart, compact = false, className = "" }: MuseChartPanelProps) {
   const classes = ["muse-chart-panel", compact ? "muse-chart-panel-compact" : "", className]
     .filter(Boolean)
@@ -13,17 +23,12 @@ export function MuseChartPanel({ chart, compact = false, className = "" }: MuseC
 
   return (
     <aside className={classes} aria-label={chart.title}>
-      <div className="muse-chart-header">
-        <p className="eyebrow">{chart.title}</p>
-        <h2>{chart.tagline}</h2>
-        <p>{chart.summary}</p>
-      </div>
-
-      <div className="muse-chart-orbit" aria-hidden="true">
-        {chart.axes.map((axis) => (
-          <span key={`${axis.label}-${axis.value}`} className={`muse-chart-dot muse-chart-dot-${axis.tone}`} />
-        ))}
-      </div>
+      <header className="muse-chart-header">
+        <p className="eyebrow muse-chart-eyebrow">{chart.title}</p>
+        {/* Tagline + summary are intentionally NOT rendered inside the
+            chart card any more — they duplicated the page H1 and the
+            context-panel eyebrow. The card now reads as a tight dossier. */}
+      </header>
 
       <div className="muse-chart-axis-grid">
         {chart.axes.map((axis) => (
@@ -34,7 +39,7 @@ export function MuseChartPanel({ chart, compact = false, className = "" }: MuseC
         ))}
       </div>
 
-      {!compact ? (
+      {!compact && chart.cues.length > 0 ? (
         <ul className="muse-chart-cues">
           {chart.cues.map((cue) => (
             <li key={cue}>{cue}</li>
