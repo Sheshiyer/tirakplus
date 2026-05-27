@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { DateWindow, PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
 import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
+import { ChatThreadView } from "../components/booking/ChatThreadView";
 import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
 import { DateWindowPicker } from "../components/booking/DateWindowPicker";
 import { ReviewFormSheet } from "../components/booking/ReviewFormSheet";
@@ -533,6 +534,20 @@ export function TravellerInquiryDetailPage() {
             perspective="traveller"
           />
         )}
+
+        {/* Pass I.T6 — Chat thread. Self-contained: owns its own polling,
+            optimistic send, mark-read, and scroll behaviour. The component
+            also self-gates the composer on MATCHED_STATUSES (anything before
+            "accepted" or any terminal-non-success state renders the composer
+            disabled with a per-state hint), so no extra conditional wrapping
+            is needed here. Rendered for every non-error ready state — sits
+            between the itinerary surface and the review CTA so the thread
+            stays anchored as the page flips through the booking lifecycle. */}
+        <ChatThreadView
+          inquiryId={inquiry.id}
+          viewerRole="traveller"
+          bookingStatus={inquiry.status}
+        />
 
         {/* H6.T7 — Leave a review CTA at review_pending. The page sits on
             this status from session_completed → review_pending (auto-bridge,
