@@ -8,6 +8,7 @@ import type {
 } from "../../shared/contracts";
 import { BookingApiError, BookingService } from "../api/booking";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
+import { ChatThreadView } from "../components/booking/ChatThreadView";
 import { SetDayOfDetailsForm } from "../components/booking/SetDayOfDetailsForm";
 import { SessionItinerary } from "../components/booking/SessionItinerary";
 import { WindowSelectionView } from "../components/booking/WindowSelectionView";
@@ -700,6 +701,20 @@ export function CompanionInquiryDetailPage() {
           )}
         </section>
       )}
+
+      {/* Pass I.T7 — Private thread between companion and traveller.
+          Mirror image of the traveller-side wire-up (Pass I.T6). The
+          component owns its own <section> with the "Private thread"
+          header, polling cadence, optimistic send, mark-read, and
+          composer gating (MATCHED_STATUSES); the page just hands it
+          inquiryId + viewerRole + the live bookingStatus. Rendered for
+          ALL ready states — routed/declined/cancelled simply surface
+          the appropriate disabled hint without a page-level guard. */}
+      <ChatThreadView
+        inquiryId={data.id}
+        viewerRole="companion"
+        bookingStatus={data.status}
+      />
 
       <div className="action-row">
         <Button as={Link} to="/companion/inbox" variant="secondary">
