@@ -21,9 +21,11 @@ import type {
   CitySlug,
   CompanionDeclineReasonCategory,
   CompanionInquirySummary,
+  CompanionRatingAggregate,
   CompanionSessionDetail,
   InquiryStatus,
   MuseChartSignature,
+  ReviewSummary,
   Session,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
@@ -33,6 +35,14 @@ import type {
 type BookingKv = KVNamespace | undefined;
 
 const INQUIRY_INDEX_LIMIT = 50;
+
+/**
+ * H6 — Maximum number of reviews kept per companion in the KV index.
+ * Older reviews fall off as new ones arrive. The exact list is the
+ * source of truth for aggregate ratings — we recompute on read rather
+ * than maintaining an atomic counter (acceptable at v1 review volume).
+ */
+const REVIEW_HISTORY_LIMIT = 25;
 
 // ===== State transition allowlist =====
 // Single source of truth for what status changes are legal and which
@@ -99,6 +109,12 @@ function travellerIndexKey(email: string): string {
 
 function companionIndexKey(email: string): string {
   return `booking:companion:${email.trim().toLowerCase()}:inquiries`;
+}
+
+// H6 — capped reviews index. Reserved in wrangler.jsonc since H1.T2.
+function reviewsKey(companionEmail: string): string {
+  const normalized = companionEmail.trim().toLowerCase();
+  return `booking:companion:${normalized}:reviews`;
 }
 
 async function readJson<T>(kv: BookingKv, key: string): Promise<T | null> {
@@ -419,7 +435,90 @@ export async function patchBooking(
 }
 
 // Re-export for handler convenience
-export { INQUIRY_INDEX_LIMIT };
+export { INQUIRY_INDEX_LIMIT, REVIEW_HISTORY_LIMIT };
+
+// ===== H6 — Review submission + aggregate rating =====
+//
+// Reviews live at booking:companion:{lowercase-email}:reviews as a
+// newest-first list capped at REVIEW_HISTORY_LIMIT. We recompute the
+// aggregate on read instead of maintaining an atomic counter — fine at
+// v1 review volume and avoids a second write path that could drift.
+
+/**
+ * Submit a review for a completed session. Atomically:
+ *   1. Appends a ReviewSummary to the companion's reviews list
+ *      (capped at REVIEW_HISTORY_LIMIT, newest first)
+ *   2. Transitions the booking from review_pending → review_completed
+ *      with the score/comment/timestamp patched onto the BookingRecord
+ *
+ * Returns the updated BookingRecord on success, null if the transition
+ * was rejected (wrong status, missing record, etc.). Caller is
+ * responsible for validation + authorization.
+ */
+export async function submitReview(
+  kv: BookingKv,
+  booking: BookingRecord,
+  args: {
+    score: number;          // 1-5 integer (caller has validated)
+    comment: string;        // trimmed, 20-500 chars (caller has validated)
+    travellerLabel: string; // for the ReviewSummary; "Traveller from {city}" style
+  },
+): Promise<BookingRecord | null> {
+  const submittedAt = new Date().toISOString();
+
+  // 1) Append to companion's reviews index (newest first, capped)
+  const summary: ReviewSummary = {
+    bookingId: booking.id,
+    travellerLabel: args.travellerLabel,
+    score: args.score,
+    comment: args.comment,
+    submittedAt,
+  };
+  const existing = await readCompanionReviews(kv, booking.companionEmail);
+  const next = [summary, ...existing].slice(0, REVIEW_HISTORY_LIMIT);
+  await writeJson(kv, reviewsKey(booking.companionEmail), next);
+
+  // 2) Transition + patch the booking
+  const updated = await transitionBookingStatus(
+    kv,
+    booking.id,
+    ["review_pending"],
+    "review_completed",
+    booking.travellerEmail,   // traveller is the actor on this transition
+    {
+      reviewedAt: submittedAt,
+      reviewScore: args.score,
+      reviewComment: args.comment,
+    },
+  );
+  return updated;
+}
+
+/**
+ * Read the cap-25 reviews list for a companion. Returns empty array
+ * when KV is missing or no reviews exist.
+ */
+export async function readCompanionReviews(
+  kv: BookingKv,
+  companionEmail: string,
+): Promise<ReviewSummary[]> {
+  const list = await readJson<ReviewSummary[]>(kv, reviewsKey(companionEmail));
+  return Array.isArray(list) ? list : [];
+}
+
+/**
+ * Compute the aggregate rating from a reviews list. Pure function — no I/O.
+ * Returns `{ averageScore: 0, reviewCount: 0 }` when the list is empty;
+ * otherwise averageScore is the arithmetic mean rounded to 1 decimal.
+ */
+export function computeAggregateRating(reviews: ReviewSummary[]): CompanionRatingAggregate {
+  if (reviews.length === 0) {
+    return { averageScore: 0, reviewCount: 0 };
+  }
+  const sum = reviews.reduce((acc, r) => acc + r.score, 0);
+  const averageScore = Math.round((sum / reviews.length) * 10) / 10;
+  return { averageScore, reviewCount: reviews.length };
+}
 
 // ===== Projector: BookingRecord → TravellerInquiryDetail =====
 //
@@ -682,6 +781,20 @@ const CITY_LABELS: Record<CitySlug, string> = {
 
 function travellerLabelFor(city: CitySlug): string {
   return `Traveller from ${CITY_LABELS[city] ?? city}`;
+}
+
+/**
+ * Build a privacy-safe traveller label for ReviewSummary. Uses the
+ * city slug from the booking; deliberately omits any PII (no name,
+ * no email, no exact venue). Examples:
+ *   "Traveller from Bangkok"
+ *   "Traveller from Phuket"
+ *
+ * Reuses CITY_LABELS so the labels stay in sync with the companion-
+ * inquiry projector.
+ */
+export function travellerLabelFromBooking(booking: BookingRecord): string {
+  return `Traveller from ${CITY_LABELS[booking.city] ?? booking.city}`;
 }
 
 function preferredWindowFor(booking: BookingRecord): string {
