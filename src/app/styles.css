@@ -7113,3 +7113,209 @@ p {
 .member-shell .account-page-light .plan-stage-hold-cta .dev-preview-note {
   color: rgba(35, 31, 39, 0.72);
 }
+
+/* ===== SetDayOfDetailsForm (Pass H5.Task 3) =====
+   Companion-facing form for entering the meeting point, day-of contact
+   number, and up to 5 short safety/logistics notes. Sits inline on the
+   companion plan/session detail page (wired in H5.T5). Pattern-matches
+   .date-window-picker for the outer surface + add-remove list and
+   .confirm-plan-view for the form-with-action layout so it slots in
+   alongside its siblings on either backdrop. */
+
+.day-of-details-form {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  color: #f7efe7;
+}
+
+.day-of-details-header {
+  display: grid;
+  gap: 8px;
+}
+
+.day-of-details-header .eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.day-of-details-header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #fff8f1;
+}
+
+.day-of-details-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.45);
+}
+
+.day-of-details-body {
+  display: grid;
+  gap: 16px;
+}
+
+.day-of-details-body .field {
+  margin: 0;
+}
+
+.day-of-details-notes {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+}
+
+.day-of-details-notes-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-of-details-notes-header h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.day-of-details-notes-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.day-of-details-note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.day-of-details-note {
+  display: grid;
+  gap: 6px;
+}
+
+.day-of-details-note-remove {
+  justify-self: end;
+  margin: 0;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.day-of-details-note-remove:hover {
+  color: #f7b9c2;
+}
+
+.day-of-details-note-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.day-of-details-add {
+  margin: 0;
+  padding: 12px 14px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.30);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.day-of-details-add:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff8f1;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.day-of-details-add:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.day-of-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.day-of-details-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.day-of-details-status-error {
+  color: #f7b9c2;
+}
+
+/* Light variant for the porcelain account-page backdrop. Mirrors the
+   .date-window-picker light-mode treatment so the form reads cleanly
+   when embedded inside a member-shell page. */
+.member-shell .account-page-light .day-of-details-form {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .day-of-details-header h2 {
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .day-of-details-header p,
+.member-shell .account-page-light .day-of-details-status {
+  color: rgba(35, 31, 39, 0.70);
+}
+
+.member-shell .account-page-light .day-of-details-notes {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+}
+
+.member-shell .account-page-light .day-of-details-notes-header h3 {
+  color: rgba(35, 31, 39, 0.72);
+}
+
+.member-shell .account-page-light .day-of-details-notes-hint {
+  color: rgba(35, 31, 39, 0.60);
+}
+
+.member-shell .account-page-light .day-of-details-note-remove {
+  color: rgba(35, 31, 39, 0.60);
+}
+
+.member-shell .account-page-light .day-of-details-add {
+  border-color: rgba(35, 31, 39, 0.28);
+  color: rgba(35, 31, 39, 0.78);
+}
+
+.member-shell .account-page-light .day-of-details-add:hover {
+  border-color: rgba(35, 31, 39, 0.50);
+  color: rgba(35, 31, 39, 0.92);
+  background: rgba(35, 31, 39, 0.04);
+}
