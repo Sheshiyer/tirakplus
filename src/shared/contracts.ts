@@ -571,6 +571,13 @@ export type TravellerInquiryDetail = TravellerInquirySummary & {
     note: string;
   };
   privacyNote: string;
+  // H3 — Date negotiation fields, populated as the booking moves through
+  // accepted → date_pending → date_proposed → date_confirmed.
+  travellerWindows?: DateWindow[];                 // populated when traveller has submitted
+  companionSelectedWindow?: DateWindow;            // populated when companion has picked
+  scheduledFor?: string;                           // ISO UTC, set when date_confirmed
+  durationMinutes?: number;                        // set when date_confirmed
+  confirmedAt?: string;                            // ISO UTC, set when date_confirmed
 };
 
 export type TravellerInquiryListResponse = {
@@ -859,6 +866,13 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   declineReason?: CompanionDeclineReasonCategory;
   declineReasonLabel?: string;     // human-readable, e.g. "scheduling conflict"
   declineNotes?: string;
+  // H3 — Date negotiation fields, populated as the booking moves through
+  // accepted → date_pending → date_proposed → date_confirmed.
+  travellerWindows?: DateWindow[];
+  companionSelectedWindow?: DateWindow;
+  scheduledFor?: string;
+  durationMinutes?: number;
+  confirmedAt?: string;
 };
 
 export type CompanionInquiryListResponse = {
@@ -904,6 +918,52 @@ export type CompanionDeclineInquiryRequest = {
  * confirmation message suitable for surfacing in the UI.
  */
 export type CompanionInquiryDecisionResponse = {
+  inquiry: CompanionSessionDetail;
+  message: string;
+};
+
+/**
+ * H3 — Date negotiation request types.
+ *
+ * Window negotiation has 3 stages, each its own endpoint:
+ *   1. Traveller submits 2-3 candidate windows  (PlanWindowsRequest)
+ *   2. Companion picks exactly one              (PlanWindowSelectionRequest)
+ *   3. Traveller confirms the picked window     (PlanConfirmRequest)
+ *
+ * Windows are stored UTC, displayed Asia/Bangkok in the UI for v1.
+ */
+
+/** Traveller proposes 2-3 candidate windows. */
+export type PlanWindowsRequest = {
+  windows: DateWindow[];                          // 2 ≤ length ≤ 3
+};
+
+/** Companion picks exactly one of the traveller's proposed windows. */
+export type PlanWindowSelectionRequest = {
+  selectedWindow: DateWindow;                     // must structurally match one of the proposed
+};
+
+/**
+ * Traveller confirms the selected window. No body fields today — the
+ * inquiry ID is the URL parameter. Type exists for future expansion
+ * (e.g., adding contact-preference or special-request fields).
+ */
+export type PlanConfirmRequest = {
+  // Reserved for future fields. Pass an empty object {} from the client.
+};
+
+/**
+ * Response shape for all 3 plan endpoints (traveller side). Returns the
+ * updated inquiry in traveller-facing shape plus a confirmation message
+ * suitable for surfacing in the UI.
+ */
+export type PlanTravellerResponse = {
+  inquiry: TravellerInquiryDetail;
+  message: string;
+};
+
+/** Response shape for the companion-side plan endpoint (/select-window). */
+export type PlanCompanionResponse = {
   inquiry: CompanionSessionDetail;
   message: string;
 };
