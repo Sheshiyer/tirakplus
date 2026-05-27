@@ -8,7 +8,7 @@
 // (DataExportCard / DeletionCard / SafetyReportsCard): local useState for
 // draft + action state + per-field errors + a single status line.
 
-import { FormEvent, JSX, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type {
   CitySlug,
   ExperienceSlug,
@@ -35,7 +35,7 @@ type ActionState = "idle" | "submitting" | "submitted" | "error";
 
 const MIN_MESSAGE_LENGTH = 20;
 
-export function InquiryFormSheet(props: InquiryFormSheetProps): JSX.Element | null {
+export function InquiryFormSheet(props: InquiryFormSheetProps) {
   const { open, companionId, companionDisplayName, city, experience, onClose, onSubmitted } = props;
 
   const dialogRef = useRef<HTMLDialogElement>(null);
