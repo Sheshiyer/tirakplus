@@ -51,6 +51,8 @@ import type {
   PlanConfirmRequest,
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
+  ReviewRequest,
+  ReviewSubmissionResponse,
   SafetyReportRequest,
   SetDayOfDetailsRequest,
   TravellerInquiryDetail,
@@ -84,7 +86,9 @@ import {
   projectBookingToTravellerInquiryDetail,
   projectBookingToTravellerInquirySummary,
   readBooking,
+  submitReview,
   transitionBookingStatus,
+  travellerLabelFromBooking,
 } from "./booking-store.js";
 import { sendInquiryDecisionEmail, sendPlanConfirmedEmail } from "./email.js";
 
@@ -949,6 +953,63 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     const response: DayOfDetailsResponse = {
       inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
       message: "Day-of details saved. Both sides will see them when the itinerary unlocks.",
+    };
+    return ok(response);
+  }
+
+  // H6.T3 (2026-05-27) — Traveller submits a post-session review.
+  // Pre-validates session → ownership → status → body BEFORE calling
+  // submitReview, which prevents the orphan-review case flagged in T2:
+  // if any gate fails, the reviews KV index stays untouched. submitReview
+  // appends the ReviewSummary to the companion's reviews list and
+  // transitions review_pending → review_completed atomically.
+  const planReviewMatch = pathname.match(/^\/api\/plans\/([^/]+)\/review$/);
+  if (request.method === "POST" && planReviewMatch) {
+    const id = planReviewMatch[1];
+
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to leave a review.");
+
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    if (!isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only review your own sessions.");
+    }
+
+    if (booking.status !== "review_pending") {
+      return fail(
+        409,
+        "INVALID_STAGE",
+        booking.status === "review_completed"
+          ? "This session has already been reviewed."
+          : "This session is not ready for a review.",
+      );
+    }
+
+    const body = await readJsonBody<ReviewRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateReview(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "REVIEW_VALIDATION_FAILED", "Review the score + comment and try again.", fieldErrors);
+    }
+
+    const updated = await submitReview(env.BOOKING_DATA, booking, {
+      score: body.score,
+      comment: body.comment.trim(),
+      travellerLabel: travellerLabelFromBooking(booking),
+    });
+    if (!updated) {
+      return fail(409, "INVALID_TRANSITION", "Could not submit the review (status changed).");
+    }
+
+    const companionDisplayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion";
+
+    const response: ReviewSubmissionResponse = {
+      inquiry: projectBookingToTravellerInquiryDetail(updated, companionDisplayName),
+      message: "Review submitted. Thanks for sharing.",
     };
     return ok(response);
   }
@@ -2074,6 +2135,27 @@ function validateDayOfDetails(body: SetDayOfDetailsRequest): Record<string, stri
         }
       });
     }
+  }
+  return errors;
+}
+
+// H6.T3 (2026-05-27) — Validate the traveller's review submission.
+// Score must be an integer 1-5; comment is trimmed and must be 20-500
+// characters. Errors use the same `{field: message}` shape as other
+// validators so the UI can map them inline. submitReview expects the
+// caller to have validated both fields, so this MUST run before the
+// store call to avoid an orphan reviews-list write on bad input.
+function validateReview(body: ReviewRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const score = body?.score;
+  if (!Number.isInteger(score) || score < 1 || score > 5) {
+    errors.score = "Pick a score between 1 and 5.";
+  }
+  const comment = (body?.comment ?? "").trim();
+  if (comment.length < 20) {
+    errors.comment = "Share at least 20 characters about the session.";
+  } else if (comment.length > 500) {
+    errors.comment = "Keep the comment under 500 characters.";
   }
   return errors;
 }

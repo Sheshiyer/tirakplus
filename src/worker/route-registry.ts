@@ -410,6 +410,18 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     notes: "Companion sets day-of details (meeting point, contact, notes) on a confirmed plan. Editable from date_confirmed through session_completed. Metadata-only — no status change. H2 limitation: any role:companion session can act on any inquiry until verified companion emails ship.",
   },
   {
+    method: "POST",
+    path: "/api/plans/:inquiryId/review",
+    audience: "traveller",
+    handler: "plans.submitReview",
+    requestContract: "ReviewRequest",
+    responseContract: "ReviewSubmissionResponse",
+    auth: "role:traveller",
+    stagedProvider: "bookingStore.submitReview",
+    productionTarget: "KV",
+    notes: "Traveller submits a 1-5 score + 20-500 char comment after session_completed advances to review_pending. Appends to companion's reviews list and transitions review_pending → review_completed. Reviews are immutable in v1.",
+  },
+  {
     method: "PATCH",
     path: "/api/companion/profile",
     audience: "companion",
