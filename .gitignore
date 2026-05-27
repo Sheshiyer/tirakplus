@@ -5,3 +5,10 @@ dist/
 .dev.vars
 *.local
 .vercel
+
+# Generated artifacts — regenerable from scripts/qa-*.mjs and the
+# image/video pipelines. Large binaries that don't belong in git.
+generated/
+
+# macOS metadata
+**/.DS_Store
