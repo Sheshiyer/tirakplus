@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { CompanionProfile } from "../../shared/contracts";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { AssetRegistry } from "../registry/assets";
+import { InquiryFormSheet } from "../components/booking/InquiryFormSheet";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -16,6 +17,8 @@ type ProfileState =
 export function CompanionProfilePage() {
   const { companionId } = useParams();
   const [state, setState] = useState<ProfileState>({ status: "loading" });
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companionId) {
@@ -69,6 +72,8 @@ export function CompanionProfilePage() {
   }
 
   const { profile } = state;
+  const primaryExperience = profile.experienceTags[0];
+  const canSendInquiry = profile.visibilityState === "public" && Boolean(primaryExperience);
 
   return (
     <section className="profile-page" aria-labelledby="profile-title">
@@ -82,10 +87,20 @@ export function CompanionProfilePage() {
             <Button as={Link} to={`/traveller/companions/${profile.id}/inquire`} variant="primary">
               Start private inquiry
             </Button>
+            {canSendInquiry && (
+              <Button type="button" variant="primary" onClick={() => setInquiryOpen(true)}>
+                Send inquiry
+              </Button>
+            )}
             <Button as={Link} to="/traveller/discovery" variant="secondary">
               Back to discovery
             </Button>
           </div>
+          {statusMessage && (
+            <p className="companion-status-message" role="status">
+              {statusMessage}
+            </p>
+          )}
         </div>
 
         <aside className="profile-verification-panel" aria-label="Verification state">
@@ -141,6 +156,21 @@ export function CompanionProfilePage() {
           Open safety
         </Button>
       </section>
+
+      {canSendInquiry && primaryExperience && (
+        <InquiryFormSheet
+          open={inquiryOpen}
+          companionId={profile.id}
+          companionDisplayName={profile.displayName}
+          city={profile.city}
+          experience={primaryExperience}
+          onClose={() => setInquiryOpen(false)}
+          onSubmitted={() => {
+            setInquiryOpen(false);
+            setStatusMessage(`Inquiry sent to ${profile.displayName}. Check your inbox.`);
+          }}
+        />
+      )}
     </section>
   );
 }
