@@ -7734,3 +7734,25 @@ p {
 .member-shell .account-page-light .review-form-comment-counter-out {
   color: #b03050;
 }
+
+/* H6.T7 — Review summary comment block. Rendered on the traveller's own
+   detail page once status === review_completed so they can read back the
+   review they submitted. Italic + left-border treatment to read as a
+   quoted block; rose-bronze border ties it to the rest of the review
+   surface (matches the .review-form-score-option:checked accent). */
+.review-summary-comment {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 8px 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--color-rose-bronze);
+  border-radius: 6px;
+}
+
+/* Light variant — flip the surface + text contrast for the
+   account-page-light theme that wraps the member shell. */
+.member-shell .account-page-light .review-summary-comment {
+  color: rgba(35, 31, 39, 0.78);
+  background: rgba(35, 31, 39, 0.04);
+}

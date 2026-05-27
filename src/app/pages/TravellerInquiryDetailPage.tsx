@@ -5,6 +5,7 @@ import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
 import { DateWindowPicker } from "../components/booking/DateWindowPicker";
+import { ReviewFormSheet } from "../components/booking/ReviewFormSheet";
 import { SessionItinerary } from "../components/booking/SessionItinerary";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -51,6 +52,11 @@ export function TravellerInquiryDetailPage() {
   const [holdActionState, setHoldActionState] = useState<"idle" | "submitting" | "error">("idle");
   const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
 
+  // H6.T7 — Review modal open/close toggle. The ReviewFormSheet is a
+  // native <dialog> that only mounts in DOM when open=true; the CTA at
+  // review_pending flips this on, and onSubmitted / onClose flip it off.
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+
   useEffect(() => {
     if (!inquiryId) {
       setState({ status: "error", message: "Choose an inquiry before opening its details." });
@@ -78,13 +84,13 @@ export function TravellerInquiryDetailPage() {
     };
   }, [inquiryId]);
 
-  // H2.T8 / H3.T7 / H4-stub / H5.T6 — Mirror the inbox list poll for the
-  // detail page. While the viewed inquiry sits in any non-terminal
-  // negotiation/hold/scheduled state, refetch every 5s so the page flips
-  // forward without manual reload. Stops automatically once status reaches
-  // session_completed (terminal for the traveller in H5) or any terminal
-  // non-success state (declined / cancelled). Skips when the tab is hidden.
-  // Polling failures are swallowed silently.
+  // H2.T8 / H3.T7 / H4-stub / H5.T6 / H6.T7 — Mirror the inbox list poll for
+  // the detail page. While the viewed inquiry sits in any non-terminal
+  // negotiation/hold/scheduled/review state, refetch every 5s so the page
+  // flips forward without manual reload. Stops automatically once status
+  // reaches review_completed (terminal for the traveller in H6) or any
+  // terminal non-success state (declined / cancelled). Skips when the tab
+  // is hidden. Polling failures are swallowed silently.
   //
   // payment_held is included so the prod path (where Stripe webhook flips
   // payment_held → session_scheduled out-of-band) surfaces within 5s. In dev
@@ -98,9 +104,18 @@ export function TravellerInquiryDetailPage() {
   //     SessionItinerary at the 24h cutover, and again at session_live.
   //   session_live      → system advances to session_completed when the
   //     session window ends; keep polling so the traveller sees the
-  //     terminal state without a manual reload. session_completed itself
-  //     is terminal for the traveller in H5 (no review yet), so we stop
-  //     polling there.
+  //     terminal state without a manual reload.
+  //
+  // H6 additions:
+  //   session_completed → system auto-advances to review_pending immediately
+  //     so the traveller can leave a review; keep polling so that surface
+  //     flips in without a manual reload.
+  //   review_pending    → the 7-day review window can auto-close to
+  //     review_completed even without a submission; keep polling so the
+  //     page surfaces the closed-window state when that fires.
+  //
+  // review_completed is terminal for the traveller and is intentionally
+  // excluded so the page stops polling once the review chain ends.
   //
   // hasPending is derived via useMemo so the polling effect keys on a boolean
   // rather than the whole state object — keeping the 5s cadence steady across
@@ -115,7 +130,9 @@ export function TravellerInquiryDetailPage() {
       s === "date_proposed" ||
       s === "payment_held" ||
       s === "session_scheduled" || // H5: poll for session_live transition
-      s === "session_live"         // H5: poll for session_completed transition
+      s === "session_live" ||      // H5: poll for session_completed transition
+      s === "session_completed" || // H6: poll for review_pending transition
+      s === "review_pending"       // H6: poll for review_completed (incl. 7-day auto-close)
     );
   }, [state]);
 
@@ -207,6 +224,17 @@ export function TravellerInquiryDetailPage() {
         (inquiry.status === "date_confirmed" && itineraryUnlocked)),
   );
 
+  // H6.T7 — Humanise the CitySlug for the anonymised-via-label copy in the
+  // Leave-a-Review CTA. The slug is kebab-case ("koh-samui"); we split on
+  // dashes and title-case each word so the public-facing string reads
+  // "Traveller from Koh Samui" instead of leaking the slug verbatim. Local
+  // inline derivation avoids pulling in the booking-store CITY_LABELS map
+  // for a single one-line transformation; matches the lightweight inline
+  // formatters already used elsewhere on this page (formatWindowLabel etc.).
+  const cityLabel = inquiry.city
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
   const paymentReturnState = searchParams.get("payment");
   const stripeProvider = paymentProviders.find((provider) => provider.id === "stripe");
   const isStripeTestMode = stripeProvider?.status === "test_mode";
@@ -267,6 +295,7 @@ export function TravellerInquiryDetailPage() {
   };
 
   return (
+    <>
     <section className="inquiry-page" aria-labelledby="inquiry-detail-title">
       <div className="inquiry-success-panel">
         <p className="eyebrow">{inquiry.status.replace("_", " ")}</p>
@@ -505,6 +534,57 @@ export function TravellerInquiryDetailPage() {
           />
         )}
 
+        {/* H6.T7 — Leave a review CTA at review_pending. The page sits on
+            this status from session_completed → review_pending (auto-bridge,
+            instantaneous) until the traveller either submits or the 7-day
+            window expires. The CTA opens the ReviewFormSheet modal mounted
+            at the bottom of this component. cityLabel humanises the slug
+            inline so we don't ship the literal "{city}" token that
+            ReviewFormSheet currently renders in its own header. */}
+        {inquiry.status === "review_pending" && (
+          <section className="plan-stage-cta" aria-label="Leave a review">
+            <p className="eyebrow">Review</p>
+            <h2>How was your time with {inquiry.companionDisplayName}?</h2>
+            <p>
+              Your review stays anonymous via &ldquo;Traveller from {cityLabel}.&rdquo;
+              Reviews are immutable once submitted.
+            </p>
+            <Button type="button" variant="primary" onClick={() => setReviewModalOpen(true)}>
+              Leave a review
+            </Button>
+          </section>
+        )}
+
+        {/* H6.T7 — Submitted review summary at review_completed. Renders the
+            traveller's own review back to them so the page has a coherent
+            terminal surface (and so any future "edit" affordance would have
+            a place to live, though v1 reviews are immutable). The score +
+            comment + submittedAt copy is the same shape the public
+            CompanionProfilePage will use in T8. */}
+        {inquiry.status === "review_completed" && inquiry.reviewScore !== undefined && (
+          <section className="plan-stage-confirmed" aria-label="Review submitted">
+            <p className="eyebrow">Review submitted</p>
+            <h2>You rated {inquiry.companionDisplayName} {inquiry.reviewScore}/5.</h2>
+            {inquiry.reviewComment && (
+              <p className="review-summary-comment">&ldquo;{inquiry.reviewComment}&rdquo;</p>
+            )}
+            {inquiry.reviewedAt && <p>Submitted on {formatDate(inquiry.reviewedAt)}.</p>}
+          </section>
+        )}
+
+        {/* H6.T7 — Auto-completed-without-review case. The 7-day review
+            window can expire silently, in which case the inquiry advances
+            to review_completed without a reviewScore. Show a brief notice
+            so the page has SOMETHING here instead of a blank terminal
+            state. Rare in practice — most reviews land within a day. */}
+        {inquiry.status === "review_completed" && inquiry.reviewScore === undefined && (
+          <section className="plan-stage-cta" aria-label="Review window closed">
+            <p className="eyebrow">Review window closed</p>
+            <h2>The 7-day review window has passed.</h2>
+            <p>Reviews need to land within a week of the session completing.</p>
+          </section>
+        )}
+
         <div className="action-row">
           <Button as={Link} to="/traveller/inbox" variant="secondary">
             Back to inbox
@@ -515,6 +595,25 @@ export function TravellerInquiryDetailPage() {
         </div>
       </div>
     </section>
+
+    {/* H6.T7 — ReviewFormSheet mount. Native <dialog> modal that only
+        renders DOM when open=true (the component early-returns null
+        otherwise), so the cost of leaving it mounted here at the page
+        level is zero when the traveller isn't reviewing. onSubmitted
+        flips the page into review_completed by setting the next inquiry
+        snapshot returned by the API, which immediately renders the
+        review summary card above and stops the 5s poll. */}
+    <ReviewFormSheet
+      open={reviewModalOpen}
+      inquiryId={inquiry.id}
+      companionDisplayName={inquiry.companionDisplayName}
+      onClose={() => setReviewModalOpen(false)}
+      onSubmitted={(next) => {
+        setReviewModalOpen(false);
+        setState({ status: "ready", inquiry: next });
+      }}
+    />
+    </>
   );
 }
 
