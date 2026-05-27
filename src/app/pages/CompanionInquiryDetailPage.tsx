@@ -88,7 +88,7 @@ export function CompanionInquiryDetailPage() {
   // While the inquiry sits in any non-terminal state where the OTHER party
   // is the next mover, refetch every 5s so the page transitions without a
   // manual reload. Polling stops automatically once status reaches a
-  // terminal state (date_confirmed / declined / cancelled) or any state
+  // terminal state (session_scheduled / declined / cancelled) or any state
   // where the companion holds the next action (date_pending).
   //
   //   routed         → waiting on companion's own decision — included so
@@ -99,6 +99,13 @@ export function CompanionInquiryDetailPage() {
   //                    already submitted; keep polling to catch the
   //                    transition to date_proposed.
   //   date_proposed  → waiting on traveller to confirm.
+  //   payment_held   → H4-stub. Traveller has placed the payment hold;
+  //                    in prod the Stripe webhook flips this to
+  //                    session_scheduled out-of-band, so keep polling
+  //                    so the companion sees the transition within 5s.
+  //                    In dev/staging the auto-advance bridge skips
+  //                    through this state synchronously so the panel
+  //                    is rarely seen.
   //
   // hasPending is derived via useMemo so the polling effect keys on a
   // boolean rather than the whole state object — keeping the 5s cadence
@@ -110,7 +117,8 @@ export function CompanionInquiryDetailPage() {
       s === "routed" ||
       s === "accepted" ||
       s === "date_pending" ||
-      s === "date_proposed"
+      s === "date_proposed" ||
+      s === "payment_held"
     );
   }, [state]);
 
@@ -499,6 +507,42 @@ export function CompanionInquiryDetailPage() {
           </p>
           {data.confirmedAt && <p>Confirmed on {formatDate(data.confirmedAt)}.</p>}
           <p>Tirak will surface day-of details closer to the date.</p>
+        </section>
+      )}
+
+      {/* H4-stub — payment_held panel. Read-only confirmation for the
+          companion that the traveller placed the hold. No CTA on this side
+          (the traveller is the actor). In prod this state persists until
+          the Stripe webhook flips it to session_scheduled; the hasPending
+          memo above keeps polling so the transition surfaces within 5s.
+          In dev/staging the auto-advance bridge skips this state
+          synchronously, so this panel is rarely seen. */}
+      {data.status === "payment_held" && data.companionSelectedWindow && (
+        <section className="plan-stage-confirmed" aria-label="Traveller placed hold">
+          <p className="eyebrow">Booking held</p>
+          <h2>{data.travellerLabel} placed a hold.</h2>
+          <p>{formatWindowLabel(data.companionSelectedWindow)} (Bangkok local time)</p>
+          {data.heldAt && <p>Held on {formatDate(data.heldAt)}.</p>}
+          <p>Tirak will surface day-of details for both of you closer to the session.</p>
+        </section>
+      )}
+
+      {/* H4-stub — session_scheduled panel. Terminal state for H4-stub. H5
+          will replace this with the day-of details surface. Mirrors the
+          traveller-side panel from commit 2ba6b0d. */}
+      {data.status === "session_scheduled" && data.companionSelectedWindow && (
+        <section className="plan-stage-confirmed plan-stage-scheduled" aria-label="Session scheduled">
+          <p className="eyebrow">Session scheduled</p>
+          <h2>{formatWindowLabel(data.companionSelectedWindow)}</h2>
+          <p>
+            Bangkok local time
+            {typeof data.durationMinutes === "number"
+              ? ` · ${formatDurationHours(data.durationMinutes)}`
+              : ""}
+            .
+          </p>
+          {data.heldAt && <p>Hold placed on {formatDate(data.heldAt)}.</p>}
+          <p>Day-of details will appear here closer to the session.</p>
         </section>
       )}
 
