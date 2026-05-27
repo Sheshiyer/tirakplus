@@ -9,12 +9,15 @@ import type {
   CompanionDeclineInquiryRequest,
   CompanionInquiryDecisionResponse,
   CompanionInquiryListResponse,
+  CompanionReviewsResponse,
   CompanionSessionDetail,
   DayOfDetailsResponse,
   PlanCompanionResponse,
   PlanTravellerResponse,
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
+  ReviewRequest,
+  ReviewSubmissionResponse,
   SetDayOfDetailsRequest,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
@@ -194,6 +197,30 @@ export const BookingService = {
     return apiRequest<DayOfDetailsResponse>(
       `/api/plans/${encodeURIComponent(inquiryId)}/day-of-details`,
       { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Traveller submits a 1-5 score + 20-500 char comment after the session
+   * transitions to review_pending. Reviews are immutable in v1 — the
+   * server returns 409 if you try to submit a second one on the same
+   * inquiry.
+   */
+  submitReview(inquiryId: string, payload: ReviewRequest): Promise<ReviewSubmissionResponse> {
+    return apiRequest<ReviewSubmissionResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/review`,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Public companion reviews + aggregate rating. No auth required — used
+   * by traveller browsing companion profiles. Returns empty arrays for
+   * brand-new companions.
+   */
+  getCompanionReviews(companionId: string): Promise<CompanionReviewsResponse> {
+    return apiRequest<CompanionReviewsResponse>(
+      `/api/companions/${encodeURIComponent(companionId)}/reviews`,
     );
   },
 };
