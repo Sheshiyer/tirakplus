@@ -6631,3 +6631,174 @@ p {
   color: rgba(35, 31, 39, 0.92);
   background: rgba(35, 31, 39, 0.04);
 }
+
+/* ===== WindowSelectionView (Pass H3.Task 5) =====
+   Companion-facing radio picker for selecting one of the traveller's 2-3
+   proposed windows. Pattern-matches .companion-decline-reasons for the
+   radio group treatment and .date-window-picker for the outer surface so
+   it slots in alongside its sibling on either backdrop. */
+
+.window-selection-view {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  color: #f7efe7;
+}
+
+.window-selection-header {
+  display: grid;
+  gap: 8px;
+}
+
+.window-selection-header .eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.window-selection-header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #fff8f1;
+}
+
+.window-selection-header p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.window-selection-tz {
+  font-size: 12px !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.window-selection-body {
+  display: grid;
+  gap: 16px;
+}
+
+.window-selection-list {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.window-selection-list legend {
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.window-selection-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 14px;
+  line-height: 1.3;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.window-selection-option:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.window-selection-option input[type="radio"] {
+  accent-color: var(--color-rose-bronze);
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+}
+
+.window-selection-option:has(input[type="radio"]:checked) {
+  border-color: var(--color-rose-bronze);
+  background: rgba(180, 120, 80, 0.10);
+}
+
+.window-selection-option-body {
+  display: grid;
+  gap: 2px;
+}
+
+.window-selection-option-label {
+  display: block;
+}
+
+.window-selection-option-note {
+  display: block;
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.window-selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.window-selection-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.window-selection-status-error {
+  color: #f7b9c2;
+}
+
+/* Light variant for the porcelain account-page backdrop. Mirrors the
+   .date-window-picker light-mode treatment so the picker reads cleanly
+   when embedded inside a member-shell page. */
+.member-shell .account-page-light .window-selection-view {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .window-selection-header h2 {
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .window-selection-header p,
+.member-shell .account-page-light .window-selection-status {
+  color: rgba(35, 31, 39, 0.70);
+}
+
+.member-shell .account-page-light .window-selection-tz {
+  color: rgba(35, 31, 39, 0.55) !important;
+}
+
+.member-shell .account-page-light .window-selection-option {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.12);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .window-selection-option:hover {
+  border-color: rgba(35, 31, 39, 0.22);
+  background: rgba(35, 31, 39, 0.07);
+}
+
+.member-shell .account-page-light .window-selection-option-note {
+  color: rgba(35, 31, 39, 0.62);
+}
