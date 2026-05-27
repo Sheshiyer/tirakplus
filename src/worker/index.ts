@@ -76,6 +76,8 @@ import {
   listCompanionBookings,
   listOrFallback,
   listTravellerBookings,
+  maybeAdvanceSessionStatus,
+  maybeAdvanceSessionStatusBatch,
   patchBooking,
   projectBookingToCompanionInquirySummary,
   projectBookingToCompanionSessionDetail,
@@ -433,7 +435,10 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       return fail(401, "SESSION_REQUIRED", "Sign in to view your private inquiries.");
     }
     const results = await listOrFallback(
-      () => listTravellerBookings(env.BOOKING_DATA, session.profile.email),
+      async () => {
+        const bookings = await listTravellerBookings(env.BOOKING_DATA, session.profile.email);
+        return await maybeAdvanceSessionStatusBatch(env.BOOKING_DATA, bookings);
+      },
       (booking) => {
         const companion = provider.getCompanionProfile(booking.companionId);
         return projectBookingToTravellerInquirySummary(booking, companion?.displayName ?? "Companion profile");
@@ -459,7 +464,10 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       return fail(401, "SESSION_REQUIRED", "Sign in to view this inquiry.");
     }
     const detail = await detailOrFallback(
-      () => readBooking(env.BOOKING_DATA, inquiryMatch[1]),
+      async () => {
+        const booking = await readBooking(env.BOOKING_DATA, inquiryMatch[1]);
+        return booking ? await maybeAdvanceSessionStatus(env.BOOKING_DATA, booking) : null;
+      },
       (booking) => isTravellerOwner(booking, session),
       (booking) => {
         const companion = provider.getCompanionProfile(booking.companionId);
@@ -553,7 +561,10 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     if (roleGuard) return roleGuard;
     const session = getSessionFromRequest(request)!;
     const results = await listOrFallback(
-      () => listCompanionBookings(env.BOOKING_DATA, session.profile.email),
+      async () => {
+        const bookings = await listCompanionBookings(env.BOOKING_DATA, session.profile.email);
+        return await maybeAdvanceSessionStatusBatch(env.BOOKING_DATA, bookings);
+      },
       projectBookingToCompanionInquirySummary,
       () => provider.listCompanionInquiries(),
     );
@@ -575,7 +586,10 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     const roleGuard = requireCustomerRole(request, "companion", fail);
     if (roleGuard) return roleGuard;
     const detail = await detailOrFallback(
-      () => readBooking(env.BOOKING_DATA, companionSessionMatch[1]),
+      async () => {
+        const booking = await readBooking(env.BOOKING_DATA, companionSessionMatch[1]);
+        return booking ? await maybeAdvanceSessionStatus(env.BOOKING_DATA, booking) : null;
+      },
       () => true,
       (booking) => projectBookingToCompanionSessionDetail(booking, companionMuseChart),
       () => provider.getCompanionSession(companionSessionMatch[1]),

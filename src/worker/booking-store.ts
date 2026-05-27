@@ -326,6 +326,72 @@ export async function transitionBookingStatus(
 }
 
 /**
+ * Check if a booking's session_scheduled / session_live state has elapsed
+ * its scheduled timestamps and advance accordingly. Idempotent — safe to
+ * call on every GET. Returns the (possibly advanced) record.
+ *
+ * Timing rules:
+ *   - session_scheduled → session_live when now >= scheduledFor
+ *   - session_live → session_completed when now >= scheduledFor + durationMinutes
+ *
+ * Other statuses are returned unchanged. Missing scheduledFor / duration
+ * fields are tolerated — the helper simply skips advancement.
+ *
+ * Uses transitionBookingStatus internally with actor="system" so the
+ * audit trail correctly attributes the change.
+ */
+export async function maybeAdvanceSessionStatus(
+  kv: BookingKv,
+  booking: BookingRecord,
+): Promise<BookingRecord> {
+  if (!booking.scheduledFor) return booking;
+
+  const now = Date.now();
+  const startMs = Date.parse(booking.scheduledFor);
+  if (Number.isNaN(startMs)) return booking;
+
+  if (booking.status === "session_scheduled" && now >= startMs) {
+    const advanced = await transitionBookingStatus(
+      kv,
+      booking.id,
+      ["session_scheduled"],
+      "session_live",
+      "system",
+    );
+    if (advanced) booking = advanced;
+  }
+
+  if (
+    booking.status === "session_live" &&
+    typeof booking.durationMinutes === "number" &&
+    now >= startMs + booking.durationMinutes * 60 * 1000
+  ) {
+    const advanced = await transitionBookingStatus(
+      kv,
+      booking.id,
+      ["session_live"],
+      "session_completed",
+      "system",
+    );
+    if (advanced) booking = advanced;
+  }
+
+  return booking;
+}
+
+/**
+ * Apply maybeAdvanceSessionStatus to each booking in a list. Used by
+ * list GET handlers so polling refreshes pick up time-based transitions
+ * across the whole inbox at once.
+ */
+export async function maybeAdvanceSessionStatusBatch(
+  kv: BookingKv,
+  bookings: BookingRecord[],
+): Promise<BookingRecord[]> {
+  return Promise.all(bookings.map((b) => maybeAdvanceSessionStatus(kv, b)));
+}
+
+/**
  * Apply a metadata patch to a booking record WITHOUT changing status.
  * Used for fields like meetingPoint that the companion sets independently
  * of the state machine. Returns null if the booking is missing.
