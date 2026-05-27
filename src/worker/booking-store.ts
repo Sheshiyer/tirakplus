@@ -18,7 +18,11 @@
 
 import type {
   BookingRecord,
+  CitySlug,
+  CompanionInquirySummary,
+  CompanionSessionDetail,
   InquiryStatus,
+  MuseChartSignature,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
 } from "../shared/contracts";
@@ -524,5 +528,121 @@ export function projectBookingToTravellerInquiryDetail(
     timeline: timelineFor(booking.status),
     paymentState: paymentStateFor(booking.status),
     privacyNote: PRIVACY_NOTE,
+  };
+}
+
+// ===== Projector: BookingRecord → CompanionInquirySummary =====
+//
+// Companion-side view of an inquiry. Identity stays scrubbed — no
+// traveller email or display name leaks across. The travellerLabel is
+// derived from city alone ("Traveller from Bangkok") per contracts.ts
+// guidance. preferredWindow is a placeholder until H3 stores
+// travellerWindows on the BookingRecord.
+
+const COMPANION_PRIVACY_NOTE =
+  "Traveller identity and contact details stay private until Tirak clears the plan.";
+
+const CITY_LABELS: Record<CitySlug, string> = {
+  "bangkok": "Bangkok",
+  "phuket": "Phuket",
+  "koh-samui": "Koh Samui",
+  "koh-phangan": "Koh Phangan",
+};
+
+function travellerLabelFor(city: CitySlug): string {
+  return `Traveller from ${CITY_LABELS[city] ?? city}`;
+}
+
+function preferredWindowFor(booking: BookingRecord): string {
+  // H3 will populate booking.travellerWindows; until then, surface a
+  // neutral placeholder so the companion UI has a non-empty string.
+  if (booking.travellerWindows && booking.travellerWindows.length > 0) {
+    const first = booking.travellerWindows[0];
+    return first.note ?? `${first.start} – ${first.end}`;
+  }
+  return "Preferred window pending traveller proposal.";
+}
+
+export function projectBookingToCompanionInquirySummary(
+  booking: BookingRecord,
+): CompanionInquirySummary {
+  return {
+    id: booking.id,
+    travellerLabel: travellerLabelFor(booking.city),
+    city: booking.city,
+    experience: booking.experience,
+    status: booking.status,
+    preferredWindow: preferredWindowFor(booking),
+    receivedAt: booking.createdAt,
+    nextStep: nextStepFor(booking.status),
+    privacyNote: COMPANION_PRIVACY_NOTE,
+  };
+}
+
+// ===== Projector: BookingRecord → CompanionSessionDetail =====
+//
+// Detail view used by the companion inbox. Fields the projector cannot
+// synthesize from BookingRecord (travellerContext narrative, museFit
+// chart) are placeholders or caller-supplied. H2-H6 will enrich these
+// once the companion-side state machine exists.
+
+const COMPANION_DECISION_OPTIONS: CompanionSessionDetail["decisionOptions"] = [
+  {
+    label: "Ask Tirak to clarify",
+    value: "request_review",
+    description: "Keep the request active while asking Tirak for clearer plan details or boundaries.",
+  },
+  {
+    label: "Accept after review",
+    value: "accept_after_review",
+    description: "Mark willingness to proceed only if Tirak clears the plan.",
+  },
+  {
+    label: "Decline safely",
+    value: "decline_safely",
+    description: "Close the request without sharing private contact or availability details.",
+  },
+];
+
+function companionChecklistFor(status: InquiryStatus): CompanionSessionDetail["checklist"] {
+  // Three-row baseline. H2/H4 will gate items based on real status.
+  return [
+    {
+      label: "Traveller context",
+      status: "complete",
+      note: "The request includes city, timing, and tone.",
+    },
+    {
+      label: "Companion boundary",
+      status: status === "routed" || status === "under_review" ? "active" : "pending",
+      note: "A response can name limits without exposing contact details.",
+    },
+    {
+      label: "Payment",
+      status: status === "payment_held" || status === "session_scheduled" ? "complete" : "blocked",
+      note: "Payment is not available for this request yet.",
+    },
+  ];
+}
+
+/**
+ * Caller supplies `museFit` (staged-data's companionMuseChart by default)
+ * so booking-store stays free of fixture imports. travellerContext is a
+ * placeholder narrative — H2 will replace this with a Muse-generated
+ * read once the companion accept/decline endpoint exists.
+ */
+export function projectBookingToCompanionSessionDetail(
+  booking: BookingRecord,
+  museFit: MuseChartSignature,
+): CompanionSessionDetail {
+  return {
+    ...projectBookingToCompanionInquirySummary(booking),
+    travellerContext:
+      "Traveller has shared city, experience, and message. Tirak is reviewing the plan before any direct introduction.",
+    museFit,
+    decisionOptions: COMPANION_DECISION_OPTIONS,
+    checklist: companionChecklistFor(booking.status),
+    messageThread: [],
+    paymentState: paymentStateFor(booking.status),
   };
 }

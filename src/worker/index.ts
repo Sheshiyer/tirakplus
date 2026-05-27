@@ -59,7 +59,12 @@ import {
 } from "./account-store.js";
 import {
   createBooking,
+  listCompanionBookings,
+  listTravellerBookings,
+  projectBookingToCompanionInquirySummary,
+  projectBookingToCompanionSessionDetail,
   projectBookingToTravellerInquiryDetail,
+  readBooking,
 } from "./booking-store.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
@@ -383,8 +388,23 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/traveller/inquiries") {
+    // Pass H (2026-05-27) — KV-backed listing for the current traveller,
+    // with fixture fallback when KV returns empty so first-time dev runs
+    // still surface demo content.
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in to view your private inquiries.");
+    }
+    const bookings = await listTravellerBookings(env.BOOKING_DATA, session.profile.email);
+    const projected = bookings.map((booking) => {
+      const companion = provider.getCompanionProfile(booking.companionId);
+      const displayName = companion?.displayName ?? "Companion profile";
+      return projectBookingToTravellerInquiryDetail(booking, displayName);
+    });
+    const results =
+      projected.length > 0 ? projected.map(toInquirySummary) : provider.listTravellerInquiries().map(toInquirySummary);
     return ok({
-      results: provider.listTravellerInquiries().map(toInquirySummary),
+      results,
       emptyState: {
         title: "No private inquiries yet.",
         description: "Start from a reviewed profile and submit a respectful inquiry for human review.",
@@ -394,9 +414,22 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
 
   const inquiryMatch = pathname.match(/^\/api\/traveller\/inquiries\/([^/]+)$/);
   if (request.method === "GET" && inquiryMatch) {
-    const inquiry = provider.getTravellerInquiry(inquiryMatch[1]);
-    if (!inquiry) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
-    return ok(inquiry);
+    // Pass H (2026-05-27) — load KV-first, fall back to fixture for demo
+    // continuity. Email ownership check prevents cross-traveller leaks
+    // even when both rows happen to be in KV.
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in to view this inquiry.");
+    }
+    const booking = await readBooking(env.BOOKING_DATA, inquiryMatch[1]);
+    if (booking && booking.travellerEmail === session.profile.email.trim().toLowerCase()) {
+      const companion = provider.getCompanionProfile(booking.companionId);
+      const displayName = companion?.displayName ?? "Companion profile";
+      return ok(projectBookingToTravellerInquiryDetail(booking, displayName));
+    }
+    const fixture = provider.getTravellerInquiry(inquiryMatch[1]);
+    if (!fixture) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    return ok(fixture);
   }
 
   if (request.method === "GET" && pathname === "/api/companion/onboarding") {
@@ -433,8 +466,19 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   if (request.method === "GET" && pathname === "/api/companion/inquiries") {
+    // Pass H (2026-05-27) — companion list. Seeded companions don't have
+    // real emails today, so listCompanionBookings against session email
+    // typically returns []; the fixture fallback keeps the inbox useful
+    // during dev. Real-companion emails will land here once the Pass E
+    // onboarding flow stamps verified addresses on profiles.
+    const roleGuard = requireCustomerRole(request, "companion", fail);
+    if (roleGuard) return roleGuard;
+    const session = getSessionFromRequest(request)!;
+    const bookings = await listCompanionBookings(env.BOOKING_DATA, session.profile.email);
+    const projected = bookings.map(projectBookingToCompanionInquirySummary);
+    const results = projected.length > 0 ? projected : provider.listCompanionInquiries();
     return ok({
-      results: provider.listCompanionInquiries(),
+      results,
       emptyState: {
         title: "No reviewed inquiries yet.",
         description: "Tirak sends inquiries after review, without fake demand or online-now pressure.",
@@ -444,9 +488,19 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
 
   const companionSessionMatch = pathname.match(/^\/api\/companion\/inquiries\/([^/]+)$/);
   if (request.method === "GET" && companionSessionMatch) {
-    const session = provider.getCompanionSession(companionSessionMatch[1]);
-    if (!session) return fail(404, "COMPANION_INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
-    return ok(session);
+    // Pass H (2026-05-27) — KV-first, fixture fallback. Authorization is
+    // role-only here because companion emails on BookingRecord are still
+    // synthetic placeholders; H2 will tighten ownership once verified
+    // companion emails exist.
+    const roleGuard = requireCustomerRole(request, "companion", fail);
+    if (roleGuard) return roleGuard;
+    const booking = await readBooking(env.BOOKING_DATA, companionSessionMatch[1]);
+    if (booking) {
+      return ok(projectBookingToCompanionSessionDetail(booking, companionMuseChart));
+    }
+    const fixture = provider.getCompanionSession(companionSessionMatch[1]);
+    if (!fixture) return fail(404, "COMPANION_INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
+    return ok(fixture);
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {
