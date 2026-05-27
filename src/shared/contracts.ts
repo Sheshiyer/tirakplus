@@ -850,6 +850,15 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   checklist: SessionChecklistItem[];
   messageThread: MuseChatMessage[];
   paymentState: TravellerInquiryDetail["paymentState"];
+  // H2.T5 — decision metadata when status is accepted or declined.
+  // All optional: undefined when the companion hasn't decided yet, so the
+  // UI can branch on `inquiry.status === "declined"` without dereferencing
+  // a missing field.
+  acceptedAt?: string;
+  declinedAt?: string;
+  declineReason?: CompanionDeclineReasonCategory;
+  declineReasonLabel?: string;     // human-readable, e.g. "scheduling conflict"
+  declineNotes?: string;
 };
 
 export type CompanionInquiryListResponse = {

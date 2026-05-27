@@ -6,6 +6,8 @@
 // companion-side inquiry endpoints behind a single BookingService.
 
 import type {
+  CompanionDeclineInquiryRequest,
+  CompanionInquiryDecisionResponse,
   CompanionInquiryListResponse,
   CompanionSessionDetail,
   TravellerInquiryCreateResponse,
@@ -110,5 +112,21 @@ export const BookingService = {
     return apiRequest<TravellerInquiryCreateResponse>(`/api/traveller/inquiries/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
+  },
+
+  /** Companion accepts a routed inquiry. Empty body — id is the URL param. */
+  acceptInquiry(id: string): Promise<CompanionInquiryDecisionResponse> {
+    return apiRequest<CompanionInquiryDecisionResponse>(
+      `/api/companion/inquiries/${encodeURIComponent(id)}/accept`,
+      { method: "POST", body: JSON.stringify({}) },
+    );
+  },
+
+  /** Companion declines a routed inquiry. Requires a reason category; notes optional. */
+  declineInquiry(id: string, payload: CompanionDeclineInquiryRequest): Promise<CompanionInquiryDecisionResponse> {
+    return apiRequest<CompanionInquiryDecisionResponse>(
+      `/api/companion/inquiries/${encodeURIComponent(id)}/decline`,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
   },
 };

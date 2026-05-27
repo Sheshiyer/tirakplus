@@ -64,6 +64,7 @@ import {
   createBooking,
   detailOrFallback,
   isTravellerOwner,
+  labelForDeclineReason,
   listCompanionBookings,
   listOrFallback,
   listTravellerBookings,
@@ -1581,16 +1582,9 @@ function validateDecline(body: CompanionDeclineInquiryRequest): Record<string, s
   return errors;
 }
 
-// H2.T4 (2026-05-27) — Human-readable label for the 4 decline-reason
-// categories, surfaced in the traveller-facing email.
-function labelForDeclineReason(reason: CompanionDeclineReasonCategory): string {
-  switch (reason) {
-    case "schedule": return "scheduling conflict";
-    case "privacy":  return "privacy concern";
-    case "safety":   return "safety reason";
-    case "other":    return "other";
-  }
-}
+// H2.T5 (2026-05-27) — labelForDeclineReason moved to booking-store.ts so
+// the projector and email builder share a single source of truth. Imported
+// at the top of this file.
 
 function requireCustomerRole(
   request: Request,

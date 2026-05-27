@@ -19,6 +19,7 @@
 import type {
   BookingRecord,
   CitySlug,
+  CompanionDeclineReasonCategory,
   CompanionInquirySummary,
   CompanionSessionDetail,
   InquiryStatus,
@@ -643,10 +644,32 @@ function companionChecklistFor(status: InquiryStatus): CompanionSessionDetail["c
 }
 
 /**
+ * Human-readable label for each decline-reason category. Surfaced in
+ * traveller-facing notifications and the projector's `declineReasonLabel`
+ * field. Single source of truth — both the API projector and the email
+ * builder import this so they stay in sync.
+ */
+export function labelForDeclineReason(reason: CompanionDeclineReasonCategory): string {
+  switch (reason) {
+    case "schedule": return "scheduling conflict";
+    case "privacy":  return "privacy concern";
+    case "safety":   return "safety reason";
+    case "other":    return "other";
+  }
+}
+
+/**
  * Caller supplies `museFit` (staged-data's companionMuseChart by default)
  * so booking-store stays free of fixture imports. travellerContext is a
  * placeholder narrative — H2 will replace this with a Muse-generated
  * read once the companion accept/decline endpoint exists.
+ *
+ * Decision metadata (acceptedAt / declinedAt / declineReason /
+ * declineReasonLabel / declineNotes) is surfaced from BookingRecord when
+ * present so the UI can render decision context without another API call.
+ * All five fields are undefined for inquiries the companion hasn't acted
+ * on yet — the spread of `booking.declineReason` etc. is naturally
+ * nullable-safe because BookingRecord declares them optional.
  */
 export function projectBookingToCompanionSessionDetail(
   booking: BookingRecord,
@@ -661,6 +684,13 @@ export function projectBookingToCompanionSessionDetail(
     checklist: companionChecklistFor(booking.status),
     messageThread: [],
     paymentState: paymentStateFor(booking.status),
+    // H2.T5 — decision metadata when present on BookingRecord. Each field
+    // stays undefined when the companion hasn't decided yet.
+    acceptedAt: booking.acceptedAt,
+    declinedAt: booking.declinedAt,
+    declineReason: booking.declineReason,
+    declineReasonLabel: booking.declineReason ? labelForDeclineReason(booking.declineReason) : undefined,
+    declineNotes: booking.declineNotes,
   };
 }
 
