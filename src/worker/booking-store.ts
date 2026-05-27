@@ -554,6 +554,13 @@ export function projectBookingToTravellerInquiryDetail(
     scheduledFor: booking.scheduledFor,
     durationMinutes: booking.durationMinutes,
     confirmedAt: booking.confirmedAt,
+    // H4-stub (2026-05-27) — pass-through of payment-hold metadata. All
+    // five fields stay undefined until status reaches payment_held.
+    paymentSessionId: booking.paymentSessionId,
+    paymentStatus: booking.paymentStatus,
+    paymentAmount: booking.paymentAmount,
+    paymentCurrency: booking.paymentCurrency,
+    heldAt: booking.heldAt,
   };
 }
 
@@ -707,6 +714,13 @@ export function projectBookingToCompanionSessionDetail(
     scheduledFor: booking.scheduledFor,
     durationMinutes: booking.durationMinutes,
     confirmedAt: booking.confirmedAt,
+    // H4-stub (2026-05-27) — pass-through of payment-hold metadata. All
+    // five fields stay undefined until status reaches payment_held.
+    paymentSessionId: booking.paymentSessionId,
+    paymentStatus: booking.paymentStatus,
+    paymentAmount: booking.paymentAmount,
+    paymentCurrency: booking.paymentCurrency,
+    heldAt: booking.heldAt,
   };
 }
 

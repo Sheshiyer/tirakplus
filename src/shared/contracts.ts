@@ -578,6 +578,12 @@ export type TravellerInquiryDetail = TravellerInquirySummary & {
   scheduledFor?: string;                           // ISO UTC, set when date_confirmed
   durationMinutes?: number;                        // set when date_confirmed
   confirmedAt?: string;                            // ISO UTC, set when date_confirmed
+  // H4-stub — Payment hold metadata (populated payment_held onward)
+  paymentSessionId?: string;
+  paymentStatus?: PaymentHoldStatus;
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  heldAt?: string;
 };
 
 export type TravellerInquiryListResponse = {
@@ -873,6 +879,12 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   scheduledFor?: string;
   durationMinutes?: number;
   confirmedAt?: string;
+  // H4-stub — Payment hold metadata (populated payment_held onward)
+  paymentSessionId?: string;
+  paymentStatus?: PaymentHoldStatus;
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  heldAt?: string;
 };
 
 export type CompanionInquiryListResponse = {
@@ -950,6 +962,18 @@ export type PlanWindowSelectionRequest = {
  */
 export type PlanConfirmRequest = {
   // Reserved for future fields. Pass an empty object {} from the client.
+};
+
+/**
+ * Traveller's request to place a payment hold on a confirmed plan.
+ *
+ * For H4-stub (current): empty body — server transitions
+ * date_confirmed → payment_held without any real payment processor
+ * call. Future real Stripe integration (H4-real) will require a
+ * checkout-session token or signed payload here.
+ */
+export type PaymentHoldRequest = {
+  // Reserved for future Stripe integration (checkout session ID, etc.).
 };
 
 /**

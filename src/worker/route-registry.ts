@@ -386,6 +386,18 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     notes: "Traveller confirms the companion's selected window. Sets scheduledFor + durationMinutes + confirmedAt. Transitions date_proposed → date_confirmed.",
   },
   {
+    method: "POST",
+    path: "/api/plans/:inquiryId/hold",
+    audience: "traveller",
+    handler: "plans.hold",
+    requestContract: "PaymentHoldRequest",
+    responseContract: "PlanTravellerResponse",
+    auth: "role:traveller",
+    stagedProvider: "bookingStore.transitionBookingStatus",
+    productionTarget: "KV",
+    notes: "Places a payment hold on the confirmed plan. H4-stub: transitions date_confirmed → payment_held → session_scheduled (auto-advanced in non-prod) with no real Stripe call yet. Real Stripe checkout session creation lands in H4-real at end of roadmap.",
+  },
+  {
     method: "PATCH",
     path: "/api/companion/profile",
     audience: "companion",

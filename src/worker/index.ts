@@ -45,6 +45,7 @@ import type {
   MuseConversationSummary,
   MuseProfileSignals,
   MuseTranscriptSnapshot,
+  PaymentHoldRequest,
   PlanConfirmRequest,
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
@@ -823,6 +824,70 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     return ok({
       inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
       message: "Plan confirmed. The companion will see day-of details ahead of the session.",
+    });
+  }
+
+  // H4-stub (2026-05-27) — Dummy payment hold. Real Stripe checkout-session
+  // creation is deferred to H4-real at the end of the roadmap. This endpoint
+  // transitions date_confirmed → payment_held with placeholder values
+  // (paymentSessionId="dev_stub", paymentStatus="held") so the eventual
+  // real-Stripe replacement can diff against them cleanly. In non-prod
+  // environments we ALSO auto-advance payment_held → session_scheduled
+  // immediately (mirrors the H2.T1 auto-route bridge) so H5 day-of work
+  // has something to render against.
+  const planHoldMatch = pathname.match(/^\/api\/plans\/([^/]+)\/hold$/);
+  if (request.method === "POST" && planHoldMatch) {
+    const id = planHoldMatch[1];
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to hold this plan.");
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    if (!isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only hold your own inquiries.");
+    }
+    if (booking.status !== "date_confirmed") {
+      return fail(409, "INVALID_TRANSITION", "This inquiry is not ready for a payment hold.");
+    }
+    // PaymentHoldRequest is currently `{}` but we still parse to enforce
+    // a JSON object body (consistency with other mutation endpoints).
+    const body = await readJsonBody<PaymentHoldRequest>(request, requestId);
+    if (body instanceof Response) return body;
+    let updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      id,
+      ["date_confirmed"],
+      "payment_held",
+      session.profile.email,
+      {
+        paymentSessionId: "dev_stub",
+        paymentStatus: "held",
+        paymentAmount: undefined,
+        paymentCurrency: undefined,
+        heldAt: new Date().toISOString(),
+      },
+    );
+    if (!updated) return fail(409, "INVALID_TRANSITION", "Could not hold this plan.");
+
+    // Non-prod auto-advance to session_scheduled. Mirrors H2.T1's
+    // auto-route bridge so H5 day-of itinerary work has a stable target
+    // status to render against. Production keeps status="payment_held"
+    // until the real Stripe webhook arrives.
+    if (env.ENVIRONMENT !== "production") {
+      const advanced = await transitionBookingStatus(
+        env.BOOKING_DATA,
+        id,
+        ["payment_held"],
+        "session_scheduled",
+        "system",
+      );
+      if (advanced) updated = advanced;
+    }
+
+    const displayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion profile";
+    return ok({
+      inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
+      message: "Booking held. Tirak will share day-of details closer to the date.",
     });
   }
 
