@@ -187,7 +187,7 @@ export type BookingRecord = {
   // Day-of (populated H5)
   meetingPoint?: string;                     // address or landmark
   contactNumber?: string;                    // companion's day-of phone
-  daysOfNotes?: string[];                    // safety + logistics
+  dayOfNotes?: string[];                     // safety + logistics
 
   // Review (populated H6)
   reviewedAt?: string;

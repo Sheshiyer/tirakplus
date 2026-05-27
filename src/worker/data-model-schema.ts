@@ -100,7 +100,7 @@ export const dataModelSchema: DataModelSchemaResponse = {
         { name: "status", type: "InquiryStatus", required: true, private: false, note: "Inquiry state." },
       ],
       relationships: ["PaymentRecord.inquiryId", "SafetyReport.targetId"],
-      states: ["draft", "submitted", "under_review", "routed", "accepted", "declined", "cancelled", "date_pending", "date_proposed", "date_confirmed", "payment_held", "session_scheduled", "session_live", "session_completed", "review_pending", "review_completed"],
+      states: ["draft", "submitted", "under_review", "routed", "accepted", "date_pending", "date_proposed", "date_confirmed", "payment_held", "session_scheduled", "session_live", "session_completed", "review_pending", "review_completed", "declined", "cancelled"],
     },
     {
       name: "PaymentRecord",

@@ -525,8 +525,6 @@ export type InquiryStatus =
   | "under_review"
   | "routed"
   | "accepted"
-  | "declined"
-  | "cancelled"
   | "date_pending"
   | "date_proposed"
   | "date_confirmed"
@@ -535,7 +533,9 @@ export type InquiryStatus =
   | "session_live"
   | "session_completed"
   | "review_pending"
-  | "review_completed";
+  | "review_completed"
+  | "declined"
+  | "cancelled";
 
 export type TravellerInquiryRequest = {
   companionId: string;
@@ -590,6 +590,8 @@ export type TravellerInquiryCreateResponse = {
 // Status transitions drive UI; later sub-passes (H3-H6) populate the optional
 // sections. KV-backed under booking:{inquiryId} in the BOOKING_DATA namespace.
 
+export type PaymentHoldStatus = "none" | "held" | "captured" | "refunded";
+
 export type BookingRecord = {
   id: string;                                // bk_{uuid}
   travellerEmail: string;                    // lowercase, indexed
@@ -612,7 +614,7 @@ export type BookingRecord = {
 
   // Payment (populated H4)
   paymentSessionId?: string;                 // Stripe session ID
-  paymentStatus?: "none" | "held" | "captured" | "refunded";
+  paymentStatus?: PaymentHoldStatus;
   paymentAmount?: number;                    // smallest unit (THB satang or USD cent)
   paymentCurrency?: string;
   heldAt?: string;
@@ -620,7 +622,7 @@ export type BookingRecord = {
   // Day-of (populated H5)
   meetingPoint?: string;                     // address or landmark
   contactNumber?: string;                    // companion's day-of phone
-  daysOfNotes?: string[];                    // safety + logistics
+  dayOfNotes?: string[];                     // safety + logistics
 
   // Review (populated H6)
   reviewedAt?: string;
