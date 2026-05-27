@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# pre-commit hook — refuse to commit if the current repo isn't tirakplus.git
+#
+# Installed by running:
+#   bash scripts/install-git-hooks.sh
+#
+# Reads the same expectations as scripts/agent-preflight.sh. Exits 1 to
+# block the commit if the remote doesn't match Sheshiyer/tirakplus.git.
+# Safe to bypass with `git commit --no-verify` if you actually need to
+# (you almost never will).
+
+set -euo pipefail
+
+EXPECTED_REMOTE_FRAGMENT="Sheshiyer/tirakplus.git"
+REMOTE="$(git remote get-url origin 2>/dev/null || echo "<no remote>")"
+
+if ! echo "$REMOTE" | grep -q "$EXPECTED_REMOTE_FRAGMENT"; then
+  printf "\033[31m✗ pre-commit blocked: wrong git remote.\033[0m\n"
+  echo  "   origin:   $REMOTE"
+  echo  "   expected: …$EXPECTED_REMOTE_FRAGMENT"
+  echo  ""
+  echo  "   You are about to commit to the WRONG repo."
+  echo  "   Bypass with --no-verify if you really meant to."
+  exit 1
+fi
+
+exit 0
