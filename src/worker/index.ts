@@ -74,11 +74,14 @@ import {
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
-type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
+type WorkerEnv = Omit<Env, "ENVIRONMENT" | "PAYMENT_PROVIDER_MODE"> & {
   ACCOUNT_DATA?: KVNamespace;        // Pass E (2026-05-26): per-account prefs, exports, deletions, safety-report list
   AUTH_OTPS?: KVNamespace;
   BOOKING_DATA?: KVNamespace;        // Pass H (2026-05-27): inquiry → booking lifecycle state + per-user inquiry lists + companion rating aggregates
   // EMAIL?: SendEmail; — CF send_email binding removed 2026-05-26
+  // ENVIRONMENT — widened from the generated `"staging"` literal so prod-vs-non-prod
+  // comparisons (e.g. dev login gate, H2.T1 auto-route) typecheck against "production".
+  ENVIRONMENT?: string;
   MUSE_AGENT_API_KEY?: string;
   MUSE_AGENT_CONFIG?: KVNamespace;
   MUSE_AGENT_CONFIG_KEY?: string;
@@ -383,7 +386,13 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       return fail(404, "PROFILE_NOT_FOUND", "This profile is unavailable for inquiry.");
     }
 
-    const booking = await createBooking(env.BOOKING_DATA, body, session.profile.email);
+    // H2.T1 (2026-05-27) — Dev/staging auto-route. Real Tirak admin
+    // review tooling is out of scope, so any non-prod environment skips
+    // the "submitted" + "under_review" steps and lands the inquiry at
+    // "routed" directly. This lets the H2 companion accept/decline flow
+    // be exercised end-to-end. Production preserves status="submitted".
+    const autoRoute = env.ENVIRONMENT !== "production";
+    const booking = await createBooking(env.BOOKING_DATA, body, session.profile.email, { autoRoute });
     return ok(
       {
         inquiry: projectBookingToTravellerInquiryDetail(booking, profile.displayName),

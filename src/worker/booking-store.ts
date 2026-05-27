@@ -236,11 +236,20 @@ async function hydrateBookings(kv: BookingKv, ids: string[]): Promise<BookingRec
  * stamps createdAt/updatedAt, and indexes the id under BOTH the
  * traveller and companion emails so listTravellerBookings and
  * listCompanionBookings can both surface it.
+ *
+ * When `options.autoRoute` is true, the record lands at status="routed"
+ * instead of "submitted" — used by dev/staging handlers to skip the
+ * (currently unimplemented) Tirak admin review step so the H2 companion
+ * accept/decline flow is testable end-to-end. Default is false so prod
+ * behavior stays unchanged when the option is omitted. The env-vs-flag
+ * decision is intentionally pushed up to the handler boundary so this
+ * function stays environment-agnostic and reusable.
  */
 export async function createBooking(
   kv: BookingKv,
   request: TravellerInquiryRequest,
   travellerEmail: string,
+  options?: { autoRoute?: boolean },
 ): Promise<BookingRecord> {
   const now = new Date().toISOString();
   const record: BookingRecord = {
@@ -250,7 +259,7 @@ export async function createBooking(
     companionId: request.companionId,
     city: request.city,
     experience: request.experience,
-    status: "submitted",
+    status: options?.autoRoute ? "routed" : "submitted",
     message: request.message,
     createdAt: now,
     updatedAt: now,
