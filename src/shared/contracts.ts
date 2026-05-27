@@ -593,7 +593,7 @@ export type TravellerInquiryCreateResponse = {
 export type PaymentHoldStatus = "none" | "held" | "captured" | "refunded";
 
 export type BookingRecord = {
-  id: string;                                // bk_{uuid}
+  id: string;                                // inq_{uuid}
   travellerEmail: string;                    // lowercase, indexed
   companionEmail: string;                    // lowercase, indexed
   companionId: string;                       // from existing profile fixture

@@ -46,6 +46,8 @@ export type TransitionRule = {
   note: string;
 };
 
+// `draft` is intentionally absent — drafts live client-side and skip the
+// state machine until submit() promotes them to "submitted".
 export const TRANSITION_ALLOWLIST: readonly TransitionRule[] = [
   // H1 — Inquiry creation & cancellation
   { from: "submitted",         to: "under_review",      actor: "system",    note: "auto" },
@@ -138,6 +140,16 @@ async function removeFromIndex(kv: BookingKv, key: string, id: string): Promise<
 }
 
 /**
+ * Writes ONLY the `booking:{id}` blob — no index touch. Used for
+ * record updates (transitions, cancellations) that must not re-prepend
+ * the id to per-email indices. Index management is the caller's job
+ * via prependToIndex / removeFromIndex.
+ */
+async function persistRecord(kv: BookingKv, record: BookingRecord): Promise<void> {
+  await writeJson(kv, bookingKey(record.id), record);
+}
+
+/**
  * Derive a companion's email from their companionId. CompanionProfile in
  * staged-data.ts does NOT carry an email field today, so we synthesize a
  * stable placeholder. This keeps the index meaningful in v1 and is fine
@@ -160,7 +172,7 @@ export async function readBooking(kv: BookingKv, id: string): Promise<BookingRec
  * the top of each index without duplicating entries.
  */
 export async function writeBooking(kv: BookingKv, record: BookingRecord): Promise<BookingRecord> {
-  await writeJson(kv, bookingKey(record.id), record);
+  await persistRecord(kv, record);
   await prependToIndex(kv, travellerIndexKey(record.travellerEmail), record.id);
   await prependToIndex(kv, companionIndexKey(record.companionEmail), record.id);
   return record;
@@ -183,7 +195,7 @@ export async function deleteBooking(kv: BookingKv, id: string): Promise<void> {
     status: "cancelled",
     updatedAt: new Date().toISOString(),
   };
-  await writeJson(kv, bookingKey(id), cancelled);
+  await persistRecord(kv, cancelled);
   await removeFromIndex(kv, travellerIndexKey(existing.travellerEmail), id);
   await removeFromIndex(kv, companionIndexKey(existing.companionEmail), id);
 }
@@ -282,9 +294,11 @@ export async function transitionBookingStatus(
     status: toStatus,
     updatedAt: new Date().toISOString(),
   };
-  await writeJson(kv, bookingKey(id), updated);
+  await persistRecord(kv, updated);
   // Index membership doesn't change on status transitions — entries
-  // stay until deleteBooking runs.
+  // stay until deleteBooking runs. Using persistRecord (not
+  // writeBooking) here preserves the cap-50 "newest-created first"
+  // ordering instead of reshuffling indices on every status change.
   return updated;
 }
 
