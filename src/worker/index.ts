@@ -19,6 +19,7 @@ import type {
   AccountDeletionResponse,
   AccountPrivacyUpdateRequest,
   AvailabilityWindow,
+  BookingRecord,
   CitySlug,
   CompanionAvailabilityUpdateRequest,
   CompanionDeclineInquiryRequest,
@@ -44,6 +45,9 @@ import type {
   MuseConversationSummary,
   MuseProfileSignals,
   MuseTranscriptSnapshot,
+  PlanConfirmRequest,
+  PlanWindowSelectionRequest,
+  PlanWindowsRequest,
   SafetyReportRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
@@ -651,6 +655,134 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     return ok({
       inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
       message: "Inquiry declined. The traveller will be notified.",
+    });
+  }
+
+  // ===== H3 (2026-05-27) — Plan / date negotiation endpoints =====
+  //
+  // Three sequential endpoints implement the date-picker handshake:
+  //   1. POST /api/plans/:id/windows         — traveller submits 2-3 windows
+  //   2. POST /api/plans/:id/select-window   — companion picks one
+  //   3. POST /api/plans/:id/confirm         — traveller locks it in
+  // Each is gated by role + ownership/status, transitions via
+  // transitionBookingStatus (TRANSITION_ALLOWLIST), and persists the
+  // window data atomically with the status change.
+
+  const planWindowsMatch = pathname.match(/^\/api\/plans\/([^/]+)\/windows$/);
+  if (request.method === "POST" && planWindowsMatch) {
+    const id = planWindowsMatch[1];
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to submit candidate windows.");
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    if (!isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only submit windows on your own inquiries.");
+    }
+    const body = await readJsonBody<PlanWindowsRequest>(request, requestId);
+    if (body instanceof Response) return body;
+    const fieldErrors = validatePlanWindows(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "WINDOWS_VALIDATION_FAILED", "Review the proposed windows and try again.", fieldErrors);
+    }
+    const updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      id,
+      ["accepted"],
+      "date_pending",
+      session.profile.email,
+      { travellerWindows: body.windows },
+    );
+    if (!updated) {
+      return fail(
+        409,
+        "INVALID_TRANSITION",
+        "Windows can only be submitted while the inquiry is in the accepted stage.",
+      );
+    }
+    const displayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion profile";
+    return ok({
+      inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
+      message: "Windows submitted. The companion will pick one.",
+    });
+  }
+
+  const planSelectWindowMatch = pathname.match(/^\/api\/plans\/([^/]+)\/select-window$/);
+  if (request.method === "POST" && planSelectWindowMatch) {
+    const id = planSelectWindowMatch[1];
+    const roleGuard = requireCustomerRole(request, "companion", fail);
+    if (roleGuard) return roleGuard;
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
+    if (booking.status !== "date_pending") {
+      return fail(409, "INVALID_TRANSITION", "This inquiry is not awaiting a window selection.");
+    }
+    const body = await readJsonBody<PlanWindowSelectionRequest>(request, requestId);
+    if (body instanceof Response) return body;
+    const fieldErrors = validatePlanWindowSelection(body, booking);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "WINDOW_SELECTION_VALIDATION_FAILED", "Pick one of the proposed windows.", fieldErrors);
+    }
+    // Same actor pattern as H2.T3: companion emails on BookingRecord are
+    // synthetic in v1, so we use booking.companionEmail (not session email)
+    // so transitionBookingStatus's actor==companionEmail check succeeds.
+    const updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      id,
+      ["date_pending"],
+      "date_proposed",
+      booking.companionEmail,
+      { companionSelectedWindow: body.selectedWindow },
+    );
+    if (!updated) return fail(409, "INVALID_TRANSITION", "Could not select this window.");
+    return ok({
+      inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
+      message: "Window selected. Waiting for the traveller to confirm.",
+    });
+  }
+
+  const planConfirmMatch = pathname.match(/^\/api\/plans\/([^/]+)\/confirm$/);
+  if (request.method === "POST" && planConfirmMatch) {
+    const id = planConfirmMatch[1];
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to confirm this plan.");
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    if (!isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only confirm your own inquiries.");
+    }
+    if (booking.status !== "date_proposed") {
+      return fail(409, "INVALID_TRANSITION", "This inquiry is not awaiting confirmation.");
+    }
+    const selected = booking.companionSelectedWindow;
+    if (!selected) {
+      return fail(409, "INVALID_TRANSITION", "The companion has not selected a window yet.");
+    }
+    // PlanConfirmRequest is currently `{}` but we still parse to enforce
+    // a JSON object body (consistency with other mutation endpoints).
+    const body = await readJsonBody<PlanConfirmRequest>(request, requestId);
+    if (body instanceof Response) return body;
+    const startMs = Date.parse(selected.start);
+    const endMs = Date.parse(selected.end);
+    const durationMinutes = Math.round((endMs - startMs) / 60000);
+    const updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      id,
+      ["date_proposed"],
+      "date_confirmed",
+      session.profile.email,
+      {
+        scheduledFor: selected.start,
+        durationMinutes,
+        confirmedAt: new Date().toISOString(),
+      },
+    );
+    if (!updated) return fail(409, "INVALID_TRANSITION", "Could not confirm this plan.");
+    const displayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion profile";
+    return ok({
+      inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
+      message: "Plan confirmed. The companion will see day-of details ahead of the session.",
     });
   }
 
@@ -1578,6 +1710,75 @@ function validateDecline(body: CompanionDeclineInquiryRequest): Record<string, s
   }
   if (body?.notes != null && body.notes.length > 280) {
     errors.notes = "Notes must be 280 characters or fewer.";
+  }
+  return errors;
+}
+
+// H3 (2026-05-27) — Validate the traveller's 2-3 candidate windows.
+// Each window must be a valid ISO range, start at least 2 hours from now,
+// run 1-6 hours, and (optionally) carry a ≤120-char note. Per-window
+// errors use dotted paths (windows.0.start, etc.) so the UI can map
+// them back to individual fields.
+function validatePlanWindows(body: PlanWindowsRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const windows = body?.windows;
+  if (!Array.isArray(windows) || windows.length < 2 || windows.length > 3) {
+    errors.windows = "Submit 2 or 3 candidate windows.";
+    return errors;
+  }
+  const now = Date.now();
+  const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+  const MIN_DURATION_MIN = 60;
+  const MAX_DURATION_MIN = 360;
+  windows.forEach((window, idx) => {
+    const startMs = Date.parse(window?.start ?? "");
+    const endMs = Date.parse(window?.end ?? "");
+    if (Number.isNaN(startMs)) {
+      errors[`windows.${idx}.start`] = "Window start must be a valid date.";
+      return;
+    }
+    if (Number.isNaN(endMs)) {
+      errors[`windows.${idx}.end`] = "Window end must be a valid date.";
+      return;
+    }
+    if (startMs < now + TWO_HOURS_MS) {
+      errors[`windows.${idx}.start`] = "Window must start at least 2 hours from now.";
+    }
+    if (endMs <= startMs) {
+      errors[`windows.${idx}.end`] = "Window end must be after start.";
+    }
+    const durationMin = (endMs - startMs) / 60000;
+    if (durationMin < MIN_DURATION_MIN || durationMin > MAX_DURATION_MIN) {
+      errors[`windows.${idx}.duration`] = "Window must be between 1 and 6 hours.";
+    }
+    if (window.note != null && window.note.length > 120) {
+      errors[`windows.${idx}.note`] = "Note must be 120 characters or fewer.";
+    }
+  });
+  return errors;
+}
+
+// H3 (2026-05-27) — Validate the companion's window selection. The
+// selectedWindow must structurally match one of booking.travellerWindows
+// (same start, end, and note — treating null/undefined notes as
+// equivalent to the empty string). This prevents the companion from
+// silently rewriting a window during selection.
+function validatePlanWindowSelection(
+  body: PlanWindowSelectionRequest,
+  booking: BookingRecord,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const sel = body?.selectedWindow;
+  if (!sel || typeof sel.start !== "string" || typeof sel.end !== "string") {
+    errors.selectedWindow = "Pick one of the proposed windows.";
+    return errors;
+  }
+  const candidates = booking.travellerWindows ?? [];
+  const matches = candidates.some(
+    (w) => w.start === sel.start && w.end === sel.end && (w.note ?? "") === (sel.note ?? ""),
+  );
+  if (!matches) {
+    errors.selectedWindow = "Selected window must match one of the proposed windows exactly.";
   }
   return errors;
 }

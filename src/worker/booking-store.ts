@@ -546,6 +546,14 @@ export function projectBookingToTravellerInquiryDetail(
     timeline: timelineFor(booking.status),
     paymentState: paymentStateFor(booking.status),
     privacyNote: PRIVACY_NOTE,
+    // H3 (2026-05-27) — pass-through of date-negotiation state. All five
+    // fields are optional on TravellerInquiryDetail; spreading them through
+    // keeps the projector the single source of truth for booking shape.
+    travellerWindows: booking.travellerWindows,
+    companionSelectedWindow: booking.companionSelectedWindow,
+    scheduledFor: booking.scheduledFor,
+    durationMinutes: booking.durationMinutes,
+    confirmedAt: booking.confirmedAt,
   };
 }
 
@@ -691,6 +699,14 @@ export function projectBookingToCompanionSessionDetail(
     declineReason: booking.declineReason,
     declineReasonLabel: booking.declineReason ? labelForDeclineReason(booking.declineReason) : undefined,
     declineNotes: booking.declineNotes,
+    // H3 (2026-05-27) — pass-through of date-negotiation state. All five
+    // fields are optional on CompanionSessionDetail and stay undefined
+    // until the corresponding stage runs.
+    travellerWindows: booking.travellerWindows,
+    companionSelectedWindow: booking.companionSelectedWindow,
+    scheduledFor: booking.scheduledFor,
+    durationMinutes: booking.durationMinutes,
+    confirmedAt: booking.confirmedAt,
   };
 }
 
