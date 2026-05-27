@@ -517,6 +517,9 @@ export type CompanionProfile = CompanionPreview & {
   safetyNote: string;
   inquiryGuidance: string[];
   chart: MuseChartSignature;
+  // H6 — Aggregate rating + review count snapshot (computed on GET).
+  // Surfaced on companion public profile pages.
+  rating?: CompanionRatingAggregate;
 };
 
 export type InquiryStatus =
@@ -588,6 +591,10 @@ export type TravellerInquiryDetail = TravellerInquirySummary & {
   meetingPoint?: string;
   contactNumber?: string;
   dayOfNotes?: string[];
+  // H6 — Post-session review fields (populated after review_completed)
+  reviewedAt?: string;
+  reviewScore?: number;
+  reviewComment?: string;
 };
 
 export type TravellerInquiryListResponse = {
@@ -893,6 +900,10 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   meetingPoint?: string;
   contactNumber?: string;
   dayOfNotes?: string[];
+  // H6 — Post-session review fields (populated after review_completed)
+  reviewedAt?: string;
+  reviewScore?: number;
+  reviewComment?: string;
 };
 
 export type CompanionInquiryListResponse = {
@@ -1018,6 +1029,51 @@ export type PlanTravellerResponse = {
 export type PlanCompanionResponse = {
   inquiry: CompanionSessionDetail;
   message: string;
+};
+
+/**
+ * H6 — Post-session review.
+ *
+ * Traveller submits a 1-5 score + 20-500 char comment after the session
+ * transitions to review_pending. Review is immutable once submitted in v1
+ * (future polish may add a 24h edit grace window). Review submission
+ * appends to the companion's review list and contributes to their
+ * aggregate rating computed on read (no atomic counter for v1).
+ */
+
+/** Traveller's submission: numeric score 1-5 + free-text comment. */
+export type ReviewRequest = {
+  score: number;        // integer 1..5
+  comment: string;      // 20-500 chars after trim
+};
+
+/**
+ * Response for the review-submission endpoint. Returns the updated
+ * inquiry (transitioned to review_completed with reviewScore/Comment/At
+ * patched in) plus a confirmation message.
+ */
+export type ReviewSubmissionResponse = {
+  inquiry: TravellerInquiryDetail;
+  message: string;
+};
+
+/**
+ * Aggregate rating snapshot for a companion. Computed from the latest
+ * reviews list on read; not stored as a separate atomic counter.
+ */
+export type CompanionRatingAggregate = {
+  averageScore: number;    // 0 if no reviews; rounded to 1 decimal otherwise
+  reviewCount: number;
+};
+
+/**
+ * Response for GET /api/companions/:id/reviews. Returns the aggregate
+ * snapshot plus up to 25 most-recent ReviewSummary entries (newest first).
+ */
+export type CompanionReviewsResponse = {
+  companionId: string;
+  aggregate: CompanionRatingAggregate;
+  reviews: ReviewSummary[];   // capped at 25, newest first
 };
 
 export type PaymentProviderSummary = {
