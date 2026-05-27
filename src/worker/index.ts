@@ -83,6 +83,14 @@ import { sendInquiryDecisionEmail } from "./email.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
+// H3.T2 fix (2026-05-27) — Strict ISO datetime pre-check used by both plan
+// window validators below. Date.parse alone is too lenient: it accepts
+// date-only "2026-06-01" and US-format "06/01/2026" strings that the
+// contract type DateWindow (contracts.ts) documents as "ISO datetime".
+// This regex requires at minimum YYYY-MM-DDTHH:MM; trailing seconds,
+// milliseconds, and timezone (Z or ±HH:MM) are allowed.
+const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
 type WorkerEnv = Omit<Env, "ENVIRONMENT" | "PAYMENT_PROVIDER_MODE"> & {
   ACCOUNT_DATA?: KVNamespace;        // Pass E (2026-05-26): per-account prefs, exports, deletions, safety-report list
   AUTH_OTPS?: KVNamespace;
@@ -1731,8 +1739,24 @@ function validatePlanWindows(body: PlanWindowsRequest): Record<string, string> {
   const MIN_DURATION_MIN = 60;
   const MAX_DURATION_MIN = 360;
   windows.forEach((window, idx) => {
-    const startMs = Date.parse(window?.start ?? "");
-    const endMs = Date.parse(window?.end ?? "");
+    const startStr = window?.start ?? "";
+    const endStr = window?.end ?? "";
+
+    // H3.T2 fix (2026-05-27) — Strict ISO check BEFORE Date.parse to
+    // reject loose inputs like "2026-06-01" (date-only) or "06/01/2026"
+    // (slash-format). The contract requires full ISO datetime per the
+    // DateWindow type comment in contracts.ts.
+    if (!ISO_DATETIME_REGEX.test(startStr)) {
+      errors[`windows.${idx}.start`] = "Window start must be a full ISO datetime (YYYY-MM-DDTHH:MM).";
+      return;
+    }
+    if (!ISO_DATETIME_REGEX.test(endStr)) {
+      errors[`windows.${idx}.end`] = "Window end must be a full ISO datetime (YYYY-MM-DDTHH:MM).";
+      return;
+    }
+
+    const startMs = Date.parse(startStr);
+    const endMs = Date.parse(endStr);
     if (Number.isNaN(startMs)) {
       errors[`windows.${idx}.start`] = "Window start must be a valid date.";
       return;
@@ -1771,6 +1795,13 @@ function validatePlanWindowSelection(
   const sel = body?.selectedWindow;
   if (!sel || typeof sel.start !== "string" || typeof sel.end !== "string") {
     errors.selectedWindow = "Pick one of the proposed windows.";
+    return errors;
+  }
+  // H3.T2 fix (2026-05-27) — Same strict ISO pre-check as
+  // validatePlanWindows so the companion can't smuggle a loose timestamp
+  // through this write path. Runs BEFORE the candidate-match check.
+  if (!ISO_DATETIME_REGEX.test(sel.start) || !ISO_DATETIME_REGEX.test(sel.end)) {
+    errors.selectedWindow = "Selected window timestamps must be full ISO datetimes.";
     return errors;
   }
   const candidates = booking.travellerWindows ?? [];
