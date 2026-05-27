@@ -1648,45 +1648,6 @@ function uniqueExperienceTags(values: ExperienceSlug[]): ExperienceSlug[] {
   return [...new Set(values.filter(isExperienceSlug))];
 }
 
-function createInquiryDetail(body: TravellerInquiryRequest, companionDisplayName: string): TravellerInquiryDetail {
-  const now = new Date().toISOString();
-  return {
-    id: `inq_${crypto.randomUUID()}`,
-    companionId: body.companionId,
-    companionDisplayName,
-    city: body.city,
-    experience: body.experience,
-    status: "under_review",
-    createdAt: now,
-    updatedAt: now,
-    nextStep: "Tirak is checking the plan before any introduction or payment.",
-    message: body.message.trim(),
-    timeline: [
-      {
-        label: "Inquiry submitted",
-        status: "complete",
-        note: "Traveller context and message were received.",
-      },
-      {
-        label: "Private review",
-        status: "active",
-        note: "Tirak checks safety, fit, and allowed next steps.",
-      },
-      {
-        label: "Introduction decision",
-        status: "pending",
-        note: "No introduction or payment happens before Tirak clears the plan.",
-      },
-    ],
-    paymentState: {
-      status: "disabled_for_compliance",
-      provider: "stripe",
-      note: "Payment is not available for this inquiry yet.",
-    },
-    privacyNote: "Inquiry details stay private and are not published to profiles or discovery.",
-  };
-}
-
 function toInquirySummary(inquiry: TravellerInquiryDetail) {
   const { message: _message, timeline: _timeline, paymentState: _paymentState, privacyNote: _privacyNote, ...summary } = inquiry;
   return summary;
