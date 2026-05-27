@@ -44,6 +44,23 @@
       // and replace this ID with the returned value.
       "binding": "ACCOUNT_DATA",
       "id": "00000000000000000000000000000001"
+    },
+    {
+      // Booking-flow persistence for Pass H (inquiry → accept → plan →
+      // pay → day-of → review lifecycle). Keys:
+      //   booking:{inquiryId}                              → BookingRecord (full state)
+      //   booking:traveller:{lowercase-email}:inquiries    → string[] (inquiry IDs, newest first, capped 50)
+      //   booking:companion:{lowercase-email}:inquiries    → string[] (inquiry IDs, newest first, capped 50)
+      //   booking:companion:{lowercase-email}:rating-sum   → number (running sum, populated H6)
+      //   booking:companion:{lowercase-email}:rating-count → number (running count, populated H6)
+      //   booking:companion:{lowercase-email}:reviews      → ReviewSummary[] (capped 25, newest first, populated H6)
+      //
+      // ID below is the LOCAL dev placeholder — wrangler's local KV is
+      // keyed by binding name, not ID. Before production deploy, create
+      // a real namespace via `wrangler kv:namespace create BOOKING_DATA`
+      // and replace this ID with the returned value.
+      "binding": "BOOKING_DATA",
+      "id": "00000000000000000000000000000002"
     }
   ],
   "services": [

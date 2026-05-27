@@ -63,6 +63,7 @@ type PaymentProviderMode = "compliance_hold" | "stripe_test";
 type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
   ACCOUNT_DATA?: KVNamespace;        // Pass E (2026-05-26): per-account prefs, exports, deletions, safety-report list
   AUTH_OTPS?: KVNamespace;
+  BOOKING_DATA?: KVNamespace;        // Pass H (2026-05-27): inquiry → booking lifecycle state + per-user inquiry lists + companion rating aggregates
   // EMAIL?: SendEmail; — CF send_email binding removed 2026-05-26
   MUSE_AGENT_API_KEY?: string;
   MUSE_AGENT_CONFIG?: KVNamespace;
