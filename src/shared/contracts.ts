@@ -584,6 +584,10 @@ export type TravellerInquiryDetail = TravellerInquirySummary & {
   paymentAmount?: number;
   paymentCurrency?: string;
   heldAt?: string;
+  // H5 — Day-of details (populated by companion at/after date_confirmed)
+  meetingPoint?: string;
+  contactNumber?: string;
+  dayOfNotes?: string[];
 };
 
 export type TravellerInquiryListResponse = {
@@ -885,6 +889,10 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   paymentAmount?: number;
   paymentCurrency?: string;
   heldAt?: string;
+  // H5 — Day-of details (populated by companion at/after date_confirmed)
+  meetingPoint?: string;
+  contactNumber?: string;
+  dayOfNotes?: string[];
 };
 
 export type CompanionInquiryListResponse = {
@@ -974,6 +982,26 @@ export type PlanConfirmRequest = {
  */
 export type PaymentHoldRequest = {
   // Reserved for future Stripe integration (checkout session ID, etc.).
+};
+
+/**
+ * Companion sets day-of details (meeting point + contact + safety notes)
+ * for a session that has been date-confirmed or moved further along the
+ * pipeline. Editable until session_completed.
+ *
+ * All three fields are optional individually but at least meetingPoint
+ * should be set before the session_live transition fires.
+ */
+export type SetDayOfDetailsRequest = {
+  meetingPoint?: string;       // ≤ 280 chars, free-text address/landmark
+  contactNumber?: string;      // ≤ 40 chars, will be exposed via tel: link
+  dayOfNotes?: string[];       // each ≤ 200 chars, max 5 items (safety + logistics bullets)
+};
+
+/** Response shape for the companion-side day-of-details endpoint. */
+export type DayOfDetailsResponse = {
+  inquiry: CompanionSessionDetail;
+  message: string;
 };
 
 /**

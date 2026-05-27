@@ -325,6 +325,33 @@ export async function transitionBookingStatus(
   return updated;
 }
 
+/**
+ * Apply a metadata patch to a booking record WITHOUT changing status.
+ * Used for fields like meetingPoint that the companion sets independently
+ * of the state machine. Returns null if the booking is missing.
+ *
+ * Caller is responsible for ownership / authorization. This is a low-
+ * level write — disciplined callers use it for non-status mutations,
+ * just as transitionBookingStatus is the disciplined caller for status
+ * mutations.
+ */
+export async function patchBooking(
+  kv: BookingKv,
+  id: string,
+  patch: Partial<BookingRecord>,
+): Promise<BookingRecord | null> {
+  const record = await readBooking(kv, id);
+  if (!record) return null;
+  const updated: BookingRecord = {
+    ...record,
+    ...patch,
+    updatedAt: new Date().toISOString(),
+    status: record.status,  // explicitly keep status — patch can't touch it
+  };
+  await persistRecord(kv, updated);
+  return updated;
+}
+
 // Re-export for handler convenience
 export { INQUIRY_INDEX_LIMIT };
 
@@ -561,6 +588,11 @@ export function projectBookingToTravellerInquiryDetail(
     paymentAmount: booking.paymentAmount,
     paymentCurrency: booking.paymentCurrency,
     heldAt: booking.heldAt,
+    // H5 — Day-of details pass-through. Companion sets these after
+    // date_confirmed; both sides see them on detail GETs.
+    meetingPoint: booking.meetingPoint,
+    contactNumber: booking.contactNumber,
+    dayOfNotes: booking.dayOfNotes,
   };
 }
 
@@ -721,6 +753,11 @@ export function projectBookingToCompanionSessionDetail(
     paymentAmount: booking.paymentAmount,
     paymentCurrency: booking.paymentCurrency,
     heldAt: booking.heldAt,
+    // H5 — Day-of details pass-through. Companion sets these after
+    // date_confirmed; both sides see them on detail GETs.
+    meetingPoint: booking.meetingPoint,
+    contactNumber: booking.contactNumber,
+    dayOfNotes: booking.dayOfNotes,
   };
 }
 

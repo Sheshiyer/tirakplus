@@ -32,8 +32,10 @@ import type {
   CompanionProfileUpdateRequest,
   CompanionVerificationSubmitRequest,
   CompanionVisibilityUpdateRequest,
+  DayOfDetailsResponse,
   DiscoveryFilterSelection,
   ExperienceSlug,
+  InquiryStatus,
   MuseAdoptRequest,
   MuseAdoptResponse,
   MuseChatMessage,
@@ -50,6 +52,7 @@ import type {
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
   SafetyReportRequest,
+  SetDayOfDetailsRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
   TravellerSessionDetail,
@@ -73,6 +76,7 @@ import {
   listCompanionBookings,
   listOrFallback,
   listTravellerBookings,
+  patchBooking,
   projectBookingToCompanionInquirySummary,
   projectBookingToCompanionSessionDetail,
   projectBookingToTravellerInquiryDetail,
@@ -889,6 +893,50 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
       message: "Booking held. Tirak will share day-of details closer to the date.",
     });
+  }
+
+  // H5.T1 (2026-05-27) — Companion sets day-of details on a confirmed
+  // booking. Metadata-only: patchBooking writes the record without
+  // touching the state machine. Editable from date_confirmed through
+  // session_completed.
+  const planDayOfDetailsMatch = pathname.match(/^\/api\/plans\/([^/]+)\/day-of-details$/);
+  if (request.method === "POST" && planDayOfDetailsMatch) {
+    const id = planDayOfDetailsMatch[1];
+    const roleGuard = requireCustomerRole(request, "companion", fail);
+    if (roleGuard) return roleGuard;
+
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    // Day-of details are editable from date_confirmed through session_completed.
+    // Outside that window the form makes no sense.
+    const editableStatuses: InquiryStatus[] = [
+      "date_confirmed", "payment_held", "session_scheduled", "session_live", "session_completed",
+    ];
+    if (!editableStatuses.includes(booking.status)) {
+      return fail(409, "INVALID_STAGE", "Day-of details can only be set on a confirmed plan.");
+    }
+
+    const body = await readJsonBody<SetDayOfDetailsRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateDayOfDetails(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "DAY_OF_DETAILS_VALIDATION_FAILED", "Review the day-of fields and try again.", fieldErrors);
+    }
+
+    const updated = await patchBooking(env.BOOKING_DATA, id, {
+      meetingPoint: body.meetingPoint?.trim() || undefined,
+      contactNumber: body.contactNumber?.trim() || undefined,
+      dayOfNotes: body.dayOfNotes?.filter((n) => n && n.trim().length > 0).map((n) => n.trim()),
+    });
+    if (!updated) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    const response: DayOfDetailsResponse = {
+      inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
+      message: "Day-of details saved. Both sides will see them when the itinerary unlocks.",
+    };
+    return ok(response);
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {
@@ -1984,6 +2032,36 @@ function parseStripeUnitAmount(value: string | undefined): number | undefined {
   if (!value) return undefined;
   const amount = Number.parseInt(value, 10);
   return Number.isFinite(amount) && amount > 0 ? amount : undefined;
+}
+
+// H5.T1 (2026-05-27) — Validate companion-supplied day-of details.
+// All three fields are individually optional; only enforce caps + types.
+// Per-note errors use dotted paths (dayOfNotes.N) so the UI can map them
+// back to individual list items.
+function validateDayOfDetails(body: SetDayOfDetailsRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (body?.meetingPoint != null && body.meetingPoint.length > 280) {
+    errors.meetingPoint = "Meeting point must be 280 characters or fewer.";
+  }
+  if (body?.contactNumber != null && body.contactNumber.length > 40) {
+    errors.contactNumber = "Contact number must be 40 characters or fewer.";
+  }
+  if (body?.dayOfNotes != null) {
+    if (!Array.isArray(body.dayOfNotes)) {
+      errors.dayOfNotes = "Day-of notes must be a list of strings.";
+    } else if (body.dayOfNotes.length > 5) {
+      errors.dayOfNotes = "Day-of notes max 5 items.";
+    } else {
+      body.dayOfNotes.forEach((note, idx) => {
+        if (typeof note !== "string") {
+          errors[`dayOfNotes.${idx}`] = "Each note must be a string.";
+        } else if (note.length > 200) {
+          errors[`dayOfNotes.${idx}`] = "Each note must be 200 characters or fewer.";
+        }
+      });
+    }
+  }
+  return errors;
 }
 
 function validateCompanionProfileUpdate(body: CompanionProfileUpdateRequest): Record<string, string> {

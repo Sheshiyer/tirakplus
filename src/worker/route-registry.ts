@@ -398,6 +398,18 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     notes: "Places a payment hold on the confirmed plan. H4-stub: transitions date_confirmed → payment_held → session_scheduled (auto-advanced in non-prod) with no real Stripe call yet. Real Stripe checkout session creation lands in H4-real at end of roadmap.",
   },
   {
+    method: "POST",
+    path: "/api/plans/:inquiryId/day-of-details",
+    audience: "companion",
+    handler: "plans.setDayOfDetails",
+    requestContract: "SetDayOfDetailsRequest",
+    responseContract: "DayOfDetailsResponse",
+    auth: "role:companion",
+    stagedProvider: "bookingStore.patchBooking",
+    productionTarget: "KV",
+    notes: "Companion sets day-of details (meeting point, contact, notes) on a confirmed plan. Editable from date_confirmed through session_completed. Metadata-only — no status change. H2 limitation: any role:companion session can act on any inquiry until verified companion emails ship.",
+  },
+  {
     method: "PATCH",
     path: "/api/companion/profile",
     audience: "companion",
