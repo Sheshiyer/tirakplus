@@ -287,6 +287,7 @@ export async function transitionBookingStatus(
   fromStatus: InquiryStatus[],
   toStatus: InquiryStatus,
   actorEmail: string,
+  patch?: Partial<BookingRecord>,
 ): Promise<BookingRecord | null> {
   const record = await readBooking(kv, id);
   if (!record) return null;
@@ -310,6 +311,7 @@ export async function transitionBookingStatus(
     ...record,
     status: toStatus,
     updatedAt: new Date().toISOString(),
+    ...(patch ?? {}),
   };
   await persistRecord(kv, updated);
   // Index membership doesn't change on status transitions — entries

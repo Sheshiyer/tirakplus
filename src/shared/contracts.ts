@@ -628,6 +628,12 @@ export type BookingRecord = {
   reviewedAt?: string;
   reviewScore?: number;                      // 1-5
   reviewComment?: string;
+
+  // Decline metadata (populated H2 when companion declines)
+  declineReason?: CompanionDeclineReasonCategory;
+  declineNotes?: string;                            // ≤ 280 chars, optional free text
+  declinedAt?: string;                              // ISO timestamp
+  acceptedAt?: string;                              // ISO timestamp (companion-side decision time)
 };
 
 export type DateWindow = {

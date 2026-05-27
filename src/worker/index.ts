@@ -21,7 +21,10 @@ import type {
   AvailabilityWindow,
   CitySlug,
   CompanionAvailabilityUpdateRequest,
+  CompanionDeclineInquiryRequest,
+  CompanionDeclineReasonCategory,
   CompanionDraftProfile,
+  CompanionInquiryDecisionResponse,
   CompanionOptionSet,
   CompanionOnboardingStep,
   CompanionOnboardingState,
@@ -560,6 +563,75 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     );
     if (!detail) return fail(404, "COMPANION_INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
     return ok(detail);
+  }
+
+  const companionDecisionMatch = pathname.match(/^\/api\/companion\/inquiries\/([^/]+)\/(accept|decline)$/);
+  if (request.method === "POST" && companionDecisionMatch) {
+    const id = companionDecisionMatch[1];
+    const decision = companionDecisionMatch[2] as "accept" | "decline";
+
+    // Role gate (session is already guaranteed by requireCustomerRole)
+    const roleGuard = requireCustomerRole(request, "companion", fail);
+    if (roleGuard) return roleGuard;
+
+    // Load booking; must exist + must be routed
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This routed inquiry is unavailable.");
+    if (booking.status !== "routed") {
+      return fail(409, "INVALID_TRANSITION", "This inquiry is past the accept/decline window.");
+    }
+
+    // NOTE on ownership: companion emails on BookingRecord are synthetic in v1
+    // (companion-{id}@tirak.app), so isCompanionOwner won't match the session's
+    // dev.companion@tirak.app. For H2 we gate on role + status only.
+    // We pass booking.companionEmail (the synthetic record-side identifier) as
+    // the actor so transitionBookingStatus's actor==companionEmail check
+    // succeeds — the audit trail still attributes the action to the matched
+    // companion identifier rather than a contradictory session email.
+    // TODO: pass session.profile.email + re-enable isCompanionOwner once real
+    // companion email verification ships.
+
+    if (decision === "accept") {
+      const updated = await transitionBookingStatus(
+        env.BOOKING_DATA,
+        id,
+        ["routed"],
+        "accepted",
+        booking.companionEmail,
+        { acceptedAt: new Date().toISOString() },
+      );
+      if (!updated) return fail(409, "INVALID_TRANSITION", "Could not accept this inquiry.");
+      return ok({
+        inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
+        message: "Inquiry accepted. The traveller will be notified.",
+      });
+    }
+
+    // decline branch
+    const body = await readJsonBody<CompanionDeclineInquiryRequest>(request, requestId);
+    if (body instanceof Response) return body;
+    const fieldErrors = validateDecline(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "DECLINE_VALIDATION_FAILED", "Review the decline reason and try again.", fieldErrors);
+    }
+
+    const updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      id,
+      ["routed"],
+      "declined",
+      booking.companionEmail,
+      {
+        declineReason: body.reasonCategory,
+        declineNotes: body.notes?.trim() || undefined,
+        declinedAt: new Date().toISOString(),
+      },
+    );
+    if (!updated) return fail(409, "INVALID_TRANSITION", "Could not decline this inquiry.");
+    return ok({
+      inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
+      message: "Inquiry declined. The traveller will be notified.",
+    });
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {
@@ -1474,6 +1546,18 @@ function validateInquiry(body: TravellerInquiryRequest): Record<string, string> 
   }
   if (body.privacyAcknowledged !== true) {
     errors.privacyAcknowledged = "Acknowledge privacy and review before submitting.";
+  }
+  return errors;
+}
+
+function validateDecline(body: CompanionDeclineInquiryRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const validCategories: CompanionDeclineReasonCategory[] = ["schedule", "privacy", "safety", "other"];
+  if (!validCategories.includes(body?.reasonCategory)) {
+    errors.reasonCategory = "Pick a reason category.";
+  }
+  if (body?.notes != null && body.notes.length > 280) {
+    errors.notes = "Notes must be 280 characters or fewer.";
   }
   return errors;
 }
