@@ -194,17 +194,19 @@ export function CompanionInquiryDetailPage() {
       </div>
 
       <div className="member-bento-grid member-bento-grid-featured">
-        <article className="member-bento-card member-bento-card-large">
-          <p className="eyebrow">Decision options</p>
-          <div className="decision-grid">
-            {data.decisionOptions.map((option) => (
-              <button key={option.value} className="decision-card" type="button">
-                <strong>{option.label}</strong>
-                <span>{option.description}</span>
-              </button>
-            ))}
-          </div>
-        </article>
+        {data.status !== "routed" && (
+          <article className="member-bento-card member-bento-card-large">
+            <p className="eyebrow">Decision options</p>
+            <div className="decision-grid">
+              {data.decisionOptions.map((option) => (
+                <button key={option.value} className="decision-card" type="button">
+                  <strong>{option.label}</strong>
+                  <span>{option.description}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+        )}
 
         <article className="member-bento-card">
           <p className="eyebrow">Review checklist</p>
@@ -266,6 +268,8 @@ export function CompanionInquiryDetailPage() {
               className={`companion-decision-status${
                 statusVariant === "error" ? " companion-decision-status-error" : ""
               }`}
+              role={statusVariant === "error" ? "alert" : "status"}
+              aria-live={statusVariant === "error" ? "assertive" : "polite"}
             >
               {statusMessage}
             </p>
@@ -345,6 +349,8 @@ export function CompanionInquiryDetailPage() {
               className={`companion-decision-status${
                 statusVariant === "error" ? " companion-decision-status-error" : ""
               }`}
+              role={statusVariant === "error" ? "alert" : "status"}
+              aria-live={statusVariant === "error" ? "assertive" : "polite"}
             >
               {statusMessage}
             </p>
