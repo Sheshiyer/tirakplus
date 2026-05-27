@@ -6,18 +6,22 @@
 // companion-side inquiry endpoints behind a single BookingService.
 
 import type {
+  ChatThreadResponse,
   CompanionDeclineInquiryRequest,
   CompanionInquiryDecisionResponse,
   CompanionInquiryListResponse,
   CompanionReviewsResponse,
   CompanionSessionDetail,
   DayOfDetailsResponse,
+  MarkThreadReadResponse,
   PlanCompanionResponse,
   PlanTravellerResponse,
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
   ReviewRequest,
   ReviewSubmissionResponse,
+  SendMessageRequest,
+  SendMessageResponse,
   SetDayOfDetailsRequest,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
@@ -221,6 +225,43 @@ export const BookingService = {
   getCompanionReviews(companionId: string): Promise<CompanionReviewsResponse> {
     return apiRequest<CompanionReviewsResponse>(
       `/api/companions/${encodeURIComponent(companionId)}/reviews`,
+    );
+  },
+
+  /**
+   * Pass I — send a chat message on a booking thread. Either party may
+   * post once the booking is past `accepted`. Server trims + validates
+   * content (1-2000 chars) and stamps authorRole/authorLabel from the
+   * caller's session — clients never set those.
+   */
+  sendMessage(inquiryId: string, payload: SendMessageRequest): Promise<SendMessageResponse> {
+    return apiRequest<SendMessageResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/messages`,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Pass I — fetch the full booking thread (capped 200 messages, oldest
+   * first) plus the caller's lastReadAt + server-computed unreadCount
+   * (messages from the OTHER party after lastReadAt). Polled at 3-5s
+   * cadence by the chat view.
+   */
+  getMessages(inquiryId: string): Promise<ChatThreadResponse> {
+    return apiRequest<ChatThreadResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/messages`,
+    );
+  },
+
+  /**
+   * Pass I — mark the booking thread as read for the current user.
+   * Server sets lastReadAt to now and returns unreadCount: 0. Empty
+   * body — reserved for future "read up to message id" extension.
+   */
+  markThreadRead(inquiryId: string): Promise<MarkThreadReadResponse> {
+    return apiRequest<MarkThreadReadResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/messages/read`,
+      { method: "POST", body: JSON.stringify({}) },
     );
   },
 };
