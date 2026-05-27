@@ -51,6 +51,30 @@ const AUTH_FROM_RESEND_DEFAULT = "Muse · Tirak Plus <onboarding@resend.dev>";
 const OTP_TTL_SECONDS = 600; // 10 minutes
 const OTP_MAX_ATTEMPTS = 6;
 
+/**
+ * Log a Resend non-OK response WITHOUT leaking PII. Resend's JSON error
+ * body echoes the `to` field (recipient email), so the raw response
+ * text must never reach worker logs. We parse JSON best-effort and log
+ * only the HTTP status + `error.code` (safe HTTP semantics + a Resend
+ * machine code). The `error.message` is intentionally NOT logged — it
+ * can contain user-controlled or PII content. `resp.clone()` is used so
+ * the original body remains readable downstream if needed.
+ */
+async function redactedResendErrorLog(
+  resp: Response,
+  prefix: string,
+): Promise<void> {
+  try {
+    const errBody = (await resp.clone().json()) as {
+      error?: { code?: string; message?: string };
+    };
+    const code = errBody.error?.code ?? "unknown";
+    console.warn(`${prefix} non-OK ${resp.status} code=${code}`);
+  } catch {
+    console.warn(`${prefix} non-OK ${resp.status} (no JSON body)`);
+  }
+}
+
 export type StoredOtp = {
   code: string;
   issuedAt: string;
@@ -182,10 +206,7 @@ export async function sendOtpEmail(
       if (response.ok) {
         return "resend";
       }
-      const body = await response.text();
-      console.warn(
-        `[email/resend] non-OK ${response.status}: ${body.slice(0, 240)}`,
-      );
+      await redactedResendErrorLog(response, "[email/resend]");
     } catch (caught) {
       console.warn(
         `[email/resend] fetch failed (${caught instanceof Error ? caught.message : "unknown"})`,
@@ -287,10 +308,7 @@ export async function sendInquiryDecisionEmail(
     if (response.ok) {
       return { sent: true };
     }
-    const body = await response.text();
-    console.warn(
-      `[inquiry-decision-email/resend] non-OK ${response.status}: ${body.slice(0, 240)}`,
-    );
+    await redactedResendErrorLog(response, "[inquiry-decision-email/resend]");
     return { sent: false, reason: `resend_http_${response.status}` };
   } catch (caught) {
     console.warn(
