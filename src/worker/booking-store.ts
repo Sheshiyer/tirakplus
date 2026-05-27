@@ -23,8 +23,10 @@ import type {
   CompanionSessionDetail,
   InquiryStatus,
   MuseChartSignature,
+  Session,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
+  TravellerInquirySummary,
 } from "../shared/contracts";
 
 type BookingKv = KVNamespace | undefined;
@@ -645,4 +647,117 @@ export function projectBookingToCompanionSessionDetail(
     messageThread: [],
     paymentState: paymentStateFor(booking.status),
   };
+}
+
+// ===== Projector: BookingRecord → TravellerInquirySummary =====
+//
+// Direct (non-detail) projection. Skips the heavy fields the detail
+// projector populates — `message`, `timeline`, `paymentState`, and
+// `privacyNote` — because list rows don't render them. Saves work on
+// the GET /api/traveller/inquiries hot path where every booking would
+// otherwise allocate the full TravellerInquiryDetail object only to
+// have `toInquirySummary` immediately strip it back down.
+
+/**
+ * Direct BookingRecord → TravellerInquirySummary projection. Skips the
+ * heavy fields (message, timeline, paymentState, privacyNote) that the
+ * detail projector populates — those aren't shown in list rows.
+ */
+export function projectBookingToTravellerInquirySummary(
+  booking: BookingRecord,
+  companionDisplayName: string,
+): TravellerInquirySummary {
+  return {
+    id: booking.id,
+    companionId: booking.companionId,
+    companionDisplayName,
+    city: booking.city,
+    experience: booking.experience,
+    status: booking.status,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    nextStep: nextStepFor(booking.status),
+  };
+}
+
+// ===== Ownership predicates (security-sensitive) =====
+//
+// Centralize the email-normalization rule so future copy-paste at new
+// detail-access sites can't accidentally drop the trim/lowercase that
+// keeps the comparison safe against header casing or whitespace drift.
+// Both predicates return false when the booking is null so callers can
+// chain `isTravellerOwner(await readBooking(...), session)` without
+// pre-checking for null.
+
+/**
+ * Verify the session belongs to the traveller who owns this booking.
+ * Returns false if booking is missing or emails don't match (normalized).
+ */
+export function isTravellerOwner(
+  booking: BookingRecord | null,
+  session: Session,
+): boolean {
+  if (!booking) return false;
+  return booking.travellerEmail === session.profile.email.trim().toLowerCase();
+}
+
+/**
+ * Verify the session belongs to the companion the booking was routed to.
+ * NOTE: Today companion emails on BookingRecord are synthetic — this check
+ * will largely return false in production until Pass E gives companions
+ * real verified emails. Use cautiously in v1; fixtures take over.
+ */
+export function isCompanionOwner(
+  booking: BookingRecord | null,
+  session: Session,
+): boolean {
+  if (!booking) return false;
+  return booking.companionEmail === session.profile.email.trim().toLowerCase();
+}
+
+// ===== Load-then-fallback helpers =====
+//
+// Compresses the repeated "read from KV → project each row → if empty,
+// fall back to fixture" pattern that every GET inquiry handler used to
+// inline. `listOrFallback` covers list endpoints; `detailOrFallback`
+// covers single-record endpoints (with an extra access-check step so
+// the KV row only wins when the caller is authorized to see it).
+//
+// Both helpers are generic over the KV row type and the projected
+// output type so the same shape works for traveller and companion
+// projectors. Callers close over side parameters (like the companion
+// display name, or a Muse chart) via arrow functions so the helper
+// signatures stay narrow.
+
+/**
+ * Load a list from KV via `kvLoader`, project each item via `kvProjector`.
+ * If the resulting list is empty, fall back to `fixtureLoader()`.
+ * Generic over the KV row type and projected output type.
+ */
+export async function listOrFallback<TKv, TOut>(
+  kvLoader: () => Promise<TKv[]>,
+  kvProjector: (kvRow: TKv) => TOut,
+  fixtureLoader: () => TOut[],
+): Promise<TOut[]> {
+  const kvRows = await kvLoader();
+  if (kvRows.length === 0) return fixtureLoader();
+  return kvRows.map(kvProjector);
+}
+
+/**
+ * Load a single item from KV via `kvLoader`. If found AND `accessCheck` returns
+ * true, project via `kvProjector` and return. Otherwise fall back to
+ * `fixtureLoader()`. Returns null if both fail (caller maps null → 404).
+ */
+export async function detailOrFallback<TKv, TOut>(
+  kvLoader: () => Promise<TKv | null>,
+  accessCheck: (kvRow: TKv) => boolean,
+  kvProjector: (kvRow: TKv) => TOut,
+  fixtureLoader: () => TOut | undefined,
+): Promise<TOut | null> {
+  const kvRow = await kvLoader();
+  if (kvRow && accessCheck(kvRow)) {
+    return kvProjector(kvRow);
+  }
+  return fixtureLoader() ?? null;
 }
