@@ -5,11 +5,19 @@ import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
 import { DateWindowPicker } from "../components/booking/DateWindowPicker";
+import { SessionItinerary } from "../components/booking/SessionItinerary";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
 
 const POLL_INTERVAL_MS = 5000;
+
+// H5.T6 — Itinerary unlock window. The read-only SessionItinerary surface
+// flips on 24 hours before the session's scheduledFor. Mirrors the H5.T5
+// companion-side constant + the server-side cutover hook. The traveller
+// can't edit day-of details — that surface belongs to the companion — so
+// before unlock we just render a small "Day-of details coming" placeholder.
+const ITINERARY_UNLOCK_HOURS = 24;
 
 type LoadState =
   | { status: "loading"; inquiry?: undefined; message?: undefined }
@@ -70,17 +78,29 @@ export function TravellerInquiryDetailPage() {
     };
   }, [inquiryId]);
 
-  // H2.T8 / H3.T7 / H4-stub — Mirror the inbox list poll for the detail page.
-  // While the viewed inquiry sits in any non-terminal negotiation/hold state,
-  // refetch every 5s so the page flips forward without manual reload. Stops
-  // automatically once status leaves the pending set (date_confirmed,
-  // session_scheduled, declined, cancelled, etc.). Skips when the tab is
-  // hidden. Polling failures are swallowed silently.
+  // H2.T8 / H3.T7 / H4-stub / H5.T6 — Mirror the inbox list poll for the
+  // detail page. While the viewed inquiry sits in any non-terminal
+  // negotiation/hold/scheduled state, refetch every 5s so the page flips
+  // forward without manual reload. Stops automatically once status reaches
+  // session_completed (terminal for the traveller in H5) or any terminal
+  // non-success state (declined / cancelled). Skips when the tab is hidden.
+  // Polling failures are swallowed silently.
   //
   // payment_held is included so the prod path (where Stripe webhook flips
   // payment_held → session_scheduled out-of-band) surfaces within 5s. In dev
   // the auto-advance bridge skips through payment_held synchronously, so the
   // poll usually never runs against it.
+  //
+  // H5 additions:
+  //   session_scheduled → system advances to session_live at the
+  //     scheduled-for moment; keep polling so the page can swap the H4-stub
+  //     "Day-of details will appear here" panel for the read-only
+  //     SessionItinerary at the 24h cutover, and again at session_live.
+  //   session_live      → system advances to session_completed when the
+  //     session window ends; keep polling so the traveller sees the
+  //     terminal state without a manual reload. session_completed itself
+  //     is terminal for the traveller in H5 (no review yet), so we stop
+  //     polling there.
   //
   // hasPending is derived via useMemo so the polling effect keys on a boolean
   // rather than the whole state object — keeping the 5s cadence steady across
@@ -93,7 +113,9 @@ export function TravellerInquiryDetailPage() {
       s === "accepted" ||
       s === "date_pending" ||
       s === "date_proposed" ||
-      s === "payment_held"
+      s === "payment_held" ||
+      s === "session_scheduled" || // H5: poll for session_live transition
+      s === "session_live"         // H5: poll for session_completed transition
     );
   }, [state]);
 
@@ -159,6 +181,32 @@ export function TravellerInquiryDetailPage() {
   }
 
   const { inquiry } = state;
+
+  // H5.T6 — Itinerary visibility logic. Mirrors the companion-side gate
+  // from H5.T5 but with NO editable form (the traveller can't set day-of
+  // details — that surface belongs to the companion).
+  //   itineraryUnlocked: true once we're within 24h of scheduledFor.
+  //     scheduledFor is only set from date_confirmed onward, so this
+  //     short-circuits to false for earlier statuses.
+  //   showItinerary: renders the read-only SessionItinerary. Requires both
+  //     a confirmed window AND a scheduledFor (set by server on
+  //     date_confirmed). True when the session is live/completed, OR when
+  //     we've crossed the 24h unlock for one of the post-confirm states.
+  const itineraryUnlocked = Boolean(
+    inquiry.scheduledFor &&
+      Date.now() >=
+        Date.parse(inquiry.scheduledFor) - ITINERARY_UNLOCK_HOURS * 60 * 60 * 1000,
+  );
+  const showItinerary = Boolean(
+    inquiry.companionSelectedWindow &&
+      inquiry.scheduledFor &&
+      (inquiry.status === "session_live" ||
+        inquiry.status === "session_completed" ||
+        (inquiry.status === "session_scheduled" && itineraryUnlocked) ||
+        (inquiry.status === "payment_held" && itineraryUnlocked) ||
+        (inquiry.status === "date_confirmed" && itineraryUnlocked)),
+  );
+
   const paymentReturnState = searchParams.get("payment");
   const stripeProvider = paymentProviders.find((provider) => provider.id === "stripe");
   const isStripeTestMode = stripeProvider?.status === "test_mode";
@@ -414,6 +462,47 @@ export function TravellerInquiryDetailPage() {
             {inquiry.heldAt && <p>Booking held on {formatDate(inquiry.heldAt)}.</p>}
             <p>Day-of details will appear here closer to the session.</p>
           </section>
+        )}
+
+        {/* H5.T6 — Day-of placeholder. Renders only when the itinerary
+            hasn't unlocked yet AND the booking is in the confirmed range
+            (date_confirmed / payment_held / session_scheduled). Before
+            date_confirmed there's no scheduledFor anchor, so the gate
+            naturally collapses. After unlock or once the session is
+            live/completed the SessionItinerary below takes over. The
+            traveller can't edit these details — the companion owns that
+            surface (H5.T5) — so this is purely a "what to expect" card. */}
+        {!itineraryUnlocked &&
+          (inquiry.status === "date_confirmed" ||
+            inquiry.status === "payment_held" ||
+            inquiry.status === "session_scheduled") && (
+            <section className="plan-stage-cta" aria-label="Day-of details coming">
+              <p className="eyebrow">Day-of details</p>
+              <h2>Coming 24 hours before the session.</h2>
+              <p>
+                Meeting point, your companion's contact, and any logistics will
+                appear here as the date approaches.
+              </p>
+            </section>
+          )}
+
+        {/* H5.T6 — Read-only itinerary. SessionItinerary (H5.T4) is pure
+            display; visibility gating lives on showItinerary above. The two
+            narrowed conditions here re-check the optional fields used in
+            the JSX so TS can drop the undefined branch. perspective is
+            "traveller" so the contact + notes cards read as
+            "Companion contact" / "Notes from your companion". */}
+        {showItinerary && inquiry.companionSelectedWindow && inquiry.scheduledFor && (
+          <SessionItinerary
+            scheduledFor={inquiry.scheduledFor}
+            durationMinutes={inquiry.durationMinutes}
+            selectedWindow={inquiry.companionSelectedWindow}
+            meetingPoint={inquiry.meetingPoint}
+            contactNumber={inquiry.contactNumber}
+            dayOfNotes={inquiry.dayOfNotes}
+            status={inquiry.status}
+            perspective="traveller"
+          />
         )}
 
         <div className="action-row">
