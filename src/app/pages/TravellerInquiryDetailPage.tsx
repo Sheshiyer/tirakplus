@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { DateWindow, PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
-import { BookingService } from "../api/booking";
+import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
 import { DateWindowPicker } from "../components/booking/DateWindowPicker";
@@ -36,6 +36,13 @@ export function TravellerInquiryDetailPage() {
   const [showWindowPicker, setShowWindowPicker] = useState(false);
   const [showConfirmForm, setShowConfirmForm] = useState(true);
 
+  // H4-stub — Hold-booking action state. Drives the "Hold your booking" CTA
+  // that sits below the date_confirmed summary. submitting disables the
+  // button; error surfaces a message inline next to the CTA without
+  // disturbing the rest of the page.
+  const [holdActionState, setHoldActionState] = useState<"idle" | "submitting" | "error">("idle");
+  const [holdErrorMessage, setHoldErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (!inquiryId) {
       setState({ status: "error", message: "Choose an inquiry before opening its details." });
@@ -63,19 +70,32 @@ export function TravellerInquiryDetailPage() {
     };
   }, [inquiryId]);
 
-  // H2.T8 — Mirror the inbox list poll (H2.T7) for the detail page. While the
-  // viewed inquiry sits in "routed" state (awaiting companion accept/decline),
-  // refetch every 5s so the page flips to accepted/declined without manual
-  // reload. Stops automatically once status leaves "routed". Skips when the
-  // tab is hidden. Polling failures are swallowed silently.
+  // H2.T8 / H3.T7 / H4-stub — Mirror the inbox list poll for the detail page.
+  // While the viewed inquiry sits in any non-terminal negotiation/hold state,
+  // refetch every 5s so the page flips forward without manual reload. Stops
+  // automatically once status leaves the pending set (date_confirmed,
+  // session_scheduled, declined, cancelled, etc.). Skips when the tab is
+  // hidden. Polling failures are swallowed silently.
+  //
+  // payment_held is included so the prod path (where Stripe webhook flips
+  // payment_held → session_scheduled out-of-band) surfaces within 5s. In dev
+  // the auto-advance bridge skips through payment_held synchronously, so the
+  // poll usually never runs against it.
   //
   // hasPending is derived via useMemo so the polling effect keys on a boolean
   // rather than the whole state object — keeping the 5s cadence steady across
   // successful polls instead of resetting the interval on every setState.
-  const hasPending = useMemo(
-    () => state.status === "ready" && state.inquiry.status === "routed",
-    [state],
-  );
+  const hasPending = useMemo(() => {
+    if (state.status !== "ready") return false;
+    const s = state.inquiry.status;
+    return (
+      s === "routed" ||
+      s === "accepted" ||
+      s === "date_pending" ||
+      s === "date_proposed" ||
+      s === "payment_held"
+    );
+  }, [state]);
 
   useEffect(() => {
     if (!hasPending || !inquiryId) return;
@@ -154,6 +174,28 @@ export function TravellerInquiryDetailPage() {
   const paymentCopy = isStripeTestMode
     ? "Stripe test checkout is active on this local build. No live charge will be created."
     : inquiry.paymentState.note;
+
+  // H4-stub — Place a hold on the confirmed plan. Calls
+  // BookingService.holdBooking, which in dev/staging auto-advances through
+  // payment_held → session_scheduled in one round-trip. In production this
+  // would leave the booking at payment_held until the Stripe webhook fires;
+  // the polling effect picks it up from there.
+  const handleHold = async () => {
+    setHoldActionState("submitting");
+    setHoldErrorMessage(null);
+    try {
+      const response = await BookingService.holdBooking(inquiry.id);
+      setState({ status: "ready", inquiry: response.inquiry });
+      setHoldActionState("idle");
+    } catch (err) {
+      setHoldActionState("error");
+      if (err instanceof BookingApiError) {
+        setHoldErrorMessage(err.message || "Could not place hold. Try again.");
+      } else {
+        setHoldErrorMessage("Could not place hold. Try again.");
+      }
+    }
+  };
 
   const startCheckout = async () => {
     setCheckoutState("creating");
@@ -314,7 +356,63 @@ export function TravellerInquiryDetailPage() {
             {inquiry.confirmedAt && (
               <p>Confirmed on {formatDate(inquiry.confirmedAt)}.</p>
             )}
-            <p>Tirak will surface day-of details closer to the date.</p>
+
+            {/* H4-stub — Hold booking CTA. Below the summary so the page
+                still reads top-down as "plan locked; here's your next
+                move". The dev-preview note is intentionally visible to
+                signal the H4-stub status to anyone testing the build. */}
+            <div className="plan-stage-hold-cta">
+              <p className="meta">Hold your booking to secure this session.</p>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => void handleHold()}
+                disabled={holdActionState === "submitting"}
+              >
+                {holdActionState === "submitting" ? "Holding..." : "Hold your booking"}
+              </Button>
+              <p className="dev-preview-note">
+                Dev preview — payment integration pending. The booking advances to
+                scheduled without a real charge in this build.
+              </p>
+              {holdErrorMessage && (
+                <p className="plan-stage-error" role="alert">{holdErrorMessage}</p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* H4-stub — payment_held panel. Reached only in production where the
+            auto-advance bridge is disabled and the booking sits at payment_held
+            until the Stripe webhook fires. In dev/staging the bridge skips
+            straight to session_scheduled, so this panel is rarely seen — but
+            we still render it so the prod path has a coherent surface. */}
+        {inquiry.status === "payment_held" && inquiry.companionSelectedWindow && (
+          <section className="plan-stage-confirmed" aria-label="Booking held">
+            <p className="eyebrow">Booking held</p>
+            <h2>Your hold is in place.</h2>
+            <p>{formatWindowLabel(inquiry.companionSelectedWindow)} (Bangkok local time)</p>
+            {inquiry.heldAt && <p>Held on {formatDate(inquiry.heldAt)}.</p>}
+            <p>Tirak will share day-of details closer to the session.</p>
+          </section>
+        )}
+
+        {/* H4-stub — session_scheduled panel. Terminal state for H4-stub. H5
+            will replace this with the real day-of itinerary view (meeting
+            point, contact number, safety checklist). */}
+        {inquiry.status === "session_scheduled" && inquiry.companionSelectedWindow && (
+          <section className="plan-stage-confirmed plan-stage-scheduled" aria-label="Session scheduled">
+            <p className="eyebrow">Session scheduled</p>
+            <h2>{formatWindowLabel(inquiry.companionSelectedWindow)}</h2>
+            <p>
+              Bangkok local time
+              {typeof inquiry.durationMinutes === "number"
+                ? ` · ${formatDurationHours(inquiry.durationMinutes)}`
+                : ""}
+              .
+            </p>
+            {inquiry.heldAt && <p>Booking held on {formatDate(inquiry.heldAt)}.</p>}
+            <p>Day-of details will appear here closer to the session.</p>
           </section>
         )}
 

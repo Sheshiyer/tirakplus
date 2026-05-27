@@ -7066,3 +7066,50 @@ p {
 .member-shell .account-page-light .plan-window-readonly-list .note {
   color: rgba(35, 31, 39, 0.62);
 }
+
+/* ===== Plan-stage Hold-CTA + scheduled accent (Pass H4-stub) =====
+   The Hold CTA sits inside the date_confirmed plan-stage-confirmed panel,
+   visually grouped via a thin top divider so the summary above and the
+   action below read as one card. The .plan-stage-scheduled modifier
+   gives the session_scheduled panel a subtle trust-green accent to
+   distinguish "scheduled" from "confirmed". */
+.plan-stage-hold-cta {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  display: grid;
+  gap: 8px;
+}
+
+.plan-stage-hold-cta .meta {
+  font-size: var(--text-caption-size, 13px);
+  color: rgba(255, 255, 255, 0.66);
+  margin: 0;
+}
+
+.plan-stage-hold-cta .dev-preview-note {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.50);
+  font-style: italic;
+  margin: 0;
+}
+
+.plan-stage-error {
+  color: #f7b9c2;
+  font-size: var(--text-caption-size, 13px);
+  margin: 0;
+}
+
+.plan-stage-scheduled {
+  border-left-color: var(--color-trust-green, #657A66);
+}
+
+/* Light-variant overrides — porcelain account-page backdrop. */
+.member-shell .account-page-light .plan-stage-hold-cta {
+  border-top-color: rgba(35, 31, 39, 0.10);
+}
+
+.member-shell .account-page-light .plan-stage-hold-cta .meta,
+.member-shell .account-page-light .plan-stage-hold-cta .dev-preview-note {
+  color: rgba(35, 31, 39, 0.72);
+}
