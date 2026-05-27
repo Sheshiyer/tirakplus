@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
+import { BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -28,7 +29,7 @@ export function TravellerInquiryDetailPage() {
     let cancelled = false;
     setState({ status: "loading" });
 
-    TravellerService.getInquiry(inquiryId)
+    BookingService.getTravellerInquiry(inquiryId)
       .then((inquiry) => {
         if (!cancelled) setState({ status: "ready", inquiry });
       })

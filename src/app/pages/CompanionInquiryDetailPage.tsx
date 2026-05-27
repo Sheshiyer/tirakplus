@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { CompanionSessionDetail } from "../../shared/contracts";
-import { CompanionService } from "../api/companion";
+import { BookingService } from "../api/booking";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -23,7 +23,7 @@ export function CompanionInquiryDetailPage() {
     }
 
     let cancelled = false;
-    CompanionService.getInquiry(inquiryId)
+    BookingService.getCompanionInquiry(inquiryId)
       .then((data) => {
         if (!cancelled) setState({ status: "ready", data });
       })

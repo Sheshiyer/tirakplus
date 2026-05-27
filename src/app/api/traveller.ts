@@ -6,10 +6,6 @@ import type {
   ExperienceSlug,
   PaymentProviderSummary,
   PaymentSessionResult,
-  TravellerInquiryCreateResponse,
-  TravellerInquiryDetail,
-  TravellerInquiryListResponse,
-  TravellerInquiryRequest,
   TravellerDashboardResponse,
   TravellerSessionDetail,
   TravellerSessionListResponse,
@@ -102,27 +98,12 @@ export const TravellerService = {
     return apiRequest<CompanionProfile>(`/api/traveller/companions/${encodeURIComponent(companionId)}`);
   },
 
-  getInquiries(): Promise<TravellerInquiryListResponse> {
-    return apiRequest<TravellerInquiryListResponse>("/api/traveller/inquiries");
-  },
-
   getSessions(): Promise<TravellerSessionListResponse> {
     return apiRequest<TravellerSessionListResponse>("/api/traveller/sessions");
   },
 
   getSession(sessionId: string): Promise<TravellerSessionDetail> {
     return apiRequest<TravellerSessionDetail>(`/api/traveller/sessions/${encodeURIComponent(sessionId)}`);
-  },
-
-  getInquiry(inquiryId: string): Promise<TravellerInquiryDetail> {
-    return apiRequest<TravellerInquiryDetail>(`/api/traveller/inquiries/${encodeURIComponent(inquiryId)}`);
-  },
-
-  createInquiry(payload: TravellerInquiryRequest): Promise<TravellerInquiryCreateResponse> {
-    return apiRequest<TravellerInquiryCreateResponse>("/api/traveller/inquiries", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
   },
 
   createPaymentSession(inquiryId: string): Promise<PaymentSessionResult> {

@@ -1,11 +1,9 @@
 import type {
   CompanionAvailabilityUpdateRequest,
   CompanionDashboardResponse,
-  CompanionInquiryListResponse,
   CompanionOnboardingState,
   CompanionProfileUpdateRequest,
   CompanionProfileUpdateResponse,
-  CompanionSessionDetail,
   CompanionVerificationSubmitRequest,
   CompanionVerificationSubmitResponse,
   CompanionVisibilityUpdateRequest,
@@ -80,14 +78,6 @@ export const CompanionService = {
 
   getDashboard(): Promise<CompanionDashboardResponse> {
     return apiRequest<CompanionDashboardResponse>("/api/companion/dashboard");
-  },
-
-  getInquiries(): Promise<CompanionInquiryListResponse> {
-    return apiRequest<CompanionInquiryListResponse>("/api/companion/inquiries");
-  },
-
-  getInquiry(inquiryId: string): Promise<CompanionSessionDetail> {
-    return apiRequest<CompanionSessionDetail>(`/api/companion/inquiries/${encodeURIComponent(inquiryId)}`);
   },
 
   updateProfile(payload: CompanionProfileUpdateRequest): Promise<CompanionProfileUpdateResponse> {

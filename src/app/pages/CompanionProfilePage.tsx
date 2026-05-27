@@ -84,9 +84,6 @@ export function CompanionProfilePage() {
           <p className="lede">{profile.profileTone}</p>
           <p className="profile-bio">{profile.bio}</p>
           <div className="action-row">
-            <Button as={Link} to={`/traveller/companions/${profile.id}/inquire`} variant="primary">
-              Start private inquiry
-            </Button>
             {canSendInquiry && (
               <Button type="button" variant="primary" onClick={() => setInquiryOpen(true)}>
                 Send inquiry

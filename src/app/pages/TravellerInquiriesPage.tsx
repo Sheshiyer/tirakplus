@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TravellerInquiryListResponse } from "../../shared/contracts";
-import { TravellerService } from "../api/traveller";
+import { BookingService } from "../api/booking";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -18,7 +18,7 @@ export function TravellerInquiriesPage() {
     let cancelled = false;
     setState({ status: "loading" });
 
-    TravellerService.getInquiries()
+    BookingService.listTravellerInquiries()
       .then((data) => {
         if (!cancelled) setState({ status: "ready", data });
       })
