@@ -1,4 +1,27 @@
-import { useEffect, useState } from "react";
+// CompanionProfilePage.tsx — P1.T2 (2026-05-28).
+//
+// Full rebuild to match the inspiration board at:
+//   generated/web-reference-boards/gpt-image-2/companion-profile-responsive-board.png
+//
+// Layout shape:
+//   - Topbar with back chevron + "Tirak Plus" wordmark
+//   - Portrait-led hero (4:5 ratio dominant)
+//   - Name (display) + inline verified check, chip row, bio
+//   - <1024px: stacked availability + experiences sections
+//   - >=1024px: 2-col grid — availability + experiences left, sidebar
+//     ("Ready to connect?" + mirrored summaries) right
+//   - Below the fold: safety panel + reviews list (preserved, restyled)
+//   - Sticky coral "Inquire" CTA fixed to viewport bottom on every
+//     breakpoint, with "Private inquiry" microcopy strip above
+//
+// All visual styling is page-scoped under .companion-profile-v2 so the
+// existing .member-shell .profile-* light cascade is bypassed without
+// touching global tokens.
+//
+// MuseChartPanel was removed (not in board — same 4-card cruft we
+// removed from MuseChatPage on 2026-05-27).
+
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
   CompanionProfile,
@@ -9,8 +32,8 @@ import { BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { AssetRegistry } from "../registry/assets";
 import { InquiryFormSheet } from "../components/booking/InquiryFormSheet";
-import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { Button } from "../components/ui/Button";
+import { Chip } from "../components/ui/Chip";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonProfile } from "../components/ui/Skeleton";
 
@@ -88,7 +111,7 @@ export function CompanionProfilePage() {
 
   if (state.status === "loading") {
     return (
-      <section className="profile-page">
+      <section className="companion-profile-v2 companion-profile-v2-loading">
         <SkeletonProfile />
       </section>
     );
@@ -96,7 +119,7 @@ export function CompanionProfilePage() {
 
   if (state.status === "error") {
     return (
-      <section className="profile-page">
+      <section className="companion-profile-v2 companion-profile-v2-error">
         <FeedbackState
           variant={state.unavailable ? "empty" : "error"}
           title={state.unavailable ? "Profile is not available" : "Profile could not load"}
@@ -111,92 +134,144 @@ export function CompanionProfilePage() {
   const { profile } = state;
   const primaryExperience = profile.experienceTags[0];
   const canSendInquiry = profile.visibilityState === "public" && Boolean(primaryExperience);
+  const isApproved = profile.verificationState === "approved";
+  const cityLabel = profile.city.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const portraitUrl = AssetRegistry.resolveAsset("profile", profile.avatarUrl);
 
   return (
-    <section className="profile-page" aria-labelledby="profile-title">
-      <div className="profile-hero">
-        <div>
-          <p className="eyebrow">{profile.city.replace("-", " ")}</p>
-          <h1 id="profile-title">{profile.displayName}</h1>
+    <section
+      className="companion-profile-v2"
+      data-companion-id={profile.id}
+      aria-labelledby="profile-title"
+    >
+      <header className="profile-topbar-v2">
+        <Link
+          to="/traveller/discovery"
+          className="profile-topbar-back"
+          aria-label="Back to discovery"
+        >
+          <BackChevron />
+        </Link>
+        <span className="profile-topbar-brand">Tirak Plus</span>
+        {/* Right spacer keeps brand visually centered without an extra element. */}
+        <span className="profile-topbar-spacer" aria-hidden="true" />
+      </header>
+
+      <div className="profile-hero-v2">
+        <div className="profile-portrait-v2">
+          <img src={portraitUrl} alt="" />
+        </div>
+        <div className="profile-identity">
+          <h1 id="profile-title" className="profile-display-name">
+            <span>{profile.displayName}</span>
+            {isApproved && <VerifiedSeal />}
+          </h1>
+          <div className="profile-chip-row">
+            <Chip variant="location" icon={<PinIcon />}>
+              {cityLabel}
+            </Chip>
+            {isApproved && (
+              <Chip variant="verified" icon={<CheckIcon />}>
+                ID Verified
+              </Chip>
+            )}
+          </div>
+          <p className="profile-bio-v2">{profile.bio}</p>
           {reviewsState.status === "ready" && reviewsState.aggregate.reviewCount > 0 && (
             <div
-              className="companion-rating-badge"
+              className="profile-rating-badge"
               aria-label={`Rated ${reviewsState.aggregate.averageScore} out of 5 from ${reviewsState.aggregate.reviewCount} review${reviewsState.aggregate.reviewCount === 1 ? "" : "s"}`}
             >
-              <span className="companion-rating-score">
+              <StarIcon />
+              <span className="profile-rating-score">
                 {reviewsState.aggregate.averageScore.toFixed(1)}
               </span>
-              <span className="companion-rating-divider" aria-hidden="true">·</span>
-              <span className="companion-rating-count">
+              <span className="profile-rating-divider" aria-hidden="true">·</span>
+              <span className="profile-rating-count">
                 {reviewsState.aggregate.reviewCount} review
                 {reviewsState.aggregate.reviewCount === 1 ? "" : "s"}
               </span>
             </div>
           )}
-          <p className="lede">{profile.profileTone}</p>
-          <p className="profile-bio">{profile.bio}</p>
-          <div className="action-row">
-            {canSendInquiry && (
-              <Button type="button" variant="primary" onClick={() => setInquiryOpen(true)}>
-                Send inquiry
-              </Button>
-            )}
-            <Button as={Link} to="/traveller/discovery" variant="secondary">
-              Back to discovery
-            </Button>
-          </div>
-          {statusMessage && (
-            <p className="companion-status-message" role="status">
-              {statusMessage}
-            </p>
-          )}
         </div>
+      </div>
 
-        <aside className="profile-verification-panel" aria-label="Verification state">
-          <div className="profile-portrait" aria-hidden="true">
-            <img src={AssetRegistry.resolveAsset("profile", profile.avatarUrl)} alt="" />
+      <div className="profile-detail-v2-grid">
+        <section className="profile-availability-v2" aria-labelledby="availability-heading">
+          <p className="eyebrow">Date &amp; time</p>
+          <h2 id="availability-heading">Availability</h2>
+          <ul className="profile-availability-list">
+            {profile.availabilityWindows.map((window) => (
+              <li
+                key={window.id}
+                className={`profile-availability-row profile-availability-row-${window.status}`}
+              >
+                <span className="profile-availability-dot" aria-hidden="true" />
+                <div className="profile-availability-meta">
+                  <p className="profile-availability-label">{window.label}</p>
+                  <p className="profile-availability-note">{window.note}</p>
+                </div>
+                <span className="profile-availability-status">
+                  {window.status.replace("_", " ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="profile-experiences-v2" aria-labelledby="experiences-heading">
+          <p className="eyebrow">Experiences</p>
+          <h2 id="experiences-heading">What we can do together</h2>
+          <ul className="profile-experiences-list">
+            {profile.experienceFit.map((fit) => (
+              <li key={fit.slug} className="profile-experience-tag">
+                <span className="profile-experience-tag-bullet" aria-hidden="true">◆</span>
+                <div>
+                  <p className="profile-experience-tag-title">{fit.title}</p>
+                  <p className="profile-experience-tag-note">{fit.fitNote}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <aside className="profile-sidebar-v2" aria-label="Connection summary">
+          <div className="profile-ready-card">
+            <p className="eyebrow profile-ready-eyebrow">Ready to connect?</p>
+            <p className="profile-ready-line">{profile.availabilitySummary}</p>
+            <p className="profile-ready-tone">{profile.profileTone}</p>
           </div>
-          <p className="meta">Verification</p>
-          <h2>{profile.verification.label}</h2>
-          <p>{profile.verification.reviewNote}</p>
+
+          <div className="profile-sidebar-summary">
+            <p className="eyebrow">Availability</p>
+            <ul>
+              {profile.availabilityWindows.slice(0, 3).map((window) => (
+                <li key={window.id}>
+                  <span className={`profile-sidebar-dot profile-sidebar-dot-${window.status}`} aria-hidden="true" />
+                  <span>{window.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="profile-sidebar-summary">
+            <p className="eyebrow">Experiences</p>
+            <ul>
+              {profile.experienceFit.slice(0, 5).map((fit) => (
+                <li key={fit.slug}>
+                  <span className="profile-sidebar-dot profile-sidebar-dot-experience" aria-hidden="true" />
+                  <span>{fit.title}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
       </div>
 
-      <MuseChartPanel chart={profile.chart} className="profile-chart-panel" />
-
-      <div className="profile-detail-grid">
-        <section className="profile-detail-panel" aria-labelledby="availability-heading">
-          <h2 id="availability-heading">Availability</h2>
-          <div className="availability-list">
-            {profile.availabilityWindows.map((window) => (
-              <article key={window.id} className={`availability-item availability-item-${window.status}`}>
-                <p className="meta">{window.status.replace("_", " ")}</p>
-                <h3>{window.label}</h3>
-                <p>{window.note}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="profile-detail-panel" aria-labelledby="fit-heading">
-          <h2 id="fit-heading">Experience fit</h2>
-          <div className="experience-fit-list">
-            {profile.experienceFit.map((fit) => (
-              <article key={fit.slug} className="experience-fit-item">
-                <h3>{fit.title}</h3>
-                <p>{fit.fitNote}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="profile-safety-panel" aria-labelledby="profile-safety-heading">
-        <div>
-          <p className="eyebrow">First message</p>
-          <h2 id="profile-safety-heading">{profile.safetyNote}</h2>
-        </div>
-        <ul>
+      <section className="profile-safety-v2" aria-labelledby="profile-safety-heading">
+        <p className="eyebrow">First message</p>
+        <h2 id="profile-safety-heading">{profile.safetyNote}</h2>
+        <ul className="profile-safety-list">
           {profile.inquiryGuidance.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -207,28 +282,28 @@ export function CompanionProfilePage() {
       </section>
 
       {reviewsState.status === "ready" && reviewsState.reviews.length > 0 && (
-        <section className="companion-reviews" aria-label="Recent reviews">
+        <section className="profile-reviews-v2" aria-label="Recent reviews">
           <p className="eyebrow">Recent reviews</p>
-          <ul className="companion-reviews-list">
+          <ul className="profile-reviews-list-v2">
             {reviewsState.reviews.slice(0, 3).map((review) => (
-              <li key={review.bookingId} className="companion-reviews-item">
-                <div className="companion-reviews-header">
+              <li key={review.bookingId} className="profile-reviews-item-v2">
+                <div className="profile-reviews-header-v2">
                   <span
-                    className="companion-reviews-score"
+                    className="profile-reviews-score-v2"
                     aria-label={`Score ${review.score} out of 5`}
                   >
                     {review.score}/5
                   </span>
-                  <span className="companion-reviews-divider" aria-hidden="true">·</span>
-                  <span className="companion-reviews-label">{review.travellerLabel}</span>
+                  <span className="profile-reviews-divider-v2" aria-hidden="true">·</span>
+                  <span className="profile-reviews-label-v2">{review.travellerLabel}</span>
                 </div>
-                <p className="companion-reviews-comment">"{review.comment}"</p>
-                <p className="companion-reviews-date">{formatDate(review.submittedAt)}</p>
+                <p className="profile-reviews-comment-v2">"{review.comment}"</p>
+                <p className="profile-reviews-date-v2">{formatDate(review.submittedAt)}</p>
               </li>
             ))}
           </ul>
           {reviewsState.reviews.length > 3 && (
-            <p className="companion-reviews-more meta">
+            <p className="profile-reviews-more-v2">
               + {reviewsState.reviews.length - 3} more review
               {reviewsState.reviews.length - 3 === 1 ? "" : "s"}.
             </p>
@@ -237,10 +312,33 @@ export function CompanionProfilePage() {
       )}
 
       {reviewsState.status === "ready" && reviewsState.reviews.length === 0 && (
-        <section className="companion-reviews companion-reviews-empty" aria-label="No reviews yet">
+        <section className="profile-reviews-v2 profile-reviews-empty-v2" aria-label="No reviews yet">
           <p className="eyebrow">Reviews</p>
           <p>No reviews yet.</p>
         </section>
+      )}
+
+      {statusMessage && (
+        <p className="profile-status-message-v2" role="status">
+          {statusMessage}
+        </p>
+      )}
+
+      {/* Sticky bottom CTA — pinned to viewport, dark backdrop with blur.
+          Hidden when the profile can't take inquiries so we don't dangle a
+          dead button (visibilityState !== "public" or no experience tags). */}
+      {canSendInquiry && (
+        <div className="profile-sticky-cta" role="region" aria-label="Send inquiry">
+          <p className="profile-sticky-cta-microcopy">Private inquiry</p>
+          <Button
+            type="button"
+            variant="coral"
+            fullWidth
+            onClick={() => setInquiryOpen(true)}
+          >
+            Inquire
+          </Button>
+        </div>
       )}
 
       {canSendInquiry && primaryExperience && (
@@ -271,4 +369,58 @@ function formatDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Inline SVG glyphs — lucide-react isn't installed; these are intentionally
+// tiny so they stay maintainable beside the markup that uses them.
+// ---------------------------------------------------------------------------
+
+function BackChevron(): ReactNode {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true">
+      <path d="M12.5 4l-6 6 6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function VerifiedSeal(): ReactNode {
+  // Filled coral disc + inset checkmark, sized to sit on the name baseline.
+  return (
+    <span className="profile-verified-seal" aria-label="Verified" title="ID verified">
+      <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" fill="currentColor" />
+        <path d="M7.5 12.4l3 3 6-7" stroke="#16101e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
+function PinIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true">
+      <path d="M10 17s5-4.6 5-9a5 5 0 10-10 0c0 4.4 5 9 5 9z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="10" cy="8" r="1.7" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function CheckIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true">
+      <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.5 10.4l2.5 2.4 4.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function StarIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true" className="profile-rating-star">
+      <path
+        d="M10 2.5l2.36 4.78 5.27.77-3.82 3.72.9 5.26L10 14.55l-4.71 2.48.9-5.26L2.37 8.05l5.27-.77L10 2.5z"
+        fill="currentColor"
+      />
+    </svg>
+  );
 }

@@ -8447,3 +8447,635 @@ p {
   line-height: 1.4;
   color: rgba(247, 239, 231, 0.86);
 }
+
+/* ===========================================================================
+   CompanionProfilePage v2 (P1.T2, 2026-05-28)
+   Portrait-led hero + sticky coral "Inquire" CTA. Scoped to
+   .companion-profile-v2 so the older .member-shell .profile-* cascade is
+   bypassed cleanly without touching global tokens. Mirrors the inspiration
+   board at generated/web-reference-boards/gpt-image-2/companion-profile-
+   responsive-board.png across Mobile (390), Tablet (768), Desktop (1280),
+   Wide (1440).
+   =========================================================================== */
+
+.companion-profile-v2 {
+  /* Page-scoped dark surface override. .member-shell already paints a dark
+     gradient at the shell level — this layer simply seals the page area so
+     nothing inherits the legacy pearl panels via the old .profile-* selectors. */
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 16px clamp(16px, 4vw, 28px) calc(180px + env(safe-area-inset-bottom));
+  color: #f7efe7;
+  scroll-padding-bottom: 160px;
+  background: transparent;
+}
+
+.companion-profile-v2-loading,
+.companion-profile-v2-error {
+  padding-bottom: 64px;
+}
+
+@media (min-width: 1024px) {
+  .companion-profile-v2 {
+    max-width: 1180px;
+    padding: 24px clamp(28px, 4vw, 48px) 140px;
+  }
+}
+
+/* ---- Topbar ----------------------------------------------------------- */
+
+.profile-topbar-v2 {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 22px;
+}
+
+.profile-topbar-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: #f7efe7;
+  background: rgba(247, 239, 231, 0.06);
+  border: 1px solid rgba(247, 239, 231, 0.12);
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.profile-topbar-back:hover {
+  background: rgba(247, 239, 231, 0.1);
+  border-color: rgba(247, 239, 231, 0.2);
+}
+
+.profile-topbar-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-topbar-brand {
+  justify-self: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.78);
+}
+
+.profile-topbar-spacer {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+/* ---- Hero (portrait + identity) -------------------------------------- */
+
+.profile-hero-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  padding-bottom: 28px;
+}
+
+.profile-portrait-v2 {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(8, 11, 20, 0.5);
+  border: 1px solid rgba(247, 239, 231, 0.1);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.4);
+}
+
+.profile-portrait-v2 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.profile-identity {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-display-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: clamp(28px, 6vw, 38px);
+  line-height: 1.05;
+  font-weight: 700;
+  color: #fff8f1;
+  letter-spacing: -0.01em;
+}
+
+.profile-display-name > span {
+  display: inline-block;
+}
+
+.profile-verified-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--color-coral);
+  flex: none;
+}
+
+.profile-verified-seal svg {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-bio-v2 {
+  margin: 0;
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(247, 239, 231, 0.72);
+}
+
+.profile-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(247, 239, 231, 0.06);
+  border: 1px solid rgba(247, 239, 231, 0.12);
+  color: #f7efe7;
+  font-size: 13px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.profile-rating-star {
+  width: 14px;
+  height: 14px;
+  color: #f3c069;
+}
+
+.profile-rating-score {
+  font-weight: 700;
+}
+
+.profile-rating-divider {
+  color: rgba(247, 239, 231, 0.4);
+}
+
+.profile-rating-count {
+  color: rgba(247, 239, 231, 0.72);
+}
+
+@media (min-width: 768px) {
+  .profile-hero-v2 {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: end;
+  }
+
+  .profile-portrait-v2 {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-hero-v2 {
+    grid-template-columns: minmax(360px, 0.5fr) minmax(0, 1fr);
+    gap: 48px;
+    padding-bottom: 36px;
+  }
+}
+
+/* ---- Detail grid (availability + experiences + sidebar) -------------- */
+
+.profile-detail-v2-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.profile-availability-v2,
+.profile-experiences-v2,
+.profile-ready-card,
+.profile-sidebar-summary {
+  padding: 22px;
+  background: rgba(8, 11, 20, 0.56);
+  border: 1px solid rgba(247, 239, 231, 0.14);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.companion-profile-v2 .eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+.companion-profile-v2 h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff8f1;
+  letter-spacing: -0.005em;
+}
+
+/* Availability list */
+
+.profile-availability-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.profile-availability-row {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(247, 239, 231, 0.04);
+  border: 1px solid rgba(247, 239, 231, 0.08);
+}
+
+.profile-availability-dot {
+  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(247, 239, 231, 0.3);
+}
+
+.profile-availability-row-available .profile-availability-dot {
+  background: #7ac484;
+  box-shadow: 0 0 0 4px rgba(122, 196, 132, 0.18);
+}
+
+.profile-availability-row-tentative .profile-availability-dot {
+  background: #f3c069;
+  box-shadow: 0 0 0 4px rgba(243, 192, 105, 0.18);
+}
+
+.profile-availability-row-hidden .profile-availability-dot {
+  background: rgba(247, 239, 231, 0.4);
+}
+
+.profile-availability-meta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.profile-availability-label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f7efe7;
+}
+
+.profile-availability-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(247, 239, 231, 0.62);
+}
+
+.profile-availability-status {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.55);
+}
+
+/* Experiences list */
+
+.profile-experiences-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.profile-experience-tag {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(247, 239, 231, 0.04);
+  border: 1px solid rgba(247, 239, 231, 0.08);
+}
+
+.profile-experience-tag-bullet {
+  align-self: start;
+  font-size: 10px;
+  color: var(--color-coral);
+  padding-top: 4px;
+}
+
+.profile-experience-tag-title {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f7efe7;
+}
+
+.profile-experience-tag-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(247, 239, 231, 0.62);
+}
+
+/* Sidebar (desktop+ only) */
+
+.profile-sidebar-v2 {
+  display: none;
+}
+
+.profile-ready-card {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 125, 107, 0.18), transparent 48%),
+    rgba(12, 9, 22, 0.7);
+  border-color: rgba(255, 125, 107, 0.28);
+}
+
+.profile-ready-eyebrow {
+  color: rgba(255, 209, 199, 0.85);
+}
+
+.profile-ready-line {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff8f1;
+}
+
+.profile-ready-tone {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(247, 239, 231, 0.7);
+}
+
+.profile-sidebar-summary ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.profile-sidebar-summary li {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(247, 239, 231, 0.78);
+}
+
+.profile-sidebar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(247, 239, 231, 0.4);
+  justify-self: center;
+}
+
+.profile-sidebar-dot-available { background: #7ac484; }
+.profile-sidebar-dot-tentative { background: #f3c069; }
+.profile-sidebar-dot-experience { background: var(--color-coral); }
+
+@media (min-width: 1024px) {
+  .profile-detail-v2-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    grid-template-areas:
+      "availability sidebar"
+      "experiences  sidebar";
+    column-gap: 28px;
+    row-gap: 18px;
+    align-items: start;
+  }
+
+  .profile-availability-v2 { grid-area: availability; }
+  .profile-experiences-v2 { grid-area: experiences; }
+
+  .profile-sidebar-v2 {
+    grid-area: sidebar;
+    display: grid;
+    gap: 16px;
+    position: sticky;
+    top: 96px;
+  }
+}
+
+/* ---- Safety + reviews (preserved, restyled to dark) ------------------ */
+
+.profile-safety-v2 {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 20px;
+  background:
+    linear-gradient(150deg, rgba(255, 125, 107, 0.1), transparent 60%),
+    rgba(8, 11, 20, 0.7);
+  border: 1px solid rgba(255, 125, 107, 0.22);
+  display: grid;
+  gap: 14px;
+}
+
+.profile-safety-v2 .eyebrow {
+  color: rgba(255, 209, 199, 0.85);
+}
+
+.profile-safety-v2 h2 {
+  font-size: 17px;
+  line-height: 1.4;
+  color: #fff8f1;
+}
+
+.profile-safety-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: rgba(247, 239, 231, 0.74);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.profile-safety-v2 .button.secondary {
+  background: rgba(247, 239, 231, 0.06);
+  color: #f7efe7;
+  border-color: rgba(247, 239, 231, 0.2);
+  min-height: 40px;
+  padding: 10px 18px;
+  width: fit-content;
+  font-size: 14px;
+}
+
+.profile-safety-v2 .button.secondary:hover {
+  background: rgba(247, 239, 231, 0.12);
+}
+
+.profile-reviews-v2 {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 20px;
+  background: rgba(8, 11, 20, 0.56);
+  border: 1px solid rgba(247, 239, 231, 0.14);
+  display: grid;
+  gap: 14px;
+}
+
+.profile-reviews-empty-v2 {
+  text-align: center;
+  color: rgba(247, 239, 231, 0.62);
+  font-size: 14px;
+}
+
+.profile-reviews-list-v2 {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.profile-reviews-item-v2 {
+  padding: 14px 16px;
+  background: rgba(247, 239, 231, 0.04);
+  border: 1px solid rgba(247, 239, 231, 0.08);
+  border-radius: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.profile-reviews-header-v2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.profile-reviews-score-v2 {
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+.profile-reviews-divider-v2 {
+  color: rgba(247, 239, 231, 0.4);
+}
+
+.profile-reviews-label-v2 {
+  color: rgba(247, 239, 231, 0.72);
+}
+
+.profile-reviews-comment-v2 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f7efe7;
+  font-style: italic;
+}
+
+.profile-reviews-date-v2 {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+.profile-reviews-more-v2 {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(247, 239, 231, 0.55);
+  letter-spacing: 0.04em;
+}
+
+.profile-status-message-v2 {
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(122, 196, 132, 0.12);
+  border: 1px solid rgba(122, 196, 132, 0.32);
+  color: #b9e8c2;
+  font-size: 14px;
+}
+
+/* ---- Sticky CTA ------------------------------------------------------ */
+
+.profile-sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Default (desktop / >860px): sit flush with viewport bottom.
+     On <=860px the .bottom-nav appears (68px + safe-area); we lift the CTA
+     above it via the media query below. */
+  bottom: 0;
+  z-index: 60;
+  padding:
+    12px clamp(16px, 4vw, 28px)
+    calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(9, 13, 23, 0.7) 0%, rgba(9, 13, 23, 0.92) 60%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(247, 239, 231, 0.1);
+  display: grid;
+  gap: 8px;
+}
+
+.profile-sticky-cta-microcopy {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.55);
+}
+
+.profile-sticky-cta .button.coral {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 520px;
+}
+
+@media (max-width: 860px) {
+  /* Lift sticky CTA above the .bottom-nav on mobile so both stay visible. */
+  .profile-sticky-cta {
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    padding-bottom: 12px;
+  }
+
+  /* Extra page-bottom buffer so the last review/section isn't covered when
+     scrolled to the absolute end. 180px (default) handles desktop; we add
+     more for the mobile bottom-nav stack. */
+  .companion-profile-v2 {
+    padding-bottom: calc(240px + env(safe-area-inset-bottom));
+  }
+}
