@@ -197,9 +197,25 @@ export function DateWindowPicker(props: DateWindowPickerProps) {
       <form className="date-window-picker-body" onSubmit={submit} noValidate>
         <ol className="date-window-picker-list">
           {drafts.map((draft, index) => {
+            // Error key sources:
+            //   .date     → CLIENT-ONLY (server doesn't emit this; see local
+            //               validation block in submit()). Surfaces a missing
+            //               date on the date input.
+            //   .start    → server (invalid date / past cutoff) + client
+            //               (missing time). Surfaces on the start-time input.
+            //   .end      → server (invalid date / before start) + client
+            //               (missing time). Surfaces on the end-time input.
+            //   .duration → SERVER-ONLY (window outside the 1-6h bracket).
+            //               Folded onto the end-time input since duration is
+            //               conceptually tied to "when does this end". Prefer
+            //               .end if both are present — it's the more specific
+            //               cue ("end before start" beats "duration off").
+            //   .note     → server (over 120 chars). Client truncates via
+            //               maxLength so this should rarely surface.
             const dateError = fieldErrors[`windows.${index}.date`];
             const startError = fieldErrors[`windows.${index}.start`];
-            const endError = fieldErrors[`windows.${index}.end`];
+            const endError =
+              fieldErrors[`windows.${index}.end`] || fieldErrors[`windows.${index}.duration`];
             const noteError = fieldErrors[`windows.${index}.note`];
             return (
               <li key={index} className="date-window-card">
@@ -276,6 +292,10 @@ export function DateWindowPicker(props: DateWindowPickerProps) {
           >
             + Add window
           </button>
+        )}
+
+        {fieldErrors.windows && (
+          <p className="field-error" role="alert">{fieldErrors.windows}</p>
         )}
 
         <div className="date-window-picker-actions">
