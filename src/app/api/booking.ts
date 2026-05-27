@@ -10,6 +10,10 @@ import type {
   CompanionInquiryDecisionResponse,
   CompanionInquiryListResponse,
   CompanionSessionDetail,
+  PlanCompanionResponse,
+  PlanTravellerResponse,
+  PlanWindowSelectionRequest,
+  PlanWindowsRequest,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
   TravellerInquiryListResponse,
@@ -127,6 +131,42 @@ export const BookingService = {
     return apiRequest<CompanionInquiryDecisionResponse>(
       `/api/companion/inquiries/${encodeURIComponent(id)}/decline`,
       { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Traveller submits 2-3 candidate date windows. Transitions
+   * accepted → date_pending. Server validates each window (≥1hr,
+   * ≤6hr, ≥2hr in future, valid ISO datetime).
+   */
+  submitPlanWindows(inquiryId: string, payload: PlanWindowsRequest): Promise<PlanTravellerResponse> {
+    return apiRequest<PlanTravellerResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/windows`,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Companion picks exactly one of the traveller's proposed windows.
+   * Server enforces structural match against booking.travellerWindows.
+   * Transitions date_pending → date_proposed.
+   */
+  selectPlanWindow(inquiryId: string, payload: PlanWindowSelectionRequest): Promise<PlanCompanionResponse> {
+    return apiRequest<PlanCompanionResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/select-window`,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  /**
+   * Traveller confirms the companion's selected window. Sets
+   * scheduledFor + durationMinutes + confirmedAt on the booking.
+   * Transitions date_proposed → date_confirmed.
+   */
+  confirmPlan(inquiryId: string): Promise<PlanTravellerResponse> {
+    return apiRequest<PlanTravellerResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/confirm`,
+      { method: "POST", body: JSON.stringify({}) },
     );
   },
 };
