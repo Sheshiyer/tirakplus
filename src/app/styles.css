@@ -6422,3 +6422,212 @@ p {
   border-color: rgba(35, 31, 39, 0.22);
   background: rgba(35, 31, 39, 0.07);
 }
+
+/* ===== DateWindowPicker (Pass H3.Task 4) =====
+   Traveller-facing form for proposing 2-3 candidate session windows. Sits
+   inline on TravellerInquiryDetailPage (wired in H3.T7). Pattern-matches
+   .inquiry-form-sheet-body for the form internals and .account-control-card
+   for the surface treatment so it feels at home on either backdrop. */
+
+.date-window-picker {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  color: #f7efe7;
+}
+
+.date-window-picker-header {
+  display: grid;
+  gap: 8px;
+}
+
+.date-window-picker-header .eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.date-window-picker-header h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #fff8f1;
+}
+
+.date-window-picker-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.45);
+}
+
+.date-window-picker-tz {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-style: italic;
+}
+
+.date-window-picker-body {
+  display: grid;
+  gap: 16px;
+}
+
+.date-window-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.date-window-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+}
+
+.date-window-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.date-window-card-header h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.date-window-remove {
+  margin: 0;
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.date-window-remove:hover {
+  color: #f7b9c2;
+}
+
+.date-window-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.date-window-card .field {
+  margin: 0;
+}
+
+.date-window-time-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.date-window-time-row .field {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.date-window-add {
+  margin: 0;
+  padding: 12px 14px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.30);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.date-window-add:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff8f1;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.date-window-add:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.date-window-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.date-window-picker-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.date-window-picker-status-error {
+  color: #f7b9c2;
+}
+
+/* Light variant for the porcelain account-page backdrop. Mirrors the
+   .account-control-card light-mode treatment so the picker reads cleanly
+   when embedded inside a member-shell page. */
+.member-shell .account-page-light .date-window-picker {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .date-window-picker-header h2 {
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .date-window-picker-header p,
+.member-shell .account-page-light .date-window-picker-status {
+  color: rgba(35, 31, 39, 0.70);
+}
+
+.member-shell .account-page-light .date-window-picker-tz {
+  color: rgba(35, 31, 39, 0.55) !important;
+}
+
+.member-shell .account-page-light .date-window-card {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+}
+
+.member-shell .account-page-light .date-window-card-header h3 {
+  color: rgba(35, 31, 39, 0.72);
+}
+
+.member-shell .account-page-light .date-window-remove {
+  color: rgba(35, 31, 39, 0.60);
+}
+
+.member-shell .account-page-light .date-window-add {
+  border-color: rgba(35, 31, 39, 0.28);
+  color: rgba(35, 31, 39, 0.78);
+}
+
+.member-shell .account-page-light .date-window-add:hover {
+  border-color: rgba(35, 31, 39, 0.50);
+  color: rgba(35, 31, 39, 0.92);
+  background: rgba(35, 31, 39, 0.04);
+}
