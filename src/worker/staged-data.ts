@@ -701,7 +701,7 @@ export const companionInquiries: CompanionInquirySummary[] = [
     travellerLabel: "Planning inquiry",
     city: "phuket",
     experience: "island-explorer",
-    status: "payment_review",
+    status: "payment_held",
     preferredWindow: "Resort-area evening",
     receivedAt: "2026-05-12T15:20:00.000Z",
     nextStep: "Tirak is checking whether this plan can move forward.",

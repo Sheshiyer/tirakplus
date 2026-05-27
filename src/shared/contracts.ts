@@ -523,11 +523,19 @@ export type InquiryStatus =
   | "draft"
   | "submitted"
   | "under_review"
-  | "payment_review"
   | "routed"
   | "accepted"
   | "declined"
-  | "cancelled";
+  | "cancelled"
+  | "date_pending"
+  | "date_proposed"
+  | "date_confirmed"
+  | "payment_held"
+  | "session_scheduled"
+  | "session_live"
+  | "session_completed"
+  | "review_pending"
+  | "review_completed";
 
 export type TravellerInquiryRequest = {
   companionId: string;
@@ -575,6 +583,63 @@ export type TravellerInquiryListResponse = {
 
 export type TravellerInquiryCreateResponse = {
   inquiry: TravellerInquiryDetail;
+};
+
+// ===== Booking lifecycle =====
+// Pass H (2026-05-27) — single record per booking carrying its full lifecycle.
+// Status transitions drive UI; later sub-passes (H3-H6) populate the optional
+// sections. KV-backed under booking:{inquiryId} in the BOOKING_DATA namespace.
+
+export type BookingRecord = {
+  id: string;                                // bk_{uuid}
+  travellerEmail: string;                    // lowercase, indexed
+  companionEmail: string;                    // lowercase, indexed
+  companionId: string;                       // from existing profile fixture
+  city: CitySlug;
+  experience: ExperienceSlug;
+  status: InquiryStatus;
+  message: string;                           // traveller's original inquiry message
+  createdAt: string;
+  updatedAt: string;
+  privacyAcknowledged: boolean;
+
+  // Date negotiation (populated H3)
+  travellerWindows?: DateWindow[];           // 2-3 windows the traveller proposes
+  companionSelectedWindow?: DateWindow;      // companion picks one
+  confirmedAt?: string;                      // when both parties confirmed
+  scheduledFor?: string;                     // ISO datetime, when session starts
+  durationMinutes?: number;                  // expected length
+
+  // Payment (populated H4)
+  paymentSessionId?: string;                 // Stripe session ID
+  paymentStatus?: "none" | "held" | "captured" | "refunded";
+  paymentAmount?: number;                    // smallest unit (THB satang or USD cent)
+  paymentCurrency?: string;
+  heldAt?: string;
+
+  // Day-of (populated H5)
+  meetingPoint?: string;                     // address or landmark
+  contactNumber?: string;                    // companion's day-of phone
+  daysOfNotes?: string[];                    // safety + logistics
+
+  // Review (populated H6)
+  reviewedAt?: string;
+  reviewScore?: number;                      // 1-5
+  reviewComment?: string;
+};
+
+export type DateWindow = {
+  start: string;                             // ISO datetime
+  end: string;                               // ISO datetime
+  note?: string;                             // "evening only" etc.
+};
+
+export type ReviewSummary = {
+  bookingId: string;
+  travellerLabel: string;                    // "Traveller from Bangkok" — no PII
+  score: number;
+  comment: string;
+  submittedAt: string;
 };
 
 export type LoggedInMetric = {
