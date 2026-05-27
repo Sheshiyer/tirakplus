@@ -57,6 +57,10 @@ import {
   requestDeletion,
   writePrivacy,
 } from "./account-store.js";
+import {
+  createBooking,
+  projectBookingToTravellerInquiryDetail,
+} from "./booking-store.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
@@ -347,6 +351,15 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   }
 
   if (request.method === "POST" && pathname === "/api/traveller/inquiries") {
+    // Pass H (2026-05-27) — KV-backed: inquiry is persisted as a
+    // BookingRecord under booking:{id} and indexed under both the
+    // traveller's and the companion's email. Session check happens
+    // before body parsing so unauthenticated callers fail fast.
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before submitting an inquiry.");
+    }
+
     const body = await readJsonBody<TravellerInquiryRequest>(request, requestId);
     if (body instanceof Response) return body;
 
@@ -360,9 +373,10 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       return fail(404, "PROFILE_NOT_FOUND", "This profile is unavailable for inquiry.");
     }
 
+    const booking = await createBooking(env.BOOKING_DATA, body, session.profile.email);
     return ok(
       {
-        inquiry: createInquiryDetail(body, profile.displayName),
+        inquiry: projectBookingToTravellerInquiryDetail(booking, profile.displayName),
       },
       { status: 201 },
     );

@@ -19,6 +19,7 @@
 import type {
   BookingRecord,
   InquiryStatus,
+  TravellerInquiryDetail,
   TravellerInquiryRequest,
 } from "../shared/contracts";
 
@@ -304,3 +305,224 @@ export async function transitionBookingStatus(
 
 // Re-export for handler convenience
 export { INQUIRY_INDEX_LIMIT };
+
+// ===== Projector: BookingRecord → TravellerInquiryDetail =====
+//
+// Maps a stored BookingRecord into the rich TravellerInquiryDetail shape
+// the API contract returns. Derives `nextStep`, `timeline`, and
+// `paymentState` from the record's current `status` so the projector is
+// the single source of truth for status-to-presentation translation —
+// future GET endpoints (H1.T5) reuse this for fixture-fallback parity.
+//
+// The switch on InquiryStatus must stay exhaustive (the `satisfies never`
+// fallback enforces this at compile time) so adding a new status anywhere
+// in contracts.ts will surface here immediately.
+
+type InquiryTimelineEntry = TravellerInquiryDetail["timeline"][number];
+type InquiryPaymentState = TravellerInquiryDetail["paymentState"];
+
+const PRIVACY_NOTE =
+  "Only you and the Tirak team can see this inquiry thread. Details stay private and are never published.";
+
+function nextStepFor(status: InquiryStatus): string {
+  switch (status) {
+    case "draft":
+      return "Finish your inquiry draft when you're ready.";
+    case "submitted":
+      return "Tirak is reviewing this inquiry.";
+    case "under_review":
+      return "Review in progress — Tirak checks safety, fit, and allowed next steps.";
+    case "routed":
+      return "Sent to the companion for response.";
+    case "accepted":
+      return "Companion accepted. Pick dates next.";
+    case "date_pending":
+      return "Propose two or three windows so the companion can pick one.";
+    case "date_proposed":
+      return "Companion proposed a window — confirm or counter.";
+    case "date_confirmed":
+      return "Date confirmed. Hold a payment to lock the session.";
+    case "payment_held":
+      return "Payment is on hold. Tirak finalizes the session details next.";
+    case "session_scheduled":
+      return "Session is scheduled. We'll send a reminder before it starts.";
+    case "session_live":
+      return "Session in progress.";
+    case "session_completed":
+      return "Session complete. A short review request comes next.";
+    case "review_pending":
+      return "Leave a private review to close this booking.";
+    case "review_completed":
+      return "Review complete. Thank you for the feedback.";
+    case "declined":
+      return "This inquiry was declined.";
+    case "cancelled":
+      return "Inquiry cancelled.";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+function timelineFor(status: InquiryStatus): InquiryTimelineEntry[] {
+  // Three baseline milestones for the H1 lifecycle. Later sub-passes
+  // (H3-H6) will extend with date/payment/session/review entries.
+  const inquiryReceived: InquiryTimelineEntry = {
+    label: "Inquiry received",
+    status: "complete",
+    note: "Traveller context and message were received.",
+  };
+
+  switch (status) {
+    case "draft":
+      return [
+        { label: "Inquiry drafted", status: "active", note: "Saved locally — not yet submitted to Tirak." },
+        { label: "Private review", status: "pending", note: "Tirak checks safety, fit, and allowed next steps." },
+        { label: "Routed to companion", status: "pending", note: "Companion sees the inquiry only after review." },
+      ];
+    case "submitted":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "active", note: "Tirak checks safety, fit, and allowed next steps." },
+        { label: "Routed to companion", status: "pending", note: "Companion sees the inquiry only after review." },
+      ];
+    case "under_review":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "active", note: "Tirak is checking the plan before any introduction or payment." },
+        { label: "Routed to companion", status: "pending", note: "Companion sees the inquiry only after review." },
+      ];
+    case "routed":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak cleared the inquiry for routing." },
+        { label: "Routed to companion", status: "active", note: "Companion has the inquiry and can accept or decline." },
+      ];
+    case "accepted":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak cleared the inquiry for routing." },
+        { label: "Companion accepted", status: "complete", note: "Pick dates next to move forward." },
+      ];
+    case "date_pending":
+    case "date_proposed":
+    case "date_confirmed":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak cleared the inquiry for routing." },
+        { label: "Companion accepted", status: "complete", note: "Both parties are aligning on a date." },
+        { label: "Date confirmation", status: status === "date_confirmed" ? "complete" : "active", note: "Confirm a window that works for both sides." },
+      ];
+    case "payment_held":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak cleared the inquiry for routing." },
+        { label: "Companion accepted", status: "complete", note: "Date is confirmed." },
+        { label: "Payment held", status: "active", note: "Payment is on hold until the session is scheduled." },
+      ];
+    case "session_scheduled":
+    case "session_live":
+    case "session_completed":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak cleared the inquiry for routing." },
+        { label: "Companion accepted", status: "complete", note: "Date is confirmed." },
+        { label: "Session", status: status === "session_completed" ? "complete" : "active", note: "Session is in motion." },
+      ];
+    case "review_pending":
+      return [
+        inquiryReceived,
+        { label: "Session complete", status: "complete", note: "Session wrapped up." },
+        { label: "Review", status: "active", note: "Share a private review so Tirak can learn from this booking." },
+      ];
+    case "review_completed":
+      return [
+        inquiryReceived,
+        { label: "Session complete", status: "complete", note: "Session wrapped up." },
+        { label: "Review", status: "complete", note: "Thank you for the feedback." },
+      ];
+    case "declined":
+      return [
+        inquiryReceived,
+        { label: "Private review", status: "complete", note: "Tirak reviewed the inquiry." },
+        { label: "Declined", status: "complete", note: "This inquiry was declined." },
+      ];
+    case "cancelled":
+      return [
+        inquiryReceived,
+        { label: "Cancelled", status: "complete", note: "The traveller cancelled this inquiry." },
+      ];
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+function paymentStateFor(status: InquiryStatus): InquiryPaymentState {
+  switch (status) {
+    case "draft":
+    case "submitted":
+    case "under_review":
+    case "routed":
+    case "accepted":
+    case "date_pending":
+    case "date_proposed":
+    case "date_confirmed":
+      return {
+        status: "not_started",
+        provider: "none",
+        note: "Payment is not available for this inquiry yet.",
+      };
+    case "payment_held":
+      return {
+        status: "pending_review",
+        provider: "stripe",
+        note: "Payment is on hold while Tirak finalizes the session.",
+      };
+    case "session_scheduled":
+    case "session_live":
+    case "session_completed":
+    case "review_pending":
+    case "review_completed":
+    case "declined":
+    case "cancelled":
+      return {
+        status: "disabled_for_compliance",
+        provider: "stripe",
+        note: "Payment is not active for this inquiry stage.",
+      };
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Maps a stored BookingRecord into the rich TravellerInquiryDetail shape
+ * the API contract returns. The companion's display name is supplied by
+ * the caller (the handler looks it up via the staged-data provider so
+ * we don't need to hit a profile lookup from inside booking-store).
+ */
+export function projectBookingToTravellerInquiryDetail(
+  booking: BookingRecord,
+  companionDisplayName: string,
+): TravellerInquiryDetail {
+  return {
+    id: booking.id,
+    companionId: booking.companionId,
+    companionDisplayName,
+    city: booking.city,
+    experience: booking.experience,
+    status: booking.status,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    nextStep: nextStepFor(booking.status),
+    message: booking.message,
+    timeline: timelineFor(booking.status),
+    paymentState: paymentStateFor(booking.status),
+    privacyNote: PRIVACY_NOTE,
+  };
+}
