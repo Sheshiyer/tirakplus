@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
   CompanionDeclineInquiryRequest,
   CompanionDeclineReasonCategory,
   CompanionSessionDetail,
+  DateWindow,
 } from "../../shared/contracts";
 import { BookingApiError, BookingService } from "../api/booking";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
+import { WindowSelectionView } from "../components/booking/WindowSelectionView";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
 import { Textarea } from "../components/ui/Textarea";
+
+const POLL_INTERVAL_MS = 5000;
 
 type LoadState =
   | { status: "loading"; data?: undefined; message?: undefined }
@@ -44,6 +48,17 @@ export function CompanionInquiryDetailPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusVariant, setStatusVariant] = useState<"info" | "error">("info");
 
+  // H3.T8 — Stage-aware plan UI toggle.
+  //   showWindowSelection: drives the "date_pending → pick a window" CTA →
+  //     inline WindowSelectionView pattern. Defaults OPEN because once the
+  //     traveller has proposed, picking is the only productive next move
+  //     for the companion. Cancel collapses it into a smaller CTA card
+  //     with a button to re-open. Mirrors showConfirmForm on the traveller
+  //     side (H3.T7).
+  const [showWindowSelection, setShowWindowSelection] = useState(true);
+
+  const isPollingRef = useRef(false);
+
   useEffect(() => {
     if (!inquiryId) {
       setState({ status: "error", message: "Choose an inquiry before opening its details." });
@@ -68,6 +83,60 @@ export function CompanionInquiryDetailPage() {
       cancelled = true;
     };
   }, [inquiryId]);
+
+  // H3.T8 — Polling parity with TravellerInquiryDetailPage (H2.T8 + H3.T7).
+  // While the inquiry sits in any non-terminal state where the OTHER party
+  // is the next mover, refetch every 5s so the page transitions without a
+  // manual reload. Polling stops automatically once status reaches a
+  // terminal state (date_confirmed / declined / cancelled) or any state
+  // where the companion holds the next action (date_pending).
+  //
+  //   routed         → waiting on companion's own decision — included so
+  //                    a parallel session that accepts elsewhere reflects
+  //                    here too (matches H2.T8 behavior).
+  //   accepted       → waiting on traveller to propose dates.
+  //   date_pending   → companion's turn, but a parallel session may have
+  //                    already submitted; keep polling to catch the
+  //                    transition to date_proposed.
+  //   date_proposed  → waiting on traveller to confirm.
+  //
+  // hasPending is derived via useMemo so the polling effect keys on a
+  // boolean rather than the whole state object — keeping the 5s cadence
+  // steady across successful polls instead of resetting on every setState.
+  const hasPending = useMemo(() => {
+    if (state.status !== "ready") return false;
+    const s = state.data.status;
+    return (
+      s === "routed" ||
+      s === "accepted" ||
+      s === "date_pending" ||
+      s === "date_proposed"
+    );
+  }, [state]);
+
+  useEffect(() => {
+    if (!hasPending || !inquiryId) return;
+
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      if (document.hidden) return;
+      if (isPollingRef.current) return; // skip if previous fetch still in flight
+      isPollingRef.current = true;
+      try {
+        const inquiry = await BookingService.getCompanionInquiry(inquiryId);
+        if (!cancelled) setState({ status: "ready", data: inquiry });
+      } catch {
+        // best-effort — polling failures are not user-facing
+      } finally {
+        isPollingRef.current = false;
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [hasPending, inquiryId]);
 
   if (state.status === "loading") {
     return (
@@ -358,6 +427,81 @@ export function CompanionInquiryDetailPage() {
         </section>
       )}
 
+      {/* H3.T8 — Stage-aware plan UI. Renders different surfaces depending
+          on data.status so the companion is carried through accept →
+          await-proposal → pick → await-confirm → confirmed without a
+          route change. Mirrors the traveller-side H3.T7 layout but from
+          the receiving angle. The H2.T5 declined/accepted panels below
+          remain the post-decision baseline; these branches are additive
+          plan UI overlaid on top. */}
+      {data.status === "accepted" && (
+        <section className="plan-stage-cta" aria-label="Waiting on traveller">
+          <p className="eyebrow">Plan</p>
+          <h2>Waiting for {data.travellerLabel} to propose dates.</h2>
+          <p>You accepted this inquiry. The traveller will share their preferred windows soon.</p>
+        </section>
+      )}
+
+      {data.status === "date_pending" && data.travellerWindows && data.travellerWindows.length > 0 && (
+        showWindowSelection ? (
+          <WindowSelectionView
+            inquiryId={data.id}
+            travellerWindows={data.travellerWindows}
+            onSubmitted={(next) => {
+              setShowWindowSelection(false);
+              setState({ status: "ready", data: next });
+            }}
+            onCancel={() => setShowWindowSelection(false)}
+          />
+        ) : (
+          <section className="plan-stage-cta" aria-label="Pick a window">
+            <p className="eyebrow">Plan</p>
+            <h2>
+              The traveller proposed {data.travellerWindows.length} window
+              {data.travellerWindows.length === 1 ? "" : "s"}.
+            </h2>
+            <p>Pick the one that works best for you.</p>
+            <div className="plan-stage-actions">
+              <Button type="button" variant="primary" onClick={() => setShowWindowSelection(true)}>
+                Pick a window
+              </Button>
+            </div>
+          </section>
+        )
+      )}
+
+      {data.status === "date_proposed" && data.companionSelectedWindow && (
+        <section className="plan-stage-cta" aria-label="Waiting for traveller to confirm">
+          <p className="eyebrow">Plan</p>
+          <h2>Waiting for {data.travellerLabel} to confirm.</h2>
+          <p>You picked:</p>
+          <ul className="plan-window-readonly-list">
+            <li>
+              <p className="label">{formatWindowLabel(data.companionSelectedWindow)}</p>
+              {data.companionSelectedWindow.note && (
+                <p className="note">{data.companionSelectedWindow.note}</p>
+              )}
+            </li>
+          </ul>
+        </section>
+      )}
+
+      {data.status === "date_confirmed" && data.companionSelectedWindow && (
+        <section className="plan-stage-confirmed" aria-label="Plan confirmed">
+          <p className="eyebrow">Plan confirmed</p>
+          <h2>{formatWindowLabel(data.companionSelectedWindow)}</h2>
+          <p>
+            Bangkok local time
+            {typeof data.durationMinutes === "number"
+              ? ` · ${formatDurationHours(data.durationMinutes)}`
+              : ""}
+            .
+          </p>
+          {data.confirmedAt && <p>Confirmed on {formatDate(data.confirmedAt)}.</p>}
+          <p>Tirak will surface day-of details closer to the date.</p>
+        </section>
+      )}
+
       {data.status === "accepted" && (
         <section className="companion-decision-panel companion-decision-accepted" aria-label="Accepted">
           <p className="eyebrow">Accepted</p>
@@ -398,6 +542,40 @@ export function CompanionInquiryDetailPage() {
   );
 }
 
+// TODO(H3-followup): formatWindowLabel / formatDate / formatDurationHours
+// are duplicated across DateWindowPicker, WindowSelectionView,
+// ConfirmPlanView, TravellerInquiryDetailPage, and now this page. Extract
+// to shared/booking-utils.ts in a future polish pass — the sibling
+// components all carry the same flag and v1 keeps the local copy on
+// purpose to avoid expanding T8's surface area.
+function formatWindowLabel(window: DateWindow): string {
+  const startFmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const endFmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const startParts = startFmt.formatToParts(new Date(window.start));
+  const endParts = endFmt.formatToParts(new Date(window.end));
+  const get = (parts: Intl.DateTimeFormatPart[], type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  const weekday = get(startParts, "weekday");
+  const day = get(startParts, "day");
+  const month = get(startParts, "month");
+  const startTime = `${get(startParts, "hour")}:${get(startParts, "minute")}`;
+  const endTime = `${get(endParts, "hour")}:${get(endParts, "minute")}`;
+  return `${weekday}, ${day} ${month} · ${startTime}–${endTime}`;
+}
+
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("en-GB", {
@@ -408,4 +586,16 @@ function formatDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+// "3 hours" / "1 hour" / "1 hour 30 min". Used by the date_confirmed
+// panel so the companion can sanity-check the locked duration at a
+// glance.
+function formatDurationHours(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const hourWord = hours === 1 ? "hour" : "hours";
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours} ${hourWord}`;
+  return `${hours} ${hourWord} ${mins} min`;
 }
