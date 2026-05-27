@@ -307,11 +307,14 @@ export async function transitionBookingStatus(
   if (rule.actor === "companion" && actor !== record.companionEmail) return null;
   // rule.actor === "system" — trusted caller, no check.
 
+  // Status + updatedAt always win over patch — callers can't accidentally
+  // override the transition's own bookkeeping. Patch is for metadata fields
+  // (declineReason, acceptedAt, etc.) that are atomic with the transition.
   const updated: BookingRecord = {
     ...record,
-    status: toStatus,
-    updatedAt: new Date().toISOString(),
-    ...(patch ?? {}),
+    ...(patch ?? {}),                                // caller-supplied metadata first
+    status: toStatus,                                // transition wins
+    updatedAt: new Date().toISOString(),             // always now
   };
   await persistRecord(kv, updated);
   // Index membership doesn't change on status transitions — entries

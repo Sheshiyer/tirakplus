@@ -630,6 +630,7 @@ export type BookingRecord = {
   reviewComment?: string;
 
   // Decline metadata (populated H2 when companion declines)
+  // TODO(H2.T5): surface in projectBookingToCompanionSessionDetail
   declineReason?: CompanionDeclineReasonCategory;
   declineNotes?: string;                            // ≤ 280 chars, optional free text
   declinedAt?: string;                              // ISO timestamp

@@ -335,7 +335,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:companion",
     stagedProvider: "bookingStore.transitionBookingStatus",
     productionTarget: "KV",
-    notes: "Accepts a routed inquiry. Companion-only. Transitions routed → accepted.",
+    notes: "Accepts a routed inquiry. Companion-only. Transitions routed → accepted. H2 limitation: any role:companion session can accept any routed inquiry until verified companion emails ship (post-H1).",
   },
   {
     method: "POST",
@@ -347,7 +347,7 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     auth: "role:companion",
     stagedProvider: "bookingStore.transitionBookingStatus",
     productionTarget: "KV",
-    notes: "Declines a routed inquiry with category + optional notes. Transitions routed → declined.",
+    notes: "Declines a routed inquiry with category + optional notes. Transitions routed → declined. H2 limitation: any role:companion session can decline any routed inquiry until verified companion emails ship (post-H1).",
   },
   {
     method: "PATCH",
