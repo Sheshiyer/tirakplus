@@ -8872,13 +8872,18 @@ p {
 .profile-sidebar-dot-tentative { background: #f3c069; }
 .profile-sidebar-dot-experience { background: var(--color-coral); }
 
-@media (min-width: 1024px) {
+/* Tablet+ activates the sidebar per the inspiration board's tablet
+   (768x1024) frame. P1.T3 Playwright audit (2026-05-28) flagged the
+   prior 1024px breakpoint as a 3/5 fidelity gap — the "Ready to
+   connect?" card was hidden at tablet width. Lowering to 768px brings
+   tablet up to ~4/5, mirrors the age-consent T5 fix from earlier today. */
+@media (min-width: 768px) {
   .profile-detail-v2-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
     grid-template-areas:
       "availability sidebar"
       "experiences  sidebar";
-    column-gap: 28px;
+    column-gap: 24px;
     row-gap: 18px;
     align-items: start;
   }
@@ -8892,6 +8897,15 @@ p {
     gap: 16px;
     position: sticky;
     top: 96px;
+  }
+}
+
+/* At desktop+ widths, restore the wider sidebar lane the original
+   layout used. */
+@media (min-width: 1024px) {
+  .profile-detail-v2-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    column-gap: 28px;
   }
 }
 
