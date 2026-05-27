@@ -75,6 +75,7 @@ import {
   computeAggregateRating,
   createBooking,
   detailOrFallback,
+  forceSetBookingStatus,
   isTravellerOwner,
   labelForDeclineReason,
   listCompanionBookings,
@@ -1043,6 +1044,60 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       message: "Review submitted. Thanks for sharing.",
     };
     return ok(response);
+  }
+
+  // H6.Task 9 (2026-05-27) — DEV ONLY: forcibly advance a booking to an
+  // arbitrary status (and optionally spoof scheduledFor / durationMinutes)
+  // for end-to-end test scenarios that the time-based state machine
+  // can't reach without real wall-clock time (e.g. session_completed →
+  // review_pending requires scheduledFor + durationMinutes to be in the
+  // past, which is impossible to construct in a single test run without
+  // either waiting or rewriting state).
+  //
+  // Hard production gate — env.ENVIRONMENT !== "production". The handler
+  // returns 404 in prod so a misuse leaks no information about the
+  // endpoint's existence. Mirrors /api/dev/login's gate (auth.ts:181).
+  //
+  // The CSRF + session guard still applies (the caller has a dev/login
+  // session). forceSetBookingStatus bypasses the TRANSITION_ALLOWLIST and
+  // the actor check that transitionBookingStatus enforces — that's the
+  // whole point.
+  if (request.method === "POST" && pathname === "/api/dev/advance-booking") {
+    if (env.ENVIRONMENT === "production") {
+      return fail(404, "NOT_FOUND", "Not found.");
+    }
+    const body = await readJsonBody<{
+      id: string;
+      to: InquiryStatus;
+      scheduledFor?: string;
+      durationMinutes?: number;
+    }>(request, requestId);
+    if (body instanceof Response) return body;
+    if (!body?.id || typeof body?.to !== "string") {
+      return fail(422, "INVALID_REQUEST", "Provide id + to (target status).");
+    }
+
+    // Optionally spoof scheduledFor + durationMinutes BEFORE the status
+    // change. patchBooking explicitly preserves status, so this only
+    // mutates the time fields — exactly what we want for the "session
+    // ended 1h ago" review scenario.
+    if (body.scheduledFor !== undefined || body.durationMinutes !== undefined) {
+      const timePatched = await patchBooking(env.BOOKING_DATA, body.id, {
+        ...(body.scheduledFor !== undefined ? { scheduledFor: body.scheduledFor } : {}),
+        ...(body.durationMinutes !== undefined ? { durationMinutes: body.durationMinutes } : {}),
+      });
+      if (!timePatched) return fail(404, "INQUIRY_NOT_FOUND", "Booking not found.");
+    }
+
+    const updated = await forceSetBookingStatus(env.BOOKING_DATA, body.id, body.to);
+    if (!updated) return fail(404, "INQUIRY_NOT_FOUND", "Booking not found.");
+
+    const companionDisplayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion";
+    return ok({
+      inquiry: projectBookingToTravellerInquiryDetail(updated, companionDisplayName),
+      message: `Status forcibly set to ${body.to} (DEV ONLY).`,
+    });
   }
 
   if (request.method === "PATCH" && pathname === "/api/companion/profile") {

@@ -481,6 +481,36 @@ export async function patchBooking(
   return updated;
 }
 
+/**
+ * DEV ONLY — force the booking status to an arbitrary value without
+ * any allowlist or actor check. Used by the /api/dev/advance-booking
+ * endpoint (gated on env.ENVIRONMENT !== "production") to construct
+ * test scenarios that the real state machine guards against (e.g.
+ * jumping a booking to review_pending without waiting for scheduledFor
+ * + durationMinutes to pass in real time).
+ *
+ * NEVER call this from production code paths. Unlike patchBooking
+ * (which explicitly preserves status: record.status) and
+ * transitionBookingStatus (which enforces TRANSITION_ALLOWLIST + actor),
+ * this helper is the deliberate escape hatch for test fixtures only.
+ * Returns null if the booking is missing.
+ */
+export async function forceSetBookingStatus(
+  kv: BookingKv,
+  id: string,
+  newStatus: InquiryStatus,
+): Promise<BookingRecord | null> {
+  const record = await readBooking(kv, id);
+  if (!record) return null;
+  const updated: BookingRecord = {
+    ...record,
+    status: newStatus,
+    updatedAt: new Date().toISOString(),
+  };
+  await persistRecord(kv, updated);
+  return updated;
+}
+
 // Re-export for handler convenience
 export { INQUIRY_INDEX_LIMIT, REVIEW_HISTORY_LIMIT };
 
@@ -805,6 +835,13 @@ export function projectBookingToTravellerInquiryDetail(
     meetingPoint: booking.meetingPoint,
     contactNumber: booking.contactNumber,
     dayOfNotes: booking.dayOfNotes,
+    // H6 — Review metadata pass-through. Stay undefined until status
+    // reaches review_completed via submitReview (which patches all three
+    // fields atomically with the transition). The TravellerInquiryDetail
+    // page renders the submitted-review summary card from these fields.
+    reviewedAt: booking.reviewedAt,
+    reviewScore: booking.reviewScore,
+    reviewComment: booking.reviewComment,
   };
 }
 
@@ -984,6 +1021,12 @@ export function projectBookingToCompanionSessionDetail(
     meetingPoint: booking.meetingPoint,
     contactNumber: booking.contactNumber,
     dayOfNotes: booking.dayOfNotes,
+    // H6 — Review metadata pass-through (mirrors traveller projector).
+    // Lets the companion-side detail surface the score/comment once the
+    // traveller submits, without leaking traveller identity.
+    reviewedAt: booking.reviewedAt,
+    reviewScore: booking.reviewScore,
+    reviewComment: booking.reviewComment,
   };
 }
 

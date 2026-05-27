@@ -583,6 +583,18 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     productionTarget: "KV",
     notes: "Returns safety reports submitted by the current account (summary form, no internal review notes).",
   },
+  {
+    method: "POST",
+    path: "/api/dev/advance-booking",
+    audience: "system",
+    handler: "dev.advanceBooking",
+    requestContract: "{ id, to, scheduledFor?, durationMinutes? }",
+    responseContract: "{ inquiry: TravellerInquiryDetail, message }",
+    auth: "anonymous",
+    stagedProvider: "bookingStore.forceSetBookingStatus + patchBooking",
+    productionTarget: "worker",
+    notes: "DEV ONLY — gated on env.ENVIRONMENT !== \"production\" (returns 404 in prod). Forcibly sets a booking's status to any InquiryStatus, optionally spoofing scheduledFor + durationMinutes first. Used by the H6 Playwright walkthrough to construct review_pending state without waiting for real wall-clock time. Bypasses TRANSITION_ALLOWLIST and actor checks — NEVER call from production code paths.",
+  },
 ];
 
 export function getRouteRegistry(): ApiRouteRegistryResponse {
