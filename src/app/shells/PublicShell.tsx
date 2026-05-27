@@ -3,7 +3,6 @@ import { TopNav } from "../components/navigation/TopNav";
 import { BottomNav } from "../components/navigation/BottomNav";
 import { Button } from "../components/ui/Button";
 import { CompassIcon, MuseIcon, ShieldIcon, UserIcon } from "../components/navigation/Icons";
-import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
 import { AssetRegistry } from "../registry/assets";
 
 export function PublicShell() {
@@ -46,7 +45,10 @@ export function PublicShell() {
       <main id="main-content" className="main-surface" tabIndex={-1}>
         <Outlet />
       </main>
-      {!isMuseEntry && <FloatingMuseTrigger />}
+      {/* FloatingMuseTrigger intentionally NOT mounted on PublicShell.
+          Public/auth/muse-entry surfaces already have prominent Muse
+          entry points; a floating trigger here is redundant. The floater
+          only renders inside logged-in shells (TravellerShell, CompanionShell). */}
 
       {!isMuseEntry && (
         <footer className="public-footer" aria-label="Public footer">

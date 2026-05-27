@@ -4155,7 +4155,9 @@ p {
   position: fixed;
   right: clamp(16px, 3vw, 28px);
   bottom: calc(88px + env(safe-area-inset-bottom));
-  z-index: 120;
+  /* Moderate z-index: beats normal content, leaves room for native
+     <dialog> top-layer (modals naturally render above without competing). */
+  z-index: 50;
   width: 68px;
   min-height: 72px;
   display: grid;
@@ -4164,6 +4166,7 @@ p {
   color: #fff8f1;
   text-decoration: none;
   isolation: isolate;
+  transition: transform 180ms ease-out;
 }
 
 .floating-muse-trigger-stage {
@@ -4174,10 +4177,11 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   background: transparent;
+  /* Soft drop-shadow only. No pulse/bob animation — quiet treatment per Q3. */
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 18px 42px rgba(0, 0, 0, 0.34);
-  animation: floating-muse-bob 3200ms ease-in-out infinite;
+    0 12px 28px rgba(0, 0, 0, 0.28);
+  transition: box-shadow 180ms ease-out, border-color 180ms ease-out;
 }
 
 .floating-muse-trigger-stage img {
@@ -4191,11 +4195,12 @@ p {
 }
 
 .floating-muse-trigger-idle-start {
-  animation: floating-muse-idle-a 3200ms ease-in-out infinite;
+  /* Quiet: idle image stays visible (no crossfade pulse). */
+  opacity: 1;
 }
 
 .floating-muse-trigger-idle-end {
-  animation: floating-muse-idle-b 3200ms ease-in-out infinite;
+  opacity: 0;
 }
 
 .floating-muse-trigger-listen {
@@ -4226,10 +4231,10 @@ p {
 
 .floating-muse-trigger:hover .floating-muse-trigger-stage,
 .floating-muse-trigger:focus-visible .floating-muse-trigger-stage {
-  border-color: rgba(250, 247, 243, 0.36);
+  border-color: rgba(250, 247, 243, 0.32);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 22px 54px rgba(0, 0, 0, 0.42);
+    0 16px 36px rgba(0, 0, 0, 0.34);
 }
 
 .floating-muse-trigger:hover .floating-muse-trigger-listen,
@@ -5986,9 +5991,12 @@ p {
   }
 
   .floating-muse-trigger {
-    top: 82px;
-    right: 12px;
-    bottom: auto;
+    /* Mobile: stay anchored bottom-right, clearing the bottom nav.
+       Bottom nav is ~68px (.bottom-nav-list min-height) + safe-area,
+       so 84px gives ~16px breathing room above the nav. */
+    right: 16px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    top: auto;
   }
 
   .floating-muse-trigger-stage {
