@@ -118,6 +118,25 @@ type PaymentProviderMode = "compliance_hold" | "stripe_test";
 // milliseconds, and timezone (Z or ±HH:MM) are allowed.
 const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
+// Pass I (2026-05-27) — Statuses at which the chat thread is unlocked.
+// Originally declared local to the chat-message handlers; hoisted to
+// module scope in Pass I.T8 so the inquiry-list handlers can also gate
+// `unreadMessageCount` enrichment on the same allowlist (avoids N+1 KV
+// reads on routed/declined/cancelled bookings that can never have a
+// thread).
+const MATCHED_STATUSES: InquiryStatus[] = [
+  "accepted",
+  "date_pending",
+  "date_proposed",
+  "date_confirmed",
+  "payment_held",
+  "session_scheduled",
+  "session_live",
+  "session_completed",
+  "review_pending",
+  "review_completed",
+];
+
 type WorkerEnv = Omit<Env, "ENVIRONMENT" | "PAYMENT_PROVIDER_MODE"> & {
   ACCOUNT_DATA?: KVNamespace;        // Pass E (2026-05-26): per-account prefs, exports, deletions, safety-report list
   AUTH_OTPS?: KVNamespace;
@@ -493,6 +512,9 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       },
       () => provider.listTravellerInquiries().map(toInquirySummary),
     );
+    // Pass I.T8 — populate `unreadMessageCount` per row (matched
+    // statuses only; locked threads keep the field undefined).
+    await enrichSummariesWithUnreadCounts(results, env.BOOKING_DATA, session.profile.email, "traveller");
     return ok({
       results,
       emptyState: {
@@ -616,6 +638,14 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       projectBookingToCompanionInquirySummary,
       () => provider.listCompanionInquiries(),
     );
+    // Pass I.T8 — populate `unreadMessageCount` per row (matched
+    // statuses only; locked threads keep the field undefined). The
+    // session email may not match the synthetic companion-fixture
+    // email today (see L660 H2 note), so for fixture-fallback rows
+    // lastReadAt will be undefined and the badge will show every
+    // companion message until the thread is opened — acceptable for
+    // v1 demo data.
+    await enrichSummariesWithUnreadCounts(results, env.BOOKING_DATA, session.profile.email, "companion");
     return ok({
       results,
       emptyState: {
@@ -1079,18 +1109,9 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
   // authorLabel is server-derived (never user input): "Traveller" for the
   // traveller, companion.displayName for the companion. Mirrors the H6
   // review PII stance — no email/full-name exposure in chat history.
-  const MATCHED_STATUSES: InquiryStatus[] = [
-    "accepted",
-    "date_pending",
-    "date_proposed",
-    "date_confirmed",
-    "payment_held",
-    "session_scheduled",
-    "session_live",
-    "session_completed",
-    "review_pending",
-    "review_completed",
-  ];
+  //
+  // MATCHED_STATUSES (the chat-unlocked allowlist) lives at module scope
+  // since Pass I.T8 so the inquiry-list handlers can share it.
 
   // Match the more-specific /messages/read BEFORE /messages so the
   // dispatch order is correct (otherwise a POST to /messages/read would
@@ -2641,6 +2662,40 @@ function uniqueExperienceTags(values: ExperienceSlug[]): ExperienceSlug[] {
 function toInquirySummary(inquiry: TravellerInquiryDetail) {
   const { message: _message, timeline: _timeline, paymentState: _paymentState, privacyNote: _privacyNote, ...summary } = inquiry;
   return summary;
+}
+
+// Pass I.T8 (2026-05-28) — Enrich each inquiry summary in a list with
+// `unreadMessageCount` (other-party messages since this viewer's
+// lastReadAt). Only computes when status is in MATCHED_STATUSES — at
+// other statuses the chat thread is locked, so the field stays
+// undefined and no KV reads happen. Costs 2 KV reads per matched
+// booking; v1 lists are single-digit so the budget is fine. Mutates
+// the summary objects in place.
+//
+// `viewerEmail` and `viewerRole` come from the calling handler's
+// authenticated session. `kv` is optional so this is a no-op when the
+// BOOKING_DATA binding is unbound (matches the rest of the worker's
+// fixture-fallback story).
+async function enrichSummariesWithUnreadCounts<
+  T extends { id: string; status: InquiryStatus; unreadMessageCount?: number },
+>(
+  summaries: T[],
+  kv: KVNamespace | undefined,
+  viewerEmail: string,
+  viewerRole: ChatAuthorRole,
+): Promise<T[]> {
+  if (!kv) return summaries;
+  await Promise.all(
+    summaries.map(async (summary) => {
+      if (!MATCHED_STATUSES.includes(summary.status)) return;
+      const [messages, lastReadAt] = await Promise.all([
+        readMessages(kv, summary.id),
+        readLastReadAt(kv, summary.id, viewerEmail),
+      ]);
+      summary.unreadMessageCount = computeUnreadCount(messages, lastReadAt, viewerRole);
+    }),
+  );
+  return summaries;
 }
 
 function toSessionSummary(session: TravellerSessionDetail) {

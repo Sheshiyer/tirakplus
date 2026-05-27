@@ -9360,3 +9360,34 @@ p {
     padding: 10px 14px;
   }
 }
+
+/* ---- Inbox unread badge (Pass I.T8) ----
+ * Compact coral pill rendered next to the row title on traveller +
+ * companion inbox cards when the server reports >0 unread messages
+ * from the other party. Inline-flex so it sits on the title baseline
+ * without breaking the existing row spacing.
+ */
+.inbox-unread-badge {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  margin-left: 8px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-coral, #ff7d6b);
+  color: #1a0810;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Pass I.T8 follow-up — TopNav aggregate unread deferred.
+ * Adding an aggregate badge on TopNav (or BottomNav) would need either
+ * polling from the shell or a new /api/inbox/unread-summary endpoint
+ * — neither belongs in this pass. The per-row badge above is the
+ * high-value surface; the global indicator can land in a later pass
+ * once we decide on the aggregate-fetch story.
+ */

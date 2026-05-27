@@ -74,24 +74,40 @@ export function CompanionInboxPage() {
         <FeedbackState title={emptyState.title} description={emptyState.description} />
       ) : (
         <div className="companion-inquiry-list">
-          {results.map((inquiry) => (
-            <article key={inquiry.id} className="companion-inquiry-card">
-              <div>
-                <p className="meta">{inquiry.status.replace(/_/g, " ")}</p>
-                <h2>{inquiry.travellerLabel}</h2>
-                <p>{inquiry.nextStep}</p>
-              </div>
-              <div className="preview-meta-grid">
-                <span>{inquiry.city.replace(/-/g, " ")}</span>
-                <span>{inquiry.experience.replace(/-/g, " ")}</span>
-                <span>{inquiry.preferredWindow}</span>
-              </div>
-              <p className="privacy-note">{inquiry.privacyNote}</p>
-              <Button as={Link} to={`/companion/inbox/${inquiry.id}`} variant="secondary">
-                Review
-              </Button>
-            </article>
-          ))}
+          {results.map((inquiry) => {
+            // Pass I.T8 — server enriches `unreadMessageCount` for
+            // matched bookings only; treat as `undefined | number`
+            // and only render the badge when > 0.
+            const unread = inquiry.unreadMessageCount ?? 0;
+            return (
+              <article key={inquiry.id} className="companion-inquiry-card">
+                <div>
+                  <p className="meta">{inquiry.status.replace(/_/g, " ")}</p>
+                  <h2>
+                    {inquiry.travellerLabel}
+                    {unread > 0 ? (
+                      <span
+                        className="inbox-unread-badge"
+                        aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
+                      >
+                        {unread}
+                      </span>
+                    ) : null}
+                  </h2>
+                  <p>{inquiry.nextStep}</p>
+                </div>
+                <div className="preview-meta-grid">
+                  <span>{inquiry.city.replace(/-/g, " ")}</span>
+                  <span>{inquiry.experience.replace(/-/g, " ")}</span>
+                  <span>{inquiry.preferredWindow}</span>
+                </div>
+                <p className="privacy-note">{inquiry.privacyNote}</p>
+                <Button as={Link} to={`/companion/inbox/${inquiry.id}`} variant="secondary">
+                  Review
+                </Button>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

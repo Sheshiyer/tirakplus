@@ -111,22 +111,38 @@ export function TravellerInquiriesPage() {
           />
         ) : (
           <div className="inquiry-card-list">
-            {state.data.results.map((inquiry) => (
-              <article key={inquiry.id} className="inquiry-summary-card">
-                <div>
-                  <p className="meta">{inquiry.status.replace("_", " ")}</p>
-                  <h2>{inquiry.companionDisplayName}</h2>
-                  <p>{inquiry.nextStep}</p>
-                </div>
-                <div className="inquiry-summary-meta">
-                  <span>{inquiry.city.replace("-", " ")}</span>
-                  <span>{inquiry.experience.replace(/-/g, " ")}</span>
-                </div>
-                <Button as={Link} to={`/traveller/inbox/${inquiry.id}`} variant="secondary">
-                  Open thread
-                </Button>
-              </article>
-            ))}
+            {state.data.results.map((inquiry) => {
+              // Pass I.T8 — server enriches `unreadMessageCount` for
+              // matched bookings only; treat as `undefined | number`
+              // and only render the badge when > 0.
+              const unread = inquiry.unreadMessageCount ?? 0;
+              return (
+                <article key={inquiry.id} className="inquiry-summary-card">
+                  <div>
+                    <p className="meta">{inquiry.status.replace("_", " ")}</p>
+                    <h2>
+                      {inquiry.companionDisplayName}
+                      {unread > 0 ? (
+                        <span
+                          className="inbox-unread-badge"
+                          aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
+                        >
+                          {unread}
+                        </span>
+                      ) : null}
+                    </h2>
+                    <p>{inquiry.nextStep}</p>
+                  </div>
+                  <div className="inquiry-summary-meta">
+                    <span>{inquiry.city.replace("-", " ")}</span>
+                    <span>{inquiry.experience.replace(/-/g, " ")}</span>
+                  </div>
+                  <Button as={Link} to={`/traveller/inbox/${inquiry.id}`} variant="secondary">
+                    Open thread
+                  </Button>
+                </article>
+              );
+            })}
           </div>
         )
       )}
