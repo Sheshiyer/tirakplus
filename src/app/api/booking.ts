@@ -10,10 +10,12 @@ import type {
   CompanionInquiryDecisionResponse,
   CompanionInquiryListResponse,
   CompanionSessionDetail,
+  DayOfDetailsResponse,
   PlanCompanionResponse,
   PlanTravellerResponse,
   PlanWindowSelectionRequest,
   PlanWindowsRequest,
+  SetDayOfDetailsRequest,
   TravellerInquiryCreateResponse,
   TravellerInquiryDetail,
   TravellerInquiryListResponse,
@@ -180,6 +182,18 @@ export const BookingService = {
     return apiRequest<PlanTravellerResponse>(
       `/api/plans/${encodeURIComponent(inquiryId)}/hold`,
       { method: "POST", body: JSON.stringify({}) },
+    );
+  },
+
+  /**
+   * Companion sets day-of details on a confirmed plan (meeting point,
+   * contact number, optional notes). Metadata-only; no status change.
+   * Editable from date_confirmed through session_completed.
+   */
+  setDayOfDetails(inquiryId: string, payload: SetDayOfDetailsRequest): Promise<DayOfDetailsResponse> {
+    return apiRequest<DayOfDetailsResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/day-of-details`,
+      { method: "POST", body: JSON.stringify(payload) },
     );
   },
 };
