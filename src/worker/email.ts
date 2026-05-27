@@ -317,3 +317,136 @@ export async function sendInquiryDecisionEmail(
     return { sent: false, reason: "resend_fetch_failed" };
   }
 }
+
+/**
+ * H3.T9 (2026-05-27) — Send confirmation email when a plan transitions
+ * date_proposed → date_confirmed. Both parties (traveller AND
+ * companion) receive a notification with the scheduled time formatted
+ * for Bangkok-local display and the duration label.
+ *
+ * Honors the recipient's `receiveInquiryUpdates` privacy preference per
+ * recipient (built off recipientEmail). Fire-and-forget at the call
+ * site — failures must never block the API response.
+ */
+export async function sendPlanConfirmedEmail(
+  env: InquiryEmailEnv,
+  args: {
+    recipientEmail: string;
+    recipientName?: string;
+    companionDisplayName: string;
+    travellerLabel: string;
+    role: "traveller" | "companion";
+    scheduledFor: string;
+    durationMinutes: number;
+    inquiryUrl?: string;
+  },
+): Promise<{ sent: boolean; reason?: string }> {
+  // 1) Privacy check — same pseudo-session pattern as the decision helper.
+  const pseudoSession: Session = {
+    id: "system",
+    profile: { id: "system", email: args.recipientEmail, role: args.role },
+    expiresAt: new Date().toISOString(),
+  };
+  const privacy = await readPrivacy(env.ACCOUNT_DATA, pseudoSession);
+  if (privacy.receiveInquiryUpdates === false) {
+    return { sent: false, reason: "user_opted_out" };
+  }
+
+  // 2) Resend availability — skip gracefully when missing.
+  if (!env.RESEND_API_KEY) {
+    console.warn(
+      "[plan-confirmed-email] RESEND_API_KEY not configured — skipping send",
+    );
+    return { sent: false, reason: "resend_not_configured" };
+  }
+
+  // 3) Format scheduled time for Bangkok local display.
+  //    Produces e.g. "Saturday, 14 June 2026 at 18:00".
+  const scheduledDate = new Date(args.scheduledFor);
+  const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  // en-GB locale formats as "Saturday, 14 June 2026, 18:00" — replace
+  // the second comma with " at " to match the spec template.
+  const scheduledForLocal = dateFormatter
+    .format(scheduledDate)
+    .replace(/, (\d{2}:\d{2})$/, " at $1");
+
+  // 4) Format duration: "1 hour", "2 hours", "2 hours 30 min", etc.
+  const hours = Math.floor(args.durationMinutes / 60);
+  const mins = args.durationMinutes % 60;
+  let durationLabel: string;
+  if (hours === 0) {
+    durationLabel = `${mins} min`;
+  } else if (hours === 1) {
+    durationLabel = mins === 0 ? "1 hour" : `1 hour ${mins} min`;
+  } else {
+    durationLabel = mins === 0 ? `${hours} hours` : `${hours} hours ${mins} min`;
+  }
+
+  // 5) Build per-role subject + body.
+  const nameClause = args.recipientName ? ` ${args.recipientName}` : "";
+  const inquiryUrlLine = args.inquiryUrl
+    ? `Open the inquiry: ${args.inquiryUrl}\n\n`
+    : "";
+
+  let subject: string;
+  let text: string;
+  if (args.role === "traveller") {
+    subject = `Tirak: your plan with ${args.companionDisplayName} is confirmed`;
+    text =
+      `Hi${nameClause},\n\n` +
+      `Your plan with ${args.companionDisplayName} is confirmed:\n\n` +
+      `  ${scheduledForLocal} (Bangkok local)\n` +
+      `  Duration: ${durationLabel}\n\n` +
+      `${inquiryUrlLine}` +
+      `Tirak will surface day-of details (meeting point, contact) closer to the date.\n\n` +
+      `If anything feels off, reply with "report".\n\n` +
+      `— Tirak`;
+  } else {
+    subject = `Tirak: ${args.travellerLabel} confirmed your plan`;
+    text =
+      `Hi${nameClause},\n\n` +
+      `${args.travellerLabel} confirmed the plan you'd picked:\n\n` +
+      `  ${scheduledForLocal} (Bangkok local)\n` +
+      `  Duration: ${durationLabel}\n\n` +
+      `${inquiryUrlLine}` +
+      `Tirak will surface day-of details (meeting point, contact) closer to the date.\n\n` +
+      `— Tirak`;
+  }
+
+  // 6) Send via Resend REST — mirror the OTP/decision helper pattern.
+  try {
+    const from = env.RESEND_FROM?.trim() || AUTH_FROM_RESEND_DEFAULT;
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [args.recipientEmail],
+        subject,
+        text,
+      }),
+    });
+    if (response.ok) {
+      return { sent: true };
+    }
+    await redactedResendErrorLog(response, "[plan-confirmed-email/resend]");
+    return { sent: false, reason: `resend_http_${response.status}` };
+  } catch (caught) {
+    console.warn(
+      `[plan-confirmed-email/resend] fetch failed (${caught instanceof Error ? caught.message : "unknown"})`,
+    );
+    return { sent: false, reason: "resend_fetch_failed" };
+  }
+}

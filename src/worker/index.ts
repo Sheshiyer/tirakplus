@@ -79,7 +79,7 @@ import {
   readBooking,
   transitionBookingStatus,
 } from "./booking-store.js";
-import { sendInquiryDecisionEmail } from "./email.js";
+import { sendInquiryDecisionEmail, sendPlanConfirmedEmail } from "./email.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
@@ -788,6 +788,38 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     if (!updated) return fail(409, "INVALID_TRANSITION", "Could not confirm this plan.");
     const displayName =
       provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion profile";
+
+    // H3.T9 (2026-05-27) — Email notification on date_confirmed.
+    // Fire-and-forget; failures don't block the response. Both parties
+    // get a confirmation with the scheduled time + duration in Bangkok
+    // local. `scheduledFor` / `durationMinutes` are non-null here because
+    // they were just persisted by the transition above.
+    const companionDisplayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion";
+    const travellerLabel = "Traveller"; // not yet collected on BookingRecord; future contract field
+    const inquiryUrl = `https://tirak.app/traveller/inbox/${updated.id}`;
+    const companionInquiryUrl = `https://tirak.app/companion/inbox/${updated.id}`;
+    await Promise.all([
+      sendPlanConfirmedEmail(env, {
+        recipientEmail: updated.travellerEmail,
+        companionDisplayName,
+        travellerLabel,
+        role: "traveller",
+        scheduledFor: updated.scheduledFor!,
+        durationMinutes: updated.durationMinutes!,
+        inquiryUrl,
+      }).catch((err) => console.warn("[plan-confirmed-email/traveller]", err)),
+      sendPlanConfirmedEmail(env, {
+        recipientEmail: updated.companionEmail,
+        companionDisplayName,
+        travellerLabel,
+        role: "companion",
+        scheduledFor: updated.scheduledFor!,
+        durationMinutes: updated.durationMinutes!,
+        inquiryUrl: companionInquiryUrl,
+      }).catch((err) => console.warn("[plan-confirmed-email/companion]", err)),
+    ]);
+
     return ok({
       inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
       message: "Plan confirmed. The companion will see day-of details ahead of the session.",
