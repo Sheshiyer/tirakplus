@@ -36,6 +36,32 @@ export function TravellerInquiriesPage() {
     };
   }, []);
 
+  // H2.T7 — Poll every 5s while at least one inquiry is in "routed" state
+  // (awaiting companion accept/decline). Stops automatically when no routed
+  // inquiries remain. Skips the fetch when the tab is hidden. Polling failures
+  // are swallowed silently (best-effort refresh, not user-facing).
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const hasPending = state.data.results.some((r) => r.status === "routed");
+    if (!hasPending) return;
+
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      if (document.hidden) return;
+      try {
+        const data = await BookingService.listTravellerInquiries();
+        if (!cancelled) setState({ status: "ready", data });
+      } catch {
+        // best-effort — polling failures are not user-facing
+      }
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [state]);
+
   return (
     <section className="inquiry-page" aria-labelledby="inquiries-title">
       <div className="inquiry-heading">
