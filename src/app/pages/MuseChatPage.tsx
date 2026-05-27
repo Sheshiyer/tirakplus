@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../api/AuthContext";
 import { MuseApiError, MuseService, museTranscriptStorageKey } from "../api/muse";
 import { isCitySlug, isExperienceSlug } from "../api/traveller";
-import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { MuseInlineAuth } from "../components/muse/MuseInlineAuth";
 import { MusePoseImage } from "../components/muse/MusePoseImage";
 import { Button } from "../components/ui/Button";
@@ -11,7 +10,6 @@ import { Input } from "../components/ui/Input";
 import { AssetRegistry } from "../registry/assets";
 import type { CSSProperties } from "react";
 import type {
-  MuseChartSignature,
   MuseChatMessage,
   MuseChatResponse,
   MuseClientContext,
@@ -35,25 +33,6 @@ const openingPrompts = [
   "Help me find the right mood before I choose profiles.",
   "I am a companion and need help writing my profile.",
 ];
-
-// "Muse's Read" — the dossier shown at first contact, before any signal
-// has been picked up from the user. Copy moved from generic metric
-// labels (Mood / Pace / Boundary / Path) to active observations
-// (Rhythm: Listening, Cadence: Asks first, etc.) so the panel reads as
-// what Muse is *doing* rather than what Muse is *measuring*.
-const openingChart = {
-  title: "Muse's read",
-  tagline: "",
-  summary: "",
-  axes: [
-    { label: "Rhythm", value: "Listening", tone: "rose" },
-    { label: "Cadence", value: "Asks before showing", tone: "lavender" },
-    { label: "Privacy", value: "Held inside", tone: "green" },
-    { label: "Fit", value: "Forming", tone: "pearl" },
-  ],
-  cues: [],
-  nextPrompt: "She is keeping the read quiet until the fit is clean.",
-} satisfies MuseChartSignature;
 
 type MuseRouteContext = {
   clientContext: MuseClientContext;
@@ -240,7 +219,6 @@ export function MuseChatPage() {
     : "Ready";
   const handoffAction =
     lastResponse?.nextAction && lastResponse.nextAction.kind !== "continue" ? lastResponse.nextAction : null;
-  const activeChart = lastResponse?.chart ?? openingChart;
   const shouldSimulateMuseError = searchParams.get("qa") === "muse-error";
 
   // Guided-mode gate: while the user is anonymous, the chat surface is
@@ -628,8 +606,10 @@ export function MuseChatPage() {
 
         <aside className="muse-context-panel" aria-label="Muse context state">
           {/* "Your thread" eyebrow removed 2026-05-26 — duplicated the
-              chart's own "Muse's read" eyebrow inside the same column. */}
-          <MuseChartPanel chart={activeChart} compact className="muse-context-chart" />
+              chart's own "Muse's read" eyebrow inside the same column.
+              MUSE'S READ 4-card panel removed 2026-05-27 — not in
+              inspiration boards; aside is now just Focus/Privacy/Next
+              metadata + the Safety link. */}
           <dl>
             <div>
               <dt>Focus</dt>
