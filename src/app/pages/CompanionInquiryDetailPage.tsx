@@ -8,6 +8,8 @@ import type {
 } from "../../shared/contracts";
 import { BookingApiError, BookingService } from "../api/booking";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
+import { SetDayOfDetailsForm } from "../components/booking/SetDayOfDetailsForm";
+import { SessionItinerary } from "../components/booking/SessionItinerary";
 import { WindowSelectionView } from "../components/booking/WindowSelectionView";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -15,6 +17,13 @@ import { SkeletonCard } from "../components/ui/Skeleton";
 import { Textarea } from "../components/ui/Textarea";
 
 const POLL_INTERVAL_MS = 5000;
+
+// H5.T5 — Itinerary unlock window. The day-of details surface (read-only
+// SessionItinerary) flips on for both perspectives 24 hours before the
+// session's scheduledFor. Before that the companion still sees the
+// editable SetDayOfDetailsForm CTA so they can dial in / update the
+// meeting point. Mirrors the server-side cutover hook.
+const ITINERARY_UNLOCK_HOURS = 24;
 
 type LoadState =
   | { status: "loading"; data?: undefined; message?: undefined }
@@ -56,6 +65,14 @@ export function CompanionInquiryDetailPage() {
   //     with a button to re-open. Mirrors showConfirmForm on the traveller
   //     side (H3.T7).
   const [showWindowSelection, setShowWindowSelection] = useState(true);
+
+  // H5.T5 — Day-of details form toggle. Defaults CLOSED so the companion
+  // sees the "Set day-of details" / "Edit details" CTA first and only
+  // expands the form on intent. Submission collapses back to the CTA via
+  // onSubmitted; cancel does the same without saving. Only meaningful when
+  // status ∈ {date_confirmed, payment_held, session_scheduled} AND the
+  // itinerary hasn't unlocked yet — see showDayOfForm below.
+  const [showDayOfDetailsForm, setShowDayOfDetailsForm] = useState(false);
 
   const isPollingRef = useRef(false);
 
@@ -106,6 +123,14 @@ export function CompanionInquiryDetailPage() {
   //                    In dev/staging the auto-advance bridge skips
   //                    through this state synchronously so the panel
   //                    is rarely seen.
+  //   session_scheduled → H5. System advances to session_live at the
+  //                    scheduled-for moment; keep polling so the page
+  //                    can swap CTA → itinerary at the cutover.
+  //   session_live   → H5. System advances to session_completed when the
+  //                    session window ends; keep polling so the companion
+  //                    sees the terminal state without a manual reload.
+  //                    session_completed itself is terminal for the
+  //                    companion in H5, so we stop polling there.
   //
   // hasPending is derived via useMemo so the polling effect keys on a
   // boolean rather than the whole state object — keeping the 5s cadence
@@ -118,7 +143,9 @@ export function CompanionInquiryDetailPage() {
       s === "accepted" ||
       s === "date_pending" ||
       s === "date_proposed" ||
-      s === "payment_held"
+      s === "payment_held" ||
+      s === "session_scheduled" || // H5: poll for session_live transition
+      s === "session_live"         // H5: poll for session_completed transition
     );
   }, [state]);
 
@@ -169,6 +196,42 @@ export function CompanionInquiryDetailPage() {
   }
 
   const { data } = state;
+
+  // H5.T5 — Day-of details + itinerary visibility logic.
+  //   hasDayOfDetails: any meeting point, contact, or note already saved.
+  //     Controls the CTA copy ("Set" vs "Edit").
+  //   itineraryUnlocked: cutover from "editable form CTA" to "read-only
+  //     itinerary card". Flips ON 24h before scheduledFor. Once unlocked,
+  //     edits aren't surfaced from this page (server still permits them
+  //     through session_completed, but the UI prioritises read-only
+  //     display once both parties are looking at the day-of view).
+  //   showDayOfForm: renders the editable surface (form OR CTA, based on
+  //     showDayOfDetailsForm toggle). True only when status allows editing
+  //     AND itinerary hasn't unlocked yet.
+  //   showItinerary: renders the read-only SessionItinerary. Requires both
+  //     a confirmed window AND a scheduledFor (set by server on
+  //     date_confirmed). True when the session is live/completed, OR when
+  //     we've crossed the 24h unlock and the status is one of the
+  //     post-confirm/pre-live states.
+  const hasDayOfDetails = Boolean(
+    data.meetingPoint ||
+      data.contactNumber ||
+      (data.dayOfNotes && data.dayOfNotes.length > 0),
+  );
+  const itineraryUnlocked = Boolean(
+    data.scheduledFor &&
+      Date.now() >=
+        Date.parse(data.scheduledFor) - ITINERARY_UNLOCK_HOURS * 60 * 60 * 1000,
+  );
+  const showItinerary = Boolean(
+    data.companionSelectedWindow &&
+      data.scheduledFor &&
+      (data.status === "session_live" ||
+        data.status === "session_completed" ||
+        (data.status === "session_scheduled" && itineraryUnlocked) ||
+        (data.status === "payment_held" && itineraryUnlocked) ||
+        (data.status === "date_confirmed" && itineraryUnlocked)),
+  );
 
   const handleAccept = async () => {
     if (!inquiryId || actionState !== "idle") return;
@@ -544,6 +607,70 @@ export function CompanionInquiryDetailPage() {
           {data.heldAt && <p>Hold placed on {formatDate(data.heldAt)}.</p>}
           <p>Day-of details will appear here closer to the session.</p>
         </section>
+      )}
+
+      {/* H5.T5 — Day-of details surface. Two branches share the same gate:
+            (a) editable form / CTA — when status allows editing AND the
+                itinerary hasn't unlocked yet (>24h from scheduledFor).
+            (b) read-only itinerary — when itinerary has unlocked OR the
+                session is live/completed.
+          Both branches sit AFTER the existing H3.T8 + H4-stub panels so the
+          page reads top-to-bottom: confirmation card → day-of action. */}
+      {!itineraryUnlocked &&
+        (data.status === "date_confirmed" ||
+          data.status === "payment_held" ||
+          data.status === "session_scheduled") &&
+        (showDayOfDetailsForm ? (
+          <SetDayOfDetailsForm
+            inquiryId={data.id}
+            initial={{
+              meetingPoint: data.meetingPoint,
+              contactNumber: data.contactNumber,
+              dayOfNotes: data.dayOfNotes,
+            }}
+            onSubmitted={(next) => {
+              setShowDayOfDetailsForm(false);
+              setState({ status: "ready", data: next });
+            }}
+            onCancel={() => setShowDayOfDetailsForm(false)}
+          />
+        ) : (
+          <section className="plan-stage-cta" aria-label="Day-of details">
+            <p className="eyebrow">Day-of details</p>
+            <h2>
+              {hasDayOfDetails ? "Edit day-of details" : "Set day-of details"}
+            </h2>
+            <p>
+              {hasDayOfDetails
+                ? "Update the meeting point or any new logistics — both of you see updates 24 hours before the session."
+                : "Pick a meeting point + drop your contact so the traveller can find you on the day. Both of you see these 24 hours before the session."}
+            </p>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setShowDayOfDetailsForm(true)}
+            >
+              {hasDayOfDetails ? "Edit details" : "Set details"}
+            </Button>
+          </section>
+        ))}
+
+      {/* H5.T5 — Read-only itinerary. SessionItinerary (H5.T4) is pure
+          display; visibility gating lives here so the parent can decide
+          which perspective to render and when. The two narrowed conditions
+          re-check the optional fields used in the JSX so TS can drop the
+          undefined branch. */}
+      {showItinerary && data.companionSelectedWindow && data.scheduledFor && (
+        <SessionItinerary
+          scheduledFor={data.scheduledFor}
+          durationMinutes={data.durationMinutes}
+          selectedWindow={data.companionSelectedWindow}
+          meetingPoint={data.meetingPoint}
+          contactNumber={data.contactNumber}
+          dayOfNotes={data.dayOfNotes}
+          status={data.status}
+          perspective="companion"
+        />
       )}
 
       {data.status === "accepted" && (
