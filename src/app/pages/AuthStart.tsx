@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuth } from "../api/AuthContext";
+import { hasValidConsent } from "../api/consent";
 import { AssetRegistry } from "../registry/assets";
 import type { UserRole } from "../../shared/contracts";
 
@@ -10,11 +11,34 @@ type AuthRole = Extract<UserRole, "traveller" | "companion">;
 type Step = "role" | "email";
 
 export function AuthStart() {
-  const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { login, isLoading, error } = useAuth();
+
+  // Age-consent gate (P0). If the user hasn't accepted on this device,
+  // bounce to /age-consent and capture the original destination so we
+  // can return them here after consent. Runs only on mount — once
+  // consent is accepted in localStorage the redirect won't re-fire on
+  // re-renders.
+  useEffect(() => {
+    if (!hasValidConsent()) {
+      navigate("/age-consent", {
+        replace: true,
+        state: { from: { pathname: "/auth/start", search: location.search } },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-fill from ?email=... — AgeConsentPage hands us the email so the
+  // user doesn't have to retype it after consenting. State.email from
+  // navigate({state}) takes precedence if both are present (covers SPA
+  // navigation that intentionally doesn't expose email in the URL).
+  const stateEmail = (location.state as { email?: string } | null)?.email;
+  const queryEmail = searchParams.get("email") ?? "";
+  const initialEmail = (stateEmail ?? queryEmail).trim();
+  const [email, setEmail] = useState(initialEmail);
 
   const fromLocation = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
   const fromPath = fromLocation?.pathname ? `${fromLocation.pathname}${fromLocation.search ?? ""}` : undefined;
@@ -31,6 +55,10 @@ export function AuthStart() {
       ? "traveller"
       : null;
 
+  // If we have a hinted role we always start at the email step. If we
+  // also have a pre-filled email (from the age-consent handoff), we're
+  // already deep enough into step 2 that the user just needs to confirm
+  // and submit — no role re-pick required.
   const [step, setStep] = useState<Step>(hintedRole ? "email" : "role");
   const [role, setRole] = useState<AuthRole | null>(hintedRole);
 

@@ -10,6 +10,7 @@ import { PublicSafetyPage } from "./pages/PublicSafetyPage";
 import { CookiesPage, NotFoundPage, PrivacyPage, SupportPage, TermsPage } from "./pages/LegalPages";
 import { CityOverviewPage } from "./pages/CityOverviewPage";
 import { ExperiencePage } from "./pages/ExperiencePage";
+import { AgeConsentPage } from "./pages/AgeConsentPage";
 import { AuthStart } from "./pages/AuthStart";
 import { AuthVerify } from "./pages/AuthVerify";
 import { DevLogin } from "./pages/DevLogin";
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       { path: "terms", element: <TermsPage /> },
       { path: "cookies", element: <CookiesPage /> },
       { path: "support", element: <SupportPage /> },
+      // Pre-OTP age + consent gate (P0). Required before /auth/start
+      // and /auth/verify can proceed; AuthStart has a redirect guard
+      // that bounces back here if hasValidConsent() is false.
+      { path: "age-consent", element: <AgeConsentPage /> },
       { path: "auth/login", element: <AuthStart /> },
       // Alias: every Muse handoff, suggested chip, inline-auth widget
       // welcome message, and AuthContext.login() flow link reference

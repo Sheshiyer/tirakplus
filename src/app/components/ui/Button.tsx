@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 
 type ButtonBaseProps = {
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "coral";
   fullWidth?: boolean;
   as?: React.ElementType;
 };

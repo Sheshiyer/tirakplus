@@ -16,6 +16,14 @@
   --color-warning-clay: #B16B45;
   --color-risk-fig: #7E4257;
 
+  /* Coral CTA palette — introduced 2026-05-28 for the age-consent gate.
+   * Designed against the plum/aubergine pre-OTP background. Reused on
+   * any future glass-on-plum surface that needs a primary action with
+   * higher visual weight than --color-rose-bronze (the porcelain CTA). */
+  --color-coral: #ff7d6b;
+  --color-coral-active: #f0644f;
+  --color-coral-soft: rgba(255, 125, 107, 0.12);
+
   /* Typography Fonts */
   --font-display: 'Cabinet Grotesk', 'Satoshi', 'Outfit', sans-serif;
   --font-body: 'Satoshi', 'Geist', sans-serif;
