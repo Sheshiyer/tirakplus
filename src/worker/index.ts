@@ -30,6 +30,7 @@ import type {
   CompanionOnboardingStep,
   CompanionOnboardingState,
   CompanionProfileUpdateRequest,
+  CompanionReviewsResponse,
   CompanionVerificationSubmitRequest,
   CompanionVisibilityUpdateRequest,
   DayOfDetailsResponse,
@@ -71,6 +72,7 @@ import {
   writePrivacy,
 } from "./account-store.js";
 import {
+  computeAggregateRating,
   createBooking,
   detailOrFallback,
   isTravellerOwner,
@@ -86,6 +88,7 @@ import {
   projectBookingToTravellerInquiryDetail,
   projectBookingToTravellerInquirySummary,
   readBooking,
+  readCompanionReviews,
   submitReview,
   transitionBookingStatus,
   travellerLabelFromBooking,
@@ -306,6 +309,34 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       ownerUserId: string;
     };
     const response: MuseConversationDetailResponse = { conversation: stored };
+    return ok(response);
+  }
+
+  // H6.T4 (2026-05-27) — Public companion reviews endpoint.
+  // No session/role required: anyone browsing companion profiles can
+  // see the rating + last 25 reviews. Path uses /api/companions/ (plural,
+  // public) to distinguish it from /api/companion/ (singular, companion-
+  // protected role guard below). 404 if the companion profile doesn't
+  // exist; otherwise empty aggregate + reviews for brand-new companions.
+  const companionReviewsMatch = pathname.match(/^\/api\/companions\/([^/]+)\/reviews$/);
+  if (request.method === "GET" && companionReviewsMatch) {
+    const companionId = companionReviewsMatch[1];
+
+    const profile = provider.getCompanionProfile(companionId);
+    if (!profile) {
+      return fail(404, "PROFILE_NOT_FOUND", "This companion profile is unavailable.");
+    }
+
+    // companionEmail synthesis matches booking-store.ts companionEmailFor()
+    const companionEmail = `companion-${companionId.toLowerCase()}@tirak.app`;
+    const reviews = await readCompanionReviews(env.BOOKING_DATA, companionEmail);
+    const aggregate = computeAggregateRating(reviews);
+
+    const response: CompanionReviewsResponse = {
+      companionId,
+      aggregate,
+      reviews,
+    };
     return ok(response);
   }
 

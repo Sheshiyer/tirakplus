@@ -422,6 +422,17 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     notes: "Traveller submits a 1-5 score + 20-500 char comment after session_completed advances to review_pending. Appends to companion's reviews list and transitions review_pending → review_completed. Reviews are immutable in v1.",
   },
   {
+    method: "GET",
+    path: "/api/companions/:companionId/reviews",
+    audience: "public",
+    handler: "companions.reviews",
+    responseContract: "CompanionReviewsResponse",
+    auth: "anonymous",
+    stagedProvider: "bookingStore.readCompanionReviews + computeAggregateRating",
+    productionTarget: "KV",
+    notes: "Returns aggregate rating + cap-25 most-recent reviews for a companion. Public — surfaces on companion profile pages. Reviews are anonymized via travellerLabel ('Traveller from {city}'). 404 if companion profile doesn't exist; otherwise empty arrays for brand-new companions.",
+  },
+  {
     method: "PATCH",
     path: "/api/companion/profile",
     audience: "companion",

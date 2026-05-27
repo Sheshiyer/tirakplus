@@ -44,6 +44,14 @@ const INQUIRY_INDEX_LIMIT = 50;
  */
 const REVIEW_HISTORY_LIMIT = 25;
 
+/**
+ * H6 — Auto-complete a review_pending booking after this many days
+ * without a traveller submission. The cleanup is observed naturally on
+ * the next GET that reads a stale review_pending booking; no cron is
+ * needed because list/detail endpoints all run maybeAdvanceSessionStatus.
+ */
+const REVIEW_AUTOCOMPLETE_DAYS = 7;
+
 // ===== State transition allowlist =====
 // Single source of truth for what status changes are legal and which
 // actor type may trigger them. The validator is pure (no I/O); actor
@@ -95,6 +103,7 @@ export const TRANSITION_ALLOWLIST: readonly TransitionRule[] = [
 
   // H6 — Review
   { from: "review_pending",    to: "review_completed",  actor: "traveller", note: "H6" },
+  { from: "review_pending",    to: "review_completed",  actor: "system",    note: "H6 7-day auto-complete" },
 ] as const;
 
 // ===== Internal helpers (mirror account-store.ts pattern) =====
@@ -342,13 +351,15 @@ export async function transitionBookingStatus(
 }
 
 /**
- * Check if a booking's session_scheduled / session_live state has elapsed
- * its scheduled timestamps and advance accordingly. Idempotent — safe to
- * call on every GET. Returns the (possibly advanced) record.
+ * Check if a booking's session_scheduled / session_live / session_completed
+ * / review_pending state has elapsed and advance accordingly. Idempotent —
+ * safe to call on every GET. Returns the (possibly advanced) record.
  *
  * Timing rules:
  *   - session_scheduled → session_live when now >= scheduledFor
  *   - session_live → session_completed when now >= scheduledFor + durationMinutes
+ *   - session_completed → review_pending (immediate, no time gate)
+ *   - review_pending → review_completed when now >= updatedAt + REVIEW_AUTOCOMPLETE_DAYS
  *
  * Other statuses are returned unchanged. Missing scheduledFor / duration
  * fields are tolerated — the helper simply skips advancement.
@@ -390,6 +401,42 @@ export async function maybeAdvanceSessionStatus(
       "system",
     );
     if (advanced) booking = advanced;
+  }
+
+  // H6: session_completed → review_pending (immediate on next GET after
+  // session_completed lands). The review form unlocks for the traveller
+  // as soon as the system flips to review_pending.
+  if (booking.status === "session_completed") {
+    const advanced = await transitionBookingStatus(
+      kv,
+      booking.id,
+      ["session_completed"],
+      "review_pending",
+      "system",
+    );
+    if (advanced) booking = advanced;
+  }
+
+  // H6: 7-day auto-complete. If review_pending has been sitting for
+  // 7+ days without a traveller submission, system advances to
+  // review_completed (no score/comment patched). Uses updatedAt as
+  // the entry-to-review_pending timestamp (no other writes to a
+  // review_pending record exist in v1 — see allowlist).
+  if (booking.status === "review_pending" && booking.updatedAt) {
+    const enteredMs = Date.parse(booking.updatedAt);
+    if (
+      !Number.isNaN(enteredMs) &&
+      now >= enteredMs + REVIEW_AUTOCOMPLETE_DAYS * 24 * 60 * 60 * 1000
+    ) {
+      const advanced = await transitionBookingStatus(
+        kv,
+        booking.id,
+        ["review_pending"],
+        "review_completed",
+        "system",
+      );
+      if (advanced) booking = advanced;
+    }
   }
 
   return booking;
