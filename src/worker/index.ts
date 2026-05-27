@@ -69,6 +69,7 @@ import {
   projectBookingToTravellerInquiryDetail,
   projectBookingToTravellerInquirySummary,
   readBooking,
+  transitionBookingStatus,
 } from "./booking-store.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
@@ -437,6 +438,45 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     );
     if (!detail) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
     return ok(detail);
+  }
+
+  if (request.method === "DELETE" && inquiryMatch) {
+    // Pass H1.T6 (2026-05-27) — KV-only cancellation. Fixture rows aren't
+    // mutable so we 404 rather than pretend success. Ownership is checked
+    // via isTravellerOwner before any state machine work; the allowlist
+    // (submitted | under_review | routed → cancelled, traveller actor) is
+    // enforced by transitionBookingStatus. CSRF + rate limit are already
+    // applied by guardApiMutation at the top of routeApi.
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in to cancel this inquiry.");
+    }
+    const booking = await readBooking(env.BOOKING_DATA, inquiryMatch[1]);
+    if (!booking) {
+      return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+    }
+    if (!isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only cancel your own inquiries.");
+    }
+    const updated = await transitionBookingStatus(
+      env.BOOKING_DATA,
+      inquiryMatch[1],
+      ["submitted", "under_review", "routed"],
+      "cancelled",
+      session.profile.email,
+    );
+    if (!updated) {
+      return fail(
+        409,
+        "INVALID_TRANSITION",
+        "This inquiry can no longer be cancelled from its current stage.",
+      );
+    }
+    const displayName =
+      provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion profile";
+    return ok({
+      inquiry: projectBookingToTravellerInquiryDetail(updated, displayName),
+    });
   }
 
   if (request.method === "GET" && pathname === "/api/companion/onboarding") {

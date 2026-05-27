@@ -227,6 +227,17 @@ export const apiRouteRegistry: ApiRouteDefinition[] = [
     notes: "Returns inquiry detail and disabled payment state.",
   },
   {
+    method: "DELETE",
+    path: "/api/traveller/inquiries/:id",
+    audience: "traveller",
+    handler: "traveller.cancelInquiry",
+    responseContract: "TravellerInquiryCreateResponse",
+    auth: "role:traveller",
+    stagedProvider: "bookingStore.transitionBookingStatus",
+    productionTarget: "KV",
+    notes: "Cancels an active inquiry (submitted, under_review, or routed). Past those stages it is too late.",
+  },
+  {
     method: "POST",
     path: "/api/traveller/inquiries/:id/stripe-checkout-session",
     audience: "payment",

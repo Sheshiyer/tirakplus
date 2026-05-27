@@ -61,6 +61,7 @@ export const TRANSITION_ALLOWLIST: readonly TransitionRule[] = [
   { from: "under_review",      to: "routed",            actor: "system",    note: "auto" },
   { from: "under_review",      to: "declined",          actor: "system",    note: "Tirak admin (out of H1)" },
   { from: "submitted",         to: "cancelled",         actor: "traveller", note: "DELETE inquiries/{id}" },
+  { from: "under_review",      to: "cancelled",         actor: "traveller", note: "DELETE inquiries/{id}" },
   { from: "routed",            to: "cancelled",         actor: "traveller", note: "DELETE inquiries/{id}" },
 
   // H2 — Companion accept/decline
