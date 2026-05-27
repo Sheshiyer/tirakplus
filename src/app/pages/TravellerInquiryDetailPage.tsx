@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
 import { BookingService } from "../api/booking";
@@ -6,6 +6,8 @@ import { ApiRequestError, TravellerService } from "../api/traveller";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
+
+const POLL_INTERVAL_MS = 5000;
 
 type LoadState =
   | { status: "loading"; inquiry?: undefined; message?: undefined }
@@ -19,6 +21,7 @@ export function TravellerInquiryDetailPage() {
   const [paymentProviders, setPaymentProviders] = useState<PaymentProviderSummary[]>([]);
   const [checkoutState, setCheckoutState] = useState<"idle" | "creating">("idle");
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const isPollingRef = useRef(false);
 
   useEffect(() => {
     if (!inquiryId) {
@@ -46,6 +49,44 @@ export function TravellerInquiryDetailPage() {
       cancelled = true;
     };
   }, [inquiryId]);
+
+  // H2.T8 — Mirror the inbox list poll (H2.T7) for the detail page. While the
+  // viewed inquiry sits in "routed" state (awaiting companion accept/decline),
+  // refetch every 5s so the page flips to accepted/declined without manual
+  // reload. Stops automatically once status leaves "routed". Skips when the
+  // tab is hidden. Polling failures are swallowed silently.
+  //
+  // hasPending is derived via useMemo so the polling effect keys on a boolean
+  // rather than the whole state object — keeping the 5s cadence steady across
+  // successful polls instead of resetting the interval on every setState.
+  const hasPending = useMemo(
+    () => state.status === "ready" && state.inquiry.status === "routed",
+    [state],
+  );
+
+  useEffect(() => {
+    if (!hasPending || !inquiryId) return;
+
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      if (document.hidden) return;
+      if (isPollingRef.current) return; // skip if previous fetch still in flight
+      isPollingRef.current = true;
+      try {
+        const inquiry = await BookingService.getTravellerInquiry(inquiryId);
+        if (!cancelled) setState({ status: "ready", inquiry });
+      } catch {
+        // best-effort — polling failures are not user-facing
+      } finally {
+        isPollingRef.current = false;
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [hasPending, inquiryId]);
 
   useEffect(() => {
     let cancelled = false;
