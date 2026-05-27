@@ -1135,6 +1135,34 @@ export type MarkThreadReadResponse = {
   unreadCount: 0;
 };
 
+// ---------------------------------------------------------------------
+// Age-consent gate (P0, 2026-05-28)
+//
+// Sits BEFORE the existing /auth/start role-pick → /auth/verify OTP
+// flow. Required to be accepted once per device; persisted to
+// localStorage via `src/app/api/consent.ts`. Server-side enforcement
+// is NOT in v1 — the consent gate is purely client-side guard. If/when
+// regulatory requirements demand server-side audit trail, add a
+// `POST /api/account/consent` endpoint + AUTH_OTPS-style KV record
+// keyed by hashed email.
+// ---------------------------------------------------------------------
+
+/** Single consent acknowledgment record. Stored once per device. */
+export type ConsentRecord = {
+  /** 18+ toggle — required. */
+  ageConfirmed: boolean;
+  /** "I will keep interactions private and discreet" */
+  consentDiscretion: boolean;
+  /** "I will treat companions with respect; this is curated companionship, not transactional" */
+  consentRespect: boolean;
+  /** "I agree to the Terms of Service and Privacy Policy" */
+  consentTerms: boolean;
+  /** ISO UTC timestamp of acceptance. */
+  acceptedAt: string;
+  /** Schema version — bump if labels change materially, forces re-consent. */
+  version: 1;
+};
+
 export type PaymentProviderSummary = {
   id:
     | "stripe"
