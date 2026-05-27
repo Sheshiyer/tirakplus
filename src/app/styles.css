@@ -8034,7 +8034,12 @@ p {
   display: none;
 }
 
-@media (min-width: 1024px) {
+/* Tablet+ activates the two-panel split per the inspiration board's
+   tablet (768x1024) frame. T5 Playwright audit (2026-05-28) flagged
+   that the previous min-width: 1024px breakpoint left tablet rendering
+   as a single column, missing the right-side Private Concierge Access
+   aside that the board shows at tablet width. */
+@media (min-width: 768px) {
   .age-consent-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(28px, 4vw, 56px);
