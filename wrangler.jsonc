@@ -29,6 +29,21 @@
       // 600s TTL set per-PUT. Deleted on successful verify.
       "binding": "AUTH_OTPS",
       "id": "2c16677830fb424aadd690f3e87106c6"
+    },
+    {
+      // Account-scoped persistence for Pass E (privacy, data exports,
+      // soft-delete schedule, safety-report summaries). Keys:
+      //   account:{lowercase-email}:privacy        → AccountPrivacySettings
+      //   account:{lowercase-email}:data-export    → AccountDataExportRequest
+      //   account:{lowercase-email}:deletion       → AccountDeletionRecord
+      //   account:{lowercase-email}:safety-reports → AccountSafetyReportSummary[]
+      //
+      // ID below is the LOCAL dev placeholder — wrangler's local KV is
+      // keyed by binding name, not ID. Before production deploy, create
+      // a real namespace via `wrangler kv:namespace create ACCOUNT_DATA`
+      // and replace this ID with the returned value.
+      "binding": "ACCOUNT_DATA",
+      "id": "00000000000000000000000000000001"
     }
   ],
   "services": [

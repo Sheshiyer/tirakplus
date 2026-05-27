@@ -14,6 +14,9 @@ import { getRouteRegistry } from "./route-registry.js";
 import { storageBoundaryResponse } from "./storage-boundaries.js";
 import { dataModelSchema } from "./data-model-schema.js";
 import type {
+  AccountDataExportRequest,
+  AccountDeletionCreateRequest,
+  AccountDeletionResponse,
   AccountPrivacyUpdateRequest,
   AvailabilityWindow,
   CitySlug,
@@ -43,10 +46,22 @@ import type {
   TravellerInquiryRequest,
   TravellerSessionDetail,
 } from "../shared/contracts";
+import {
+  appendSafetyReport,
+  cancelDeletion,
+  readDataExport,
+  readDeletion,
+  readPrivacy,
+  readSafetyReports,
+  requestDataExport,
+  requestDeletion,
+  writePrivacy,
+} from "./account-store.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
 type WorkerEnv = Omit<Env, "PAYMENT_PROVIDER_MODE"> & {
+  ACCOUNT_DATA?: KVNamespace;        // Pass E (2026-05-26): per-account prefs, exports, deletions, safety-report list
   AUTH_OTPS?: KVNamespace;
   // EMAIL?: SendEmail; — CF send_email binding removed 2026-05-26
   MUSE_AGENT_API_KEY?: string;
@@ -553,7 +568,16 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       return fail(422, "SAFETY_REPORT_VALIDATION_FAILED", "Review the safety report fields and try again.", fieldErrors);
     }
 
-    return ok(provider.createSafetyReport(body), { status: 201 });
+    const response = provider.createSafetyReport(body);
+    // Pass E (2026-05-26): append summary so AccountSettings → Safety reports
+    // card can list what this account has submitted. KV failure must NOT
+    // mask a successful canonical report submission — log and continue.
+    try {
+      await appendSafetyReport(env.ACCOUNT_DATA, session, response.reportId, body);
+    } catch (err) {
+      console.error("[safety.report] account-store append failed", err);
+    }
+    return ok(response, { status: 201 });
   }
 
   if (request.method === "GET" && pathname === "/api/account") {
@@ -561,7 +585,20 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     if (!session) {
       return fail(401, "SESSION_REQUIRED", "Sign in before viewing account settings.");
     }
-    return ok(provider.getAccount(session));
+    const baseline = provider.getAccount(session);
+    const [privacy, dataExport, deletion, safetyReports] = await Promise.all([
+      readPrivacy(env.ACCOUNT_DATA, session),
+      readDataExport(env.ACCOUNT_DATA, session),
+      readDeletion(env.ACCOUNT_DATA, session),
+      readSafetyReports(env.ACCOUNT_DATA, session),
+    ]);
+    return ok({
+      ...baseline,
+      privacy,
+      dataExport,
+      deletion,
+      safetyReports,
+    });
   }
 
   if (request.method === "PATCH" && pathname === "/api/account/privacy") {
@@ -573,12 +610,104 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     const body = await readJsonBody<AccountPrivacyUpdateRequest>(request, requestId);
     if (body instanceof Response) return body;
 
-    return ok({
-      account: provider.updateAccountPrivacy(session, body),
-    });
+    const privacy = await writePrivacy(env.ACCOUNT_DATA, session, body);
+    const baseline = provider.getAccount(session);
+    return ok({ account: { ...baseline, privacy } });
+  }
+
+  // ===== Pass E (2026-05-26) — data export, deletion, safety-report list =====
+
+  if (request.method === "POST" && pathname === "/api/account/data-export") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before requesting a data export.");
+    }
+    const record = await requestDataExport(env.ACCOUNT_DATA, session);
+    return ok(
+      {
+        export: record,
+        message:
+          record.status === "queued"
+            ? "Tirak will email you when your export is ready. This usually takes a few hours."
+            : "Your previous export is still active and will be reused.",
+      },
+      { status: 201 },
+    );
+  }
+
+  if (request.method === "GET" && pathname === "/api/account/data-export") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before viewing data export status.");
+    }
+    const record = await readDataExport(env.ACCOUNT_DATA, session);
+    // Always respond 200 so the client can treat null as "never requested".
+    return ok<AccountDataExportRequest | null>(record);
+  }
+
+  if (request.method === "POST" && pathname === "/api/account/deletion") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before requesting account deletion.");
+    }
+    const body = await readJsonBody<AccountDeletionCreateRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    if (body.confirmation !== "DELETE") {
+      return fail(
+        422,
+        "ACCOUNT_DELETION_CONFIRMATION_REQUIRED",
+        "Type DELETE in capital letters to confirm.",
+        { confirmation: "Type DELETE in capital letters." },
+      );
+    }
+
+    const record = await requestDeletion(env.ACCOUNT_DATA, session, body.reason);
+    const response: AccountDeletionResponse = {
+      deletion: record,
+      message: `Account will close on ${formatGraceDate(record.scheduledFor)}. Cancel anytime from this page.`,
+    };
+    return ok(response, { status: 201 });
+  }
+
+  if (request.method === "DELETE" && pathname === "/api/account/deletion") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before cancelling a deletion request.");
+    }
+    const record = await cancelDeletion(env.ACCOUNT_DATA, session);
+    const response: AccountDeletionResponse = {
+      deletion: record,
+      message: record
+        ? "Deletion request cancelled. Your account stays open."
+        : "No pending deletion request found.",
+    };
+    return ok(response);
+  }
+
+  if (request.method === "GET" && pathname === "/api/account/safety-reports") {
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return fail(401, "SESSION_REQUIRED", "Sign in before viewing safety reports.");
+    }
+    const reports = await readSafetyReports(env.ACCOUNT_DATA, session);
+    return ok({ reports });
   }
 
   return fail(404, "API_ROUTE_NOT_FOUND", "No API route exists for this request.");
+}
+
+function formatGraceDate(iso: string): string {
+  try {
+    const date = new Date(iso);
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
 }
 
 function guardApiMutation(
@@ -592,7 +721,7 @@ function guardApiMutation(
     init?: ResponseInit,
   ) => Response,
 ): Response | null {
-  if (request.method !== "POST" && request.method !== "PATCH") return null;
+  if (request.method !== "POST" && request.method !== "PATCH" && request.method !== "DELETE") return null;
   if (pathname === "/api/muse/chat") return null;
 
   const rateLimitResponse = applyRateLimit(request, rateLimitGroupForPath(pathname), fail);

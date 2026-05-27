@@ -6029,3 +6029,154 @@ p {
 .member-shell .account-page-light p {
   color: rgba(35, 31, 39, 0.72);
 }
+
+/* =========================================================================
+   Pass E (2026-05-26) — Interactive AccountSettings cards.
+   Each card is now a full-width stack with a header (dot + title/copy)
+   and a body region (toggles, buttons, status). Override the older
+   2-column grid + auto-rows layout to give interactive content room.
+   ========================================================================= */
+
+.account-controls-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 8px;
+}
+
+/* Override the older `grid-template-columns: auto minmax(0, 1fr)` rule so the
+   card becomes a vertical stack instead of forcing everything onto one row. */
+.account-control-card {
+  display: block;
+  padding: 22px;
+}
+
+.account-control-card > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.account-control-card > header > span {
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--color-rose-bronze);
+  box-shadow: 0 0 0 5px rgba(185, 111, 125, 0.14);
+}
+
+.account-control-card h3 {
+  margin: 0 0 4px;
+}
+
+.account-control-card header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+}
+
+.account-control-body {
+  display: grid;
+  gap: 16px;
+}
+
+.account-control-body .choice-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.account-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-control-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.account-control-status-error {
+  color: #f7b9c2;
+}
+
+.account-control-meta {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* Deletion card has its own pending/form layouts. */
+.account-deletion-pending,
+.account-deletion-form,
+.account-safety-form {
+  display: grid;
+  gap: 14px;
+}
+
+.account-deletion-form .field,
+.account-safety-form .field {
+  margin: 0;
+}
+
+.account-safety-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.account-safety-list li {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+}
+
+.account-safety-list .meta {
+  margin: 0 0 4px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.account-safety-list li p:not(.meta) {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Light variant (.member-shell .account-page-light) — softer copy color
+   for cards over the porcelain background.  */
+.member-shell .account-page-light .account-control-card {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .account-control-card header p,
+.member-shell .account-page-light .account-control-meta,
+.member-shell .account-page-light .account-control-status {
+  color: rgba(35, 31, 39, 0.70);
+}
+
+.member-shell .account-page-light .account-safety-list li {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+}
+
+.member-shell .account-page-light .account-safety-list .meta {
+  color: rgba(35, 31, 39, 0.55);
+}
+
+.member-shell .account-page-light .account-safety-list li p:not(.meta) {
+  color: rgba(35, 31, 39, 0.82);
+}

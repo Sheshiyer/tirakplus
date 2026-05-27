@@ -20,7 +20,7 @@ export type ApiErrorEnvelope = {
   fieldErrors?: Record<string, string>;
 };
 
-export type ApiRouteMethod = "GET" | "POST" | "PATCH";
+export type ApiRouteMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 export type ApiRouteAudience =
   | "public"
@@ -340,12 +340,69 @@ export type AccountResponse = {
     paymentComplianceGate: "active";
     note: string;
   };
+  // Pass E (2026-05-26) — bundled state so AccountSettings loads in one round trip.
+  // Individual POST/DELETE/GET endpoints still exist for per-card refresh.
+  dataExport?: AccountDataExportRequest | null;
+  deletion?: AccountDeletionRecord | null;
+  safetyReports?: AccountSafetyReportSummary[];
 };
 
 export type AccountPrivacyUpdateRequest = Partial<AccountPrivacySettings>;
 
 export type AccountPrivacyUpdateResponse = {
   account: AccountResponse;
+};
+
+// ===== Account data-export, deletion, safety-report list =====
+// Pass E (2026-05-26) — turns the descriptive AccountSettings stub cards
+// into real backed product. Persists in KV under account:{userEmail}:{kind}.
+
+export type AccountDataExportStatus = "queued" | "preparing" | "ready" | "expired";
+
+export type AccountDataExportRequest = {
+  id: string;                  // dex_{uuid}
+  requestedAt: string;         // ISO timestamp
+  status: AccountDataExportStatus;
+  completedAt?: string;        // set when status === "ready"
+  expiresAt?: string;          // set when status === "ready" (7d window)
+  downloadUrl?: string;        // signed URL or app route; future R2 backed
+};
+
+export type AccountDataExportCreateResponse = {
+  export: AccountDataExportRequest;
+  message: string;             // "Tirak will email when your export is ready."
+};
+
+export type AccountDeletionStatus = "pending" | "cancelled" | "completed";
+
+export type AccountDeletionRecord = {
+  requestedAt: string;         // ISO timestamp
+  scheduledFor: string;        // ISO timestamp (requestedAt + 7d)
+  status: AccountDeletionStatus;
+  reason?: string;             // optional free-text from the user
+};
+
+export type AccountDeletionCreateRequest = {
+  confirmation: string;        // must be exactly "DELETE"
+  reason?: string;             // optional
+};
+
+export type AccountDeletionResponse = {
+  deletion: AccountDeletionRecord | null;
+  message: string;
+};
+
+export type AccountSafetyReportSummary = {
+  id: string;                  // reportId from POST /api/safety/reports
+  targetType: SafetyReportRequest["targetType"];
+  reasonCategory: SafetyReportRequest["reasonCategory"];
+  summary: string;             // truncated for the list view (max 120 chars)
+  submittedAt: string;
+  status: "submitted" | "under_review" | "resolved";
+};
+
+export type AccountSafetyReportListResponse = {
+  reports: AccountSafetyReportSummary[];
 };
 
 export type HomeEntryPath = {
