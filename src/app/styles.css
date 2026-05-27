@@ -7756,3 +7756,127 @@ p {
   color: rgba(35, 31, 39, 0.78);
   background: rgba(35, 31, 39, 0.04);
 }
+
+/* H6.T8 — Aggregate rating badge + recent reviews list on the
+   public CompanionProfilePage. Reviews are public; anyone browsing
+   the profile sees them. Badge sits inline near the H1; the reviews
+   section renders near the bottom of the profile content. */
+.companion-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: var(--text-caption-size, 13px);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.companion-rating-score {
+  font-weight: 600;
+  color: var(--color-rose-bronze);
+}
+
+.companion-rating-divider {
+  opacity: 0.5;
+}
+
+.companion-rating-count {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.companion-reviews {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.companion-reviews .eyebrow {
+  margin: 0;
+}
+
+.companion-reviews-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.companion-reviews-item {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+}
+
+.companion-reviews-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: var(--text-caption-size, 13px);
+}
+
+.companion-reviews-score {
+  font-weight: 600;
+  color: var(--color-rose-bronze);
+}
+
+.companion-reviews-divider {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.companion-reviews-label {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.companion-reviews-comment {
+  margin: 4px 0;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.companion-reviews-date {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.companion-reviews-more {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 8px 0 0;
+}
+
+.companion-reviews-empty p {
+  color: rgba(255, 255, 255, 0.66);
+  margin: 0;
+}
+
+/* Light variant — flip the surface + text contrast for the
+   account-page-light theme that wraps the member shell. */
+.member-shell .account-page-light .companion-rating-badge {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+  color: rgba(35, 31, 39, 0.86);
+}
+.member-shell .account-page-light .companion-rating-count {
+  color: rgba(35, 31, 39, 0.66);
+}
+.member-shell .account-page-light .companion-reviews-item {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.10);
+}
+.member-shell .account-page-light .companion-reviews-label {
+  color: rgba(35, 31, 39, 0.66);
+}
+.member-shell .account-page-light .companion-reviews-comment {
+  color: rgba(35, 31, 39, 0.84);
+}
+.member-shell .account-page-light .companion-reviews-date,
+.member-shell .account-page-light .companion-reviews-more {
+  color: rgba(35, 31, 39, 0.55);
+}

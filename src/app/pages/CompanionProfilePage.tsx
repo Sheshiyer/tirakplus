@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import type { CompanionProfile } from "../../shared/contracts";
+import type {
+  CompanionProfile,
+  CompanionRatingAggregate,
+  ReviewSummary,
+} from "../../shared/contracts";
+import { BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { AssetRegistry } from "../registry/assets";
 import { InquiryFormSheet } from "../components/booking/InquiryFormSheet";
@@ -14,9 +19,15 @@ type ProfileState =
   | { status: "ready"; profile: CompanionProfile; message?: undefined; unavailable?: undefined }
   | { status: "error"; profile?: undefined; message: string; unavailable: boolean };
 
+type ReviewsState =
+  | { status: "loading" }
+  | { status: "ready"; aggregate: CompanionRatingAggregate; reviews: ReviewSummary[] }
+  | { status: "error"; message: string };
+
 export function CompanionProfilePage() {
   const { companionId } = useParams();
   const [state, setState] = useState<ProfileState>({ status: "loading" });
+  const [reviewsState, setReviewsState] = useState<ReviewsState>({ status: "loading" });
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -40,6 +51,32 @@ export function CompanionProfilePage() {
             status: "error",
             unavailable,
             message: error instanceof Error ? error.message : "This profile is unavailable.",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [companionId]);
+
+  useEffect(() => {
+    if (!companionId) return;
+
+    let cancelled = false;
+    setReviewsState({ status: "loading" });
+
+    BookingService.getCompanionReviews(companionId)
+      .then((res) => {
+        if (!cancelled) {
+          setReviewsState({ status: "ready", aggregate: res.aggregate, reviews: res.reviews });
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setReviewsState({
+            status: "error",
+            message: err instanceof Error ? err.message : "Reviews unavailable.",
           });
         }
       });
@@ -81,6 +118,21 @@ export function CompanionProfilePage() {
         <div>
           <p className="eyebrow">{profile.city.replace("-", " ")}</p>
           <h1 id="profile-title">{profile.displayName}</h1>
+          {reviewsState.status === "ready" && reviewsState.aggregate.reviewCount > 0 && (
+            <div
+              className="companion-rating-badge"
+              aria-label={`Rated ${reviewsState.aggregate.averageScore} out of 5 from ${reviewsState.aggregate.reviewCount} review${reviewsState.aggregate.reviewCount === 1 ? "" : "s"}`}
+            >
+              <span className="companion-rating-score">
+                {reviewsState.aggregate.averageScore.toFixed(1)}
+              </span>
+              <span className="companion-rating-divider" aria-hidden="true">·</span>
+              <span className="companion-rating-count">
+                {reviewsState.aggregate.reviewCount} review
+                {reviewsState.aggregate.reviewCount === 1 ? "" : "s"}
+              </span>
+            </div>
+          )}
           <p className="lede">{profile.profileTone}</p>
           <p className="profile-bio">{profile.bio}</p>
           <div className="action-row">
@@ -154,6 +206,43 @@ export function CompanionProfilePage() {
         </Button>
       </section>
 
+      {reviewsState.status === "ready" && reviewsState.reviews.length > 0 && (
+        <section className="companion-reviews" aria-label="Recent reviews">
+          <p className="eyebrow">Recent reviews</p>
+          <ul className="companion-reviews-list">
+            {reviewsState.reviews.slice(0, 3).map((review) => (
+              <li key={review.bookingId} className="companion-reviews-item">
+                <div className="companion-reviews-header">
+                  <span
+                    className="companion-reviews-score"
+                    aria-label={`Score ${review.score} out of 5`}
+                  >
+                    {review.score}/5
+                  </span>
+                  <span className="companion-reviews-divider" aria-hidden="true">·</span>
+                  <span className="companion-reviews-label">{review.travellerLabel}</span>
+                </div>
+                <p className="companion-reviews-comment">"{review.comment}"</p>
+                <p className="companion-reviews-date">{formatDate(review.submittedAt)}</p>
+              </li>
+            ))}
+          </ul>
+          {reviewsState.reviews.length > 3 && (
+            <p className="companion-reviews-more meta">
+              + {reviewsState.reviews.length - 3} more review
+              {reviewsState.reviews.length - 3 === 1 ? "" : "s"}.
+            </p>
+          )}
+        </section>
+      )}
+
+      {reviewsState.status === "ready" && reviewsState.reviews.length === 0 && (
+        <section className="companion-reviews companion-reviews-empty" aria-label="No reviews yet">
+          <p className="eyebrow">Reviews</p>
+          <p>No reviews yet.</p>
+        </section>
+      )}
+
       {canSendInquiry && primaryExperience && (
         <InquiryFormSheet
           open={inquiryOpen}
@@ -170,4 +259,16 @@ export function CompanionProfilePage() {
       )}
     </section>
   );
+}
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
 }
