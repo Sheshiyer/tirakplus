@@ -853,6 +853,45 @@ export type CompanionInquiryListResponse = {
   };
 };
 
+/**
+ * Categories for why a companion declined an inquiry. Mirrors the
+ * SafetyReport category pattern. Used by review + future product signals.
+ */
+export type CompanionDeclineReasonCategory =
+  | "schedule"
+  | "privacy"
+  | "safety"
+  | "other";
+
+/**
+ * Companion accept-inquiry request. No body fields today — the inquiry ID
+ * is the URL parameter. Type exists for future expansion (e.g., adding a
+ * companion-side note that goes back to the traveller).
+ */
+export type CompanionAcceptInquiryRequest = {
+  // Reserved for future fields. Pass an empty object {} from the client.
+};
+
+/**
+ * Companion decline-inquiry request. reasonCategory is required (one of 4
+ * curated buckets); free-text notes are optional and capped at 280 chars
+ * to prevent the field becoming a private-message backchannel.
+ */
+export type CompanionDeclineInquiryRequest = {
+  reasonCategory: CompanionDeclineReasonCategory;
+  notes?: string;
+};
+
+/**
+ * Response shape for both accept and decline endpoints. Returns the updated
+ * inquiry in companion-facing shape (CompanionSessionDetail) plus a
+ * confirmation message suitable for surfacing in the UI.
+ */
+export type CompanionInquiryDecisionResponse = {
+  inquiry: CompanionSessionDetail;
+  message: string;
+};
+
 export type PaymentProviderSummary = {
   id:
     | "stripe"
