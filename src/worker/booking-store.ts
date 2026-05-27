@@ -18,6 +18,8 @@
 
 import type {
   BookingRecord,
+  ChatAuthorRole,
+  ChatMessage,
   CitySlug,
   CompanionDeclineReasonCategory,
   CompanionInquirySummary,
@@ -512,7 +514,7 @@ export async function forceSetBookingStatus(
 }
 
 // Re-export for handler convenience
-export { INQUIRY_INDEX_LIMIT, REVIEW_HISTORY_LIMIT };
+export { CHAT_HISTORY_LIMIT, INQUIRY_INDEX_LIMIT, REVIEW_HISTORY_LIMIT };
 
 // ===== H6 — Review submission + aggregate rating =====
 //
@@ -595,6 +597,139 @@ export function computeAggregateRating(reviews: ReviewSummary[]): CompanionRatin
   const sum = reviews.reduce((acc, r) => acc + r.score, 0);
   const averageScore = Math.round((sum / reviews.length) * 10) / 10;
   return { averageScore, reviewCount: reviews.length };
+}
+
+// ===== Pass I — Chat thread persistence =====
+//
+// Thread KV layout:
+//   booking:{id}:messages         → ChatMessage[] (chronological, newest last,
+//                                                 capped at CHAT_HISTORY_LIMIT)
+//   booking:{id}:read:{email}     → ISO timestamp string (per-user lastReadAt)
+//
+// Authorization + validation are the handler's job — these helpers are
+// the persistence primitive. The H1.T3 endpoints will gate sends on
+// booking ownership (isTravellerOwner / isCompanionOwner) before calling
+// sendMessage. computeUnreadCount is pure so handlers and clients can both
+// call it without an extra round-trip.
+
+/**
+ * Pass I — Maximum messages kept per booking thread in KV.
+ * Older messages drop off as new ones arrive. UI is paginated above
+ * this in a future pass; v1 just truncates.
+ */
+const CHAT_HISTORY_LIMIT = 200;
+
+/**
+ * Append a chat message to the booking's thread. Caps at
+ * CHAT_HISTORY_LIMIT (oldest first — the OLDEST messages drop off
+ * when the cap is exceeded so the most recent context survives).
+ * Caller is responsible for validation + authorization.
+ */
+export async function sendMessage(
+  kv: BookingKv,
+  args: {
+    threadId: string;            // BookingRecord.id
+    authorRole: ChatAuthorRole;
+    authorLabel: string;         // "Traveller" or companion displayName
+    content: string;             // trimmed, 1-2000 chars (validated by caller)
+  },
+): Promise<ChatMessage> {
+  const createdAt = new Date().toISOString();
+  const message: ChatMessage = {
+    id: `msg_${crypto.randomUUID()}`,
+    threadId: args.threadId,
+    authorRole: args.authorRole,
+    authorLabel: args.authorLabel,
+    content: args.content,
+    createdAt,
+  };
+
+  const existing = await readMessages(kv, args.threadId);
+  // Append at end (newest last) so the array is chronological.
+  // If we exceed cap, drop OLDEST messages first.
+  const next = [...existing, message].slice(-CHAT_HISTORY_LIMIT);
+  await writeJson(kv, messagesKey(args.threadId), next);
+  return message;
+}
+
+/**
+ * Read the full message list for a booking thread. Returns empty
+ * array when no thread has been started or KV is missing.
+ */
+export async function readMessages(
+  kv: BookingKv,
+  threadId: string,
+): Promise<ChatMessage[]> {
+  const list = await readJson<ChatMessage[]>(kv, messagesKey(threadId));
+  return Array.isArray(list) ? list : [];
+}
+
+/**
+ * Set the current user's lastReadAt to now for this thread.
+ * Returns the new lastReadAt timestamp.
+ */
+export async function markThreadRead(
+  kv: BookingKv,
+  threadId: string,
+  email: string,
+): Promise<string> {
+  const now = new Date().toISOString();
+  await writeJson(kv, threadReadKey(threadId, email), now);
+  return now;
+}
+
+/**
+ * Read the current user's lastReadAt for a thread. Returns undefined
+ * if the user has never read (never opened the thread).
+ */
+export async function readLastReadAt(
+  kv: BookingKv,
+  threadId: string,
+  email: string,
+): Promise<string | undefined> {
+  const ts = await readJson<string>(kv, threadReadKey(threadId, email));
+  return typeof ts === "string" ? ts : undefined;
+}
+
+/**
+ * Pure function — count of messages from the OTHER party that arrived
+ * AFTER lastReadAt. No I/O. The caller's role determines which messages
+ * count as "from other party":
+ *   viewerRole === "traveller" → count companion messages
+ *   viewerRole === "companion" → count traveller messages
+ *
+ * lastReadAt === undefined means the user has never opened the thread
+ * — every other-party message counts.
+ */
+export function computeUnreadCount(
+  messages: ChatMessage[],
+  lastReadAt: string | undefined,
+  viewerRole: ChatAuthorRole,
+): number {
+  const otherRole: ChatAuthorRole = viewerRole === "traveller" ? "companion" : "traveller";
+  if (!lastReadAt) {
+    return messages.filter((m) => m.authorRole === otherRole).length;
+  }
+  const cutoffMs = Date.parse(lastReadAt);
+  if (Number.isNaN(cutoffMs)) {
+    // Malformed timestamp — be safe: count nothing
+    return 0;
+  }
+  return messages.filter((m) => {
+    if (m.authorRole !== otherRole) return false;
+    const msgMs = Date.parse(m.createdAt);
+    return !Number.isNaN(msgMs) && msgMs > cutoffMs;
+  }).length;
+}
+
+// Key helpers (private to this file)
+function messagesKey(threadId: string): string {
+  return `booking:${threadId}:messages`;
+}
+
+function threadReadKey(threadId: string, email: string): string {
+  const normalized = email.trim().toLowerCase();
+  return `booking:${threadId}:read:${normalized}`;
 }
 
 // ===== Projector: BookingRecord → TravellerInquiryDetail =====
