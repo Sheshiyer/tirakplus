@@ -6180,3 +6180,91 @@ p {
 .member-shell .account-page-light .account-safety-list li p:not(.meta) {
   color: rgba(35, 31, 39, 0.82);
 }
+
+/* ===== InquiryFormSheet (Pass H1.Task 8) =====
+   Native <dialog> styled as a bottom-sheet on mobile. Pass J will replace
+   the wrapper with the BottomSheet primitive and add slide-up animation.
+   For now: Night Plum surface, Porcelain copy, padding matches
+   .account-control-body, top corners rounded to suggest the sheet shape. */
+
+.inquiry-form-sheet {
+  width: 100%;
+  max-width: 520px;
+  margin: auto auto 0;
+  padding: 0;
+  border: none;
+  border-radius: 16px 16px 0 0;
+  background: var(--color-night-plum);
+  color: #f7efe7;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.inquiry-form-sheet::backdrop {
+  background: rgba(9, 13, 23, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.inquiry-form-sheet-header {
+  padding: 22px 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.inquiry-form-sheet-header .eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.inquiry-form-sheet-header h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #fff8f1;
+}
+
+.inquiry-form-sheet-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.45);
+}
+
+.inquiry-form-sheet-body {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.inquiry-form-sheet-body .field {
+  margin: 0;
+}
+
+.inquiry-form-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.inquiry-form-sheet-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.inquiry-form-sheet-status-error {
+  color: #f7b9c2;
+}
+
+/* Tablet+: lift the sheet off the bottom edge and center it like a
+   regular dialog. Bottom-anchored vibe stays on mobile. */
+@media (min-width: 720px) {
+  .inquiry-form-sheet {
+    margin: auto;
+    border-radius: 16px;
+  }
+}
