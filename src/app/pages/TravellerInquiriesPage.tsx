@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TravellerInquiryListResponse } from "../../shared/contracts";
 import { BookingService } from "../api/booking";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
+
+const POLL_INTERVAL_MS = 5000;
 
 type LoadState =
   | { status: "loading"; data?: undefined; message?: undefined }
@@ -13,6 +15,7 @@ type LoadState =
 
 export function TravellerInquiriesPage() {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const isPollingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,27 +43,40 @@ export function TravellerInquiriesPage() {
   // (awaiting companion accept/decline). Stops automatically when no routed
   // inquiries remain. Skips the fetch when the tab is hidden. Polling failures
   // are swallowed silently (best-effort refresh, not user-facing).
+  //
+  // hasPending is derived via useMemo so the effect keys on a boolean instead of
+  // the full state object. When polling is in steady state (hasPending stays
+  // true across successful polls) the effect doesn't re-run and the interval
+  // keeps ticking on its original 5s cadence — eliminating the clock-reset
+  // drift caused by re-keying on every successful poll's setState.
+  const hasPending = useMemo(
+    () => state.status === "ready" && state.data.results.some((r) => r.status === "routed"),
+    [state],
+  );
+
   useEffect(() => {
-    if (state.status !== "ready") return;
-    const hasPending = state.data.results.some((r) => r.status === "routed");
     if (!hasPending) return;
 
     let cancelled = false;
     const interval = setInterval(async () => {
       if (document.hidden) return;
+      if (isPollingRef.current) return; // skip if previous fetch still in flight
+      isPollingRef.current = true;
       try {
         const data = await BookingService.listTravellerInquiries();
         if (!cancelled) setState({ status: "ready", data });
       } catch {
         // best-effort — polling failures are not user-facing
+      } finally {
+        isPollingRef.current = false;
       }
-    }, 5000);
+    }, POLL_INTERVAL_MS);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [state]);
+  }, [hasPending]);
 
   return (
     <section className="inquiry-page" aria-labelledby="inquiries-title">
