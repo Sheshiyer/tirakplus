@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import type { PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
+import type { DateWindow, PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
 import { BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
+import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
+import { DateWindowPicker } from "../components/booking/DateWindowPicker";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -22,6 +24,17 @@ export function TravellerInquiryDetailPage() {
   const [checkoutState, setCheckoutState] = useState<"idle" | "creating">("idle");
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const isPollingRef = useRef(false);
+
+  // H3.T7 — Stage-aware plan UI toggles.
+  //   showWindowPicker: drives the "accepted → propose dates" CTA → inline
+  //     DateWindowPicker pattern. Closed by default so the page first reads
+  //     as a calm status panel; the traveller opts in to the form.
+  //   showConfirmForm: open by default when the page is sitting on
+  //     date_proposed (the companion has picked; confirming is the only
+  //     productive next move). Cancel collapses it into a smaller CTA card
+  //     for the "I'll confirm later" path, with a button to re-open.
+  const [showWindowPicker, setShowWindowPicker] = useState(false);
+  const [showConfirmForm, setShowConfirmForm] = useState(true);
 
   useEffect(() => {
     if (!inquiryId) {
@@ -207,6 +220,104 @@ export function TravellerInquiryDetailPage() {
 
         <p className="privacy-note">{inquiry.privacyNote}</p>
 
+        {/* H3.T7 — Stage-aware plan UI. Renders different surfaces
+            depending on inquiry.status so the same detail page carries the
+            traveller through propose → wait → confirm → confirmed without
+            a route change. Statuses outside this chain (submitted /
+            under_review / routed / declined / cancelled / payment / etc.)
+            fall through with no extra UI; the existing detail surface and
+            future H4-H6 panels cover them. */}
+        {inquiry.status === "accepted" && !showWindowPicker && (
+          <section className="plan-stage-cta" aria-label="Propose dates">
+            <p className="eyebrow">Plan</p>
+            <h2>{inquiry.companionDisplayName} accepted your inquiry.</h2>
+            <p>Suggest 2 or 3 times that work. Your companion will pick one.</p>
+            <div className="plan-stage-actions">
+              <Button type="button" variant="primary" onClick={() => setShowWindowPicker(true)}>
+                Propose dates
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {inquiry.status === "accepted" && showWindowPicker && (
+          <DateWindowPicker
+            inquiryId={inquiry.id}
+            initialWindows={inquiry.travellerWindows}
+            onSubmitted={(next) => {
+              setShowWindowPicker(false);
+              setState({ status: "ready", inquiry: next });
+            }}
+            onCancel={() => setShowWindowPicker(false)}
+          />
+        )}
+
+        {inquiry.status === "date_pending" && (
+          <section className="plan-stage-cta" aria-label="Waiting on companion">
+            <p className="eyebrow">Plan</p>
+            <h2>
+              Waiting for {inquiry.companionDisplayName} to pick a window.
+            </h2>
+            <p>You proposed:</p>
+            {inquiry.travellerWindows && inquiry.travellerWindows.length > 0 && (
+              <ul className="plan-window-readonly-list">
+                {inquiry.travellerWindows.map((window, index) => (
+                  <li key={index}>
+                    <p className="label">{formatWindowLabel(window)}</p>
+                    {window.note && <p className="note">{window.note}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {inquiry.status === "date_proposed" && inquiry.companionSelectedWindow && (
+          <>
+            {showConfirmForm ? (
+              <ConfirmPlanView
+                inquiryId={inquiry.id}
+                companionSelectedWindow={inquiry.companionSelectedWindow}
+                companionDisplayName={inquiry.companionDisplayName}
+                onSubmitted={(next) => {
+                  setShowConfirmForm(false);
+                  setState({ status: "ready", inquiry: next });
+                }}
+                onCancel={() => setShowConfirmForm(false)}
+              />
+            ) : (
+              <section className="plan-stage-cta" aria-label="Confirm the picked window">
+                <p className="eyebrow">Plan</p>
+                <h2>{inquiry.companionDisplayName} picked a window.</h2>
+                <p>Confirm to lock the plan — they can't proceed until you do.</p>
+                <div className="plan-stage-actions">
+                  <Button type="button" variant="primary" onClick={() => setShowConfirmForm(true)}>
+                    Open confirm form
+                  </Button>
+                </div>
+              </section>
+            )}
+          </>
+        )}
+
+        {inquiry.status === "date_confirmed" && inquiry.companionSelectedWindow && (
+          <section className="plan-stage-confirmed" aria-label="Plan confirmed">
+            <p className="eyebrow">Plan confirmed</p>
+            <h2>{formatWindowLabel(inquiry.companionSelectedWindow)}</h2>
+            <p>
+              Bangkok local time
+              {typeof inquiry.durationMinutes === "number"
+                ? ` · ${formatDurationHours(inquiry.durationMinutes)}`
+                : ""}
+              .
+            </p>
+            {inquiry.confirmedAt && (
+              <p>Confirmed on {formatDate(inquiry.confirmedAt)}.</p>
+            )}
+            <p>Tirak will surface day-of details closer to the date.</p>
+          </section>
+        )}
+
         <div className="action-row">
           <Button as={Link} to="/traveller/inbox" variant="secondary">
             Back to inbox
@@ -218,4 +329,62 @@ export function TravellerInquiryDetailPage() {
       </div>
     </section>
   );
+}
+
+// TODO(H3-followup): formatWindowLabel is duplicated across
+// DateWindowPicker, WindowSelectionView, ConfirmPlanView, and now this page.
+// Extract to shared/booking-utils.ts in a future polish pass — the sibling
+// components all carry the same flag and v1 keeps the local copy on
+// purpose to avoid expanding T7's surface area.
+function formatWindowLabel(window: DateWindow): string {
+  const startFmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const endFmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const startParts = startFmt.formatToParts(new Date(window.start));
+  const endParts = endFmt.formatToParts(new Date(window.end));
+  const get = (parts: Intl.DateTimeFormatPart[], type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  const weekday = get(startParts, "weekday");
+  const day = get(startParts, "day");
+  const month = get(startParts, "month");
+  const startTime = `${get(startParts, "hour")}:${get(startParts, "minute")}`;
+  const endTime = `${get(endParts, "hour")}:${get(endParts, "minute")}`;
+  return `${weekday}, ${day} ${month} · ${startTime}–${endTime}`;
+}
+
+// Mirrors AccountSettings.tsx's ISO → human date helper so confirmedAt /
+// acceptedAt render the same way across the traveller surface.
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+// "3 hours" / "1 hour" / "1 hour 30 min". Used by the date_confirmed panel
+// so the traveller can sanity-check the locked duration at a glance.
+function formatDurationHours(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const hourWord = hours === 1 ? "hour" : "hours";
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours} ${hourWord}`;
+  return `${hours} ${hourWord} ${mins} min`;
 }

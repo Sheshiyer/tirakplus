@@ -6946,3 +6946,123 @@ p {
 .member-shell .account-page-light .confirm-plan-window-card .duration {
   color: rgba(35, 31, 39, 0.55);
 }
+
+/* ===== Plan-stage panels (Pass H3.Task 7) =====
+   Stage-aware surfaces rendered inline on TravellerInquiryDetailPage. The
+   CTA variant covers accepted (propose dates), date_pending (waiting), and
+   date_proposed-collapsed (re-open confirm). The confirmed variant covers
+   date_confirmed. Pattern-matches .companion-decision-panel so the visual
+   weight stays consistent with H2.T6's post-decision surfaces, with the
+   rose-bronze accent reserved for the confirmed end-state. */
+.plan-stage-cta,
+.plan-stage-confirmed {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.plan-stage-confirmed {
+  border-color: rgba(180, 120, 80, 0.45);
+  background: rgba(180, 120, 80, 0.08);
+}
+
+.plan-stage-cta .eyebrow,
+.plan-stage-confirmed .eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.plan-stage-cta h2,
+.plan-stage-confirmed h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.3;
+  color: #fff8f1;
+}
+
+.plan-stage-cta p,
+.plan-stage-confirmed p {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.45);
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.plan-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.plan-window-readonly-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-window-readonly-list li {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plan-window-readonly-list .label {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+.plan-window-readonly-list .note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* Light variant for the porcelain account-page backdrop. */
+.member-shell .account-page-light .plan-stage-cta,
+.member-shell .account-page-light .plan-stage-confirmed {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.12);
+  color: rgba(35, 31, 39, 0.86);
+}
+
+.member-shell .account-page-light .plan-stage-confirmed {
+  background: rgba(180, 120, 80, 0.10);
+  border-color: rgba(180, 120, 80, 0.40);
+}
+
+.member-shell .account-page-light .plan-stage-cta h2,
+.member-shell .account-page-light .plan-stage-confirmed h2 {
+  color: var(--color-night-plum);
+}
+
+.member-shell .account-page-light .plan-stage-cta p,
+.member-shell .account-page-light .plan-stage-confirmed p {
+  color: rgba(35, 31, 39, 0.72);
+}
+
+.member-shell .account-page-light .plan-window-readonly-list li {
+  background: rgba(35, 31, 39, 0.04);
+  border-color: rgba(35, 31, 39, 0.12);
+}
+
+.member-shell .account-page-light .plan-window-readonly-list .label {
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .plan-window-readonly-list .note {
+  color: rgba(35, 31, 39, 0.62);
+}
