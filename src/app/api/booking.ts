@@ -169,4 +169,17 @@ export const BookingService = {
       { method: "POST", body: JSON.stringify({}) },
     );
   },
+
+  /**
+   * Place a payment hold on a confirmed plan. H4-stub: server transitions
+   * date_confirmed → payment_held → session_scheduled (non-prod auto-
+   * advance) with no real Stripe call yet. Future H4-real will require a
+   * PaymentHoldRequest body with a Stripe checkout session token.
+   */
+  holdBooking(inquiryId: string): Promise<PlanTravellerResponse> {
+    return apiRequest<PlanTravellerResponse>(
+      `/api/plans/${encodeURIComponent(inquiryId)}/hold`,
+      { method: "POST", body: JSON.stringify({}) },
+    );
+  },
 };
