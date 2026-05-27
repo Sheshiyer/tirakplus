@@ -20,10 +20,20 @@
 // sole transactional email provider. If/when CF Email Sending is
 // re-enabled, restore the EMAIL?: SendEmail field here and the
 // `if (env.EMAIL)` block in sendOtpEmail below.
+import type { Session } from "../shared/contracts";
+import { readPrivacy } from "./account-store.js";
+
 type EmailEnv = {
   AUTH_OTPS?: KVNamespace;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
+  ENVIRONMENT?: string;
+};
+
+type InquiryEmailEnv = {
+  RESEND_API_KEY?: string;
+  RESEND_FROM?: string;
+  ACCOUNT_DATA?: KVNamespace;
   ENVIRONMENT?: string;
 };
 
@@ -185,4 +195,107 @@ export async function sendOtpEmail(
 
   // 3) Console fallback (already logged above in non-prod)
   return "console";
+}
+
+/**
+ * H2.T4 (2026-05-27) — Send traveller notification when a companion
+ * accepts or declines an inquiry. Honors the traveller's
+ * `receiveInquiryUpdates` privacy preference (Pass E) before sending.
+ *
+ * Returns `{ sent: false, reason: <code> }` for all non-send paths so
+ * the caller can log/observe without throwing. Fire-and-forget at the
+ * call site — failures here must never block the API response.
+ */
+export async function sendInquiryDecisionEmail(
+  env: InquiryEmailEnv,
+  args: {
+    travellerEmail: string;
+    travellerName?: string;
+    companionDisplayName: string;
+    decision: "accepted" | "declined";
+    declineReason?: string;
+    inquiryUrl?: string;
+  },
+): Promise<{ sent: boolean; reason?: string }> {
+  // 1) Privacy check — opt-out wins. Build a minimal pseudo-session
+  //    that satisfies the Session type so readPrivacy works without
+  //    needing a real KV-backed session.
+  const pseudoSession: Session = {
+    id: "system",
+    profile: { id: "system", email: args.travellerEmail, role: "traveller" },
+    expiresAt: new Date().toISOString(),
+  };
+  const privacy = await readPrivacy(env.ACCOUNT_DATA, pseudoSession);
+  if (privacy.receiveInquiryUpdates === false) {
+    return { sent: false, reason: "user_opted_out" };
+  }
+
+  // 2) Resend availability — gracefully skip if not configured.
+  if (!env.RESEND_API_KEY) {
+    console.warn(
+      "[inquiry-decision-email] RESEND_API_KEY not configured — skipping send",
+    );
+    return { sent: false, reason: "resend_not_configured" };
+  }
+
+  // 3) Build subject + body.
+  const nameClause = args.travellerName ? ` ${args.travellerName}` : "";
+  const subject =
+    args.decision === "accepted"
+      ? `Tirak: ${args.companionDisplayName} accepted your inquiry`
+      : `Tirak: ${args.companionDisplayName} declined your inquiry`;
+
+  let text: string;
+  if (args.decision === "accepted") {
+    const inquiryUrlLine = args.inquiryUrl
+      ? `Open the inquiry: ${args.inquiryUrl}\n\n`
+      : "";
+    text =
+      `Hi${nameClause},\n\n` +
+      `${args.companionDisplayName} accepted your inquiry on Tirak. They'll see your message and you can continue from your inbox.\n\n` +
+      `${inquiryUrlLine}` +
+      `Tirak keeps every plan private. If anything feels off, reply with "report".\n\n` +
+      `— Tirak`;
+  } else {
+    const reasonClause = args.declineReason
+      ? ` Their reason: ${args.declineReason}.`
+      : "";
+    text =
+      `Hi${nameClause},\n\n` +
+      `${args.companionDisplayName} declined your inquiry on Tirak.${reasonClause}\n\n` +
+      `Discovery shows other companions matched to your style — visit https://tirak.app/traveller/discovery when you're ready.\n\n` +
+      `Tirak keeps every plan private. If anything feels off, reply with "report".\n\n` +
+      `— Tirak`;
+  }
+
+  // 4) Send via Resend REST — mirror the OTP helper's pattern.
+  try {
+    const from = env.RESEND_FROM?.trim() || AUTH_FROM_RESEND_DEFAULT;
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [args.travellerEmail],
+        subject,
+        text,
+      }),
+    });
+    if (response.ok) {
+      return { sent: true };
+    }
+    const body = await response.text();
+    console.warn(
+      `[inquiry-decision-email/resend] non-OK ${response.status}: ${body.slice(0, 240)}`,
+    );
+    return { sent: false, reason: `resend_http_${response.status}` };
+  } catch (caught) {
+    console.warn(
+      `[inquiry-decision-email/resend] fetch failed (${caught instanceof Error ? caught.message : "unknown"})`,
+    );
+    return { sent: false, reason: "resend_fetch_failed" };
+  }
 }

@@ -74,6 +74,7 @@ import {
   readBooking,
   transitionBookingStatus,
 } from "./booking-store.js";
+import { sendInquiryDecisionEmail } from "./email.js";
 
 type PaymentProviderMode = "compliance_hold" | "stripe_test";
 
@@ -601,6 +602,15 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
         { acceptedAt: new Date().toISOString() },
       );
       if (!updated) return fail(409, "INVALID_TRANSITION", "Could not accept this inquiry.");
+      // H2.T4 (2026-05-27) — Email notification on decision. Fire-and-forget;
+      // failures don't block the response.
+      await sendInquiryDecisionEmail(env, {
+        travellerEmail: updated.travellerEmail,
+        companionDisplayName: provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion",
+        decision: updated.status as "accepted" | "declined",
+        declineReason: updated.declineReason ? labelForDeclineReason(updated.declineReason) : undefined,
+        inquiryUrl: `https://tirak.app/traveller/inbox/${updated.id}`,
+      }).catch((err) => console.warn("[inquiry-decision-email]", err));
       return ok({
         inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
         message: "Inquiry accepted. The traveller will be notified.",
@@ -628,6 +638,15 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
       },
     );
     if (!updated) return fail(409, "INVALID_TRANSITION", "Could not decline this inquiry.");
+    // H2.T4 (2026-05-27) — Email notification on decision. Fire-and-forget;
+    // failures don't block the response.
+    await sendInquiryDecisionEmail(env, {
+      travellerEmail: updated.travellerEmail,
+      companionDisplayName: provider.getCompanionProfile(updated.companionId)?.displayName ?? "Companion",
+      decision: updated.status as "accepted" | "declined",
+      declineReason: updated.declineReason ? labelForDeclineReason(updated.declineReason) : undefined,
+      inquiryUrl: `https://tirak.app/traveller/inbox/${updated.id}`,
+    }).catch((err) => console.warn("[inquiry-decision-email]", err));
     return ok({
       inquiry: projectBookingToCompanionSessionDetail(updated, companionMuseChart),
       message: "Inquiry declined. The traveller will be notified.",
@@ -1560,6 +1579,17 @@ function validateDecline(body: CompanionDeclineInquiryRequest): Record<string, s
     errors.notes = "Notes must be 280 characters or fewer.";
   }
   return errors;
+}
+
+// H2.T4 (2026-05-27) — Human-readable label for the 4 decline-reason
+// categories, surfaced in the traveller-facing email.
+function labelForDeclineReason(reason: CompanionDeclineReasonCategory): string {
+  switch (reason) {
+    case "schedule": return "scheduling conflict";
+    case "privacy":  return "privacy concern";
+    case "safety":   return "safety reason";
+    case "other":    return "other";
+  }
 }
 
 function requireCustomerRole(
