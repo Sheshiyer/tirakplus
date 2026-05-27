@@ -20,6 +20,9 @@ import type {
   AccountPrivacyUpdateRequest,
   AvailabilityWindow,
   BookingRecord,
+  ChatAuthorRole,
+  ChatMessage,
+  ChatThreadResponse,
   CitySlug,
   CompanionAvailabilityUpdateRequest,
   CompanionDeclineInquiryRequest,
@@ -37,6 +40,8 @@ import type {
   DiscoveryFilterSelection,
   ExperienceSlug,
   InquiryStatus,
+  MarkThreadReadRequest,
+  MarkThreadReadResponse,
   MuseAdoptRequest,
   MuseAdoptResponse,
   MuseChatMessage,
@@ -55,6 +60,8 @@ import type {
   ReviewRequest,
   ReviewSubmissionResponse,
   SafetyReportRequest,
+  SendMessageRequest,
+  SendMessageResponse,
   SetDayOfDetailsRequest,
   TravellerInquiryDetail,
   TravellerInquiryRequest,
@@ -73,6 +80,7 @@ import {
 } from "./account-store.js";
 import {
   computeAggregateRating,
+  computeUnreadCount,
   createBooking,
   detailOrFallback,
   forceSetBookingStatus,
@@ -81,6 +89,7 @@ import {
   listCompanionBookings,
   listOrFallback,
   listTravellerBookings,
+  markThreadRead,
   maybeAdvanceSessionStatus,
   maybeAdvanceSessionStatusBatch,
   patchBooking,
@@ -90,6 +99,9 @@ import {
   projectBookingToTravellerInquirySummary,
   readBooking,
   readCompanionReviews,
+  readLastReadAt,
+  readMessages,
+  sendMessage,
   submitReview,
   transitionBookingStatus,
   travellerLabelFromBooking,
@@ -1042,6 +1054,158 @@ async function routeApi(request: Request, env: WorkerEnv): Promise<Response> {
     const response: ReviewSubmissionResponse = {
       inquiry: projectBookingToTravellerInquiryDetail(updated, companionDisplayName),
       message: "Review submitted. Thanks for sharing.",
+    };
+    return ok(response);
+  }
+
+  // ===== Pass I (2026-05-27) — Booking-thread chat =====
+  //
+  // Three endpoints back the per-booking message panel:
+  //   1. POST /api/plans/:id/messages       — send (either party)
+  //   2. GET  /api/plans/:id/messages       — fetch thread + unread count
+  //   3. POST /api/plans/:id/messages/read  — mark thread read (per-user)
+  //
+  // State gate: thread is unlocked once booking.status enters the
+  // matched range (accepted) and stays unlocked through review_completed.
+  // Outside that range (routed, submitted, declined, cancelled, etc.)
+  // we return 409 THREAD_LOCKED so the UI can hide / disable the panel.
+  //
+  // Authorization is loose on the companion side because companion emails
+  // on BookingRecord are synthetic in v1 (see H2 limitation note around
+  // L660) — we gate companion access on role + booking existence + status,
+  // not on session.profile.email match. Traveller access still goes
+  // through isTravellerOwner to prevent cross-traveller leaks.
+  //
+  // authorLabel is server-derived (never user input): "Traveller" for the
+  // traveller, companion.displayName for the companion. Mirrors the H6
+  // review PII stance — no email/full-name exposure in chat history.
+  const MATCHED_STATUSES: InquiryStatus[] = [
+    "accepted",
+    "date_pending",
+    "date_proposed",
+    "date_confirmed",
+    "payment_held",
+    "session_scheduled",
+    "session_live",
+    "session_completed",
+    "review_pending",
+    "review_completed",
+  ];
+
+  // Match the more-specific /messages/read BEFORE /messages so the
+  // dispatch order is correct (otherwise a POST to /messages/read would
+  // mis-trigger the send handler with a malformed id "{id}/read").
+  const planMessagesReadMatch = pathname.match(/^\/api\/plans\/([^/]+)\/messages\/read$/);
+  if (request.method === "POST" && planMessagesReadMatch) {
+    const id = planMessagesReadMatch[1];
+
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to open this thread.");
+
+    const role = session.profile.role;
+    if (role !== "traveller" && role !== "companion") {
+      return fail(403, "ROLE_REQUIRED", "Switch to your traveller or companion view to open this thread.");
+    }
+
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    if (role === "traveller" && !isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only open your own threads.");
+    }
+
+    if (!MATCHED_STATUSES.includes(booking.status)) {
+      return fail(409, "THREAD_LOCKED", "Messaging opens once the inquiry is accepted.");
+    }
+
+    const lastReadAt = await markThreadRead(env.BOOKING_DATA, id, session.profile.email);
+    const response: MarkThreadReadResponse = {
+      threadId: id,
+      lastReadAt,
+      unreadCount: 0,
+    };
+    return ok(response);
+  }
+
+  const planMessagesMatch = pathname.match(/^\/api\/plans\/([^/]+)\/messages$/);
+  if (request.method === "POST" && planMessagesMatch) {
+    const id = planMessagesMatch[1];
+
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to send a message.");
+
+    const role = session.profile.role;
+    if (role !== "traveller" && role !== "companion") {
+      return fail(403, "ROLE_REQUIRED", "Switch to your traveller or companion view to send a message.");
+    }
+
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    if (role === "traveller" && !isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only message in your own threads.");
+    }
+
+    if (!MATCHED_STATUSES.includes(booking.status)) {
+      return fail(409, "THREAD_LOCKED", "Messaging opens once the inquiry is accepted.");
+    }
+
+    const body = await readJsonBody<SendMessageRequest>(request, requestId);
+    if (body instanceof Response) return body;
+
+    const fieldErrors = validateChatMessage(body);
+    if (Object.keys(fieldErrors).length > 0) {
+      return fail(422, "CHAT_MESSAGE_VALIDATION_FAILED", "Review your message and try again.", fieldErrors);
+    }
+
+    const authorRole = role as ChatAuthorRole;
+    const authorLabel =
+      role === "traveller"
+        ? "Traveller"
+        : provider.getCompanionProfile(booking.companionId)?.displayName ?? "Companion";
+
+    const message: ChatMessage = await sendMessage(env.BOOKING_DATA, {
+      threadId: id,
+      authorRole,
+      authorLabel,
+      content: body.content.trim(),
+    });
+
+    const response: SendMessageResponse = { message };
+    return ok(response, { status: 201 });
+  }
+
+  if (request.method === "GET" && planMessagesMatch) {
+    const id = planMessagesMatch[1];
+
+    const session = getSessionFromRequest(request);
+    if (!session) return fail(401, "SESSION_REQUIRED", "Sign in to open this thread.");
+
+    const role = session.profile.role;
+    if (role !== "traveller" && role !== "companion") {
+      return fail(403, "ROLE_REQUIRED", "Switch to your traveller or companion view to open this thread.");
+    }
+
+    const booking = await readBooking(env.BOOKING_DATA, id);
+    if (!booking) return fail(404, "INQUIRY_NOT_FOUND", "This inquiry is unavailable.");
+
+    if (role === "traveller" && !isTravellerOwner(booking, session)) {
+      return fail(403, "NOT_OWNER", "You can only open your own threads.");
+    }
+
+    if (!MATCHED_STATUSES.includes(booking.status)) {
+      return fail(409, "THREAD_LOCKED", "Messaging opens once the inquiry is accepted.");
+    }
+
+    const messages = await readMessages(env.BOOKING_DATA, id);
+    const lastReadAt = await readLastReadAt(env.BOOKING_DATA, id, session.profile.email);
+    const unreadCount = computeUnreadCount(messages, lastReadAt, role as ChatAuthorRole);
+
+    const response: ChatThreadResponse = {
+      threadId: id,
+      messages,
+      lastReadAt,
+      unreadCount,
     };
     return ok(response);
   }
@@ -2242,6 +2406,22 @@ function validateReview(body: ReviewRequest): Record<string, string> {
     errors.comment = "Share at least 20 characters about the session.";
   } else if (comment.length > 500) {
     errors.comment = "Keep the comment under 500 characters.";
+  }
+  return errors;
+}
+
+// Pass I (2026-05-27) — Per-message chat validator. Trim before length
+// check so a whitespace-only payload is rejected as empty (matches the
+// server-side trim that sendMessage's caller applies). Upper bound of
+// 2000 characters mirrors the contracts.ts ChatMessage doc and the
+// CHAT_HISTORY_LIMIT slot size we budget per booking thread.
+function validateChatMessage(body: SendMessageRequest): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const content = (body?.content ?? "").trim();
+  if (content.length === 0) {
+    errors.content = "Message can't be empty.";
+  } else if (content.length > 2000) {
+    errors.content = "Keep messages under 2000 characters.";
   }
   return errors;
 }
