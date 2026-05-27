@@ -7508,3 +7508,229 @@ p {
   border-color: rgba(35, 31, 39, 0.10);
   border-left-color: var(--color-rose-bronze);
 }
+
+/* ===== ReviewFormSheet (Pass H6.Task 6) =====
+   Bottom-sheet for the traveller's post-session review. Shares the native
+   <dialog> shell with .inquiry-form-sheet (H1.T8): same Night Plum surface,
+   same backdrop blur, same tablet+ centering. New surfaces below are the
+   score picker (5 rose-bronze radio circles with :has-driven fill) and the
+   live N/500 counter that turns rose-pink when out of range. */
+
+.review-form-sheet {
+  width: 100%;
+  max-width: 520px;
+  margin: auto auto 0;
+  padding: 0;
+  border: none;
+  border-radius: 16px 16px 0 0;
+  background: var(--color-night-plum);
+  color: #f7efe7;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.review-form-sheet::backdrop {
+  background: rgba(9, 13, 23, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.review-form-sheet-header {
+  padding: 22px 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.review-form-sheet-header .eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-rose-bronze);
+}
+
+.review-form-sheet-header h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #fff8f1;
+}
+
+.review-form-sheet-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.45);
+}
+
+.review-form-sheet-body {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.review-form-sheet-body .field {
+  margin: 0;
+}
+
+.review-form-score {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.review-form-score .field-label {
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.review-form-score-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* One score = one circular radio. The native input is visually hidden but
+   stays keyboard-focusable; the visible "number" span is the chip. Selected
+   state is driven by :has(input:checked) so we don't need extra JS state on
+   the DOM. */
+.review-form-score-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--color-rose-bronze);
+  background: rgba(180, 120, 80, 0.04);
+  color: #f7efe7;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.review-form-score-option:hover {
+  background: rgba(180, 120, 80, 0.14);
+}
+
+.review-form-score-option input[type="radio"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.review-form-score-option input[type="radio"]:focus-visible + .number {
+  outline: 2px solid var(--color-rose-bronze);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.review-form-score-option:has(input[type="radio"]:checked) {
+  background: var(--color-rose-bronze);
+  border-color: var(--color-rose-bronze);
+  color: #1a0f0a;
+  transform: scale(1.04);
+}
+
+.review-form-score-option .number {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.review-form-score-label {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+  font-style: italic;
+}
+
+.review-form-comment-counter {
+  display: inline-block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.review-form-comment-counter-out {
+  color: #f7b9c2;
+}
+
+.review-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.review-form-status {
+  margin: 0;
+  font-size: var(--text-caption-size, 13px);
+  line-height: var(--text-caption-line, 1.4);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.review-form-status-error {
+  color: #f7b9c2;
+}
+
+/* Tablet+: lift the sheet off the bottom edge and center it like a regular
+   dialog. Bottom-anchored vibe stays on mobile. Mirrors .inquiry-form-sheet. */
+@media (min-width: 720px) {
+  .review-form-sheet {
+    margin: auto;
+    border-radius: 16px;
+  }
+}
+
+/* Light variant for the porcelain account-page backdrop. Mirrors the
+   .window-selection-view light-mode treatment so the picker reads cleanly
+   when embedded inside a member-shell page. */
+.member-shell .account-page-light .review-form-sheet {
+  background: #fff8f1;
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .review-form-sheet-header {
+  border-bottom-color: rgba(35, 31, 39, 0.10);
+}
+
+.member-shell .account-page-light .review-form-sheet-header h2 {
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .review-form-sheet-header p,
+.member-shell .account-page-light .review-form-status {
+  color: rgba(35, 31, 39, 0.70);
+}
+
+.member-shell .account-page-light .review-form-score-option {
+  background: rgba(180, 120, 80, 0.06);
+  color: rgba(35, 31, 39, 0.92);
+}
+
+.member-shell .account-page-light .review-form-score-option:hover {
+  background: rgba(180, 120, 80, 0.18);
+}
+
+.member-shell .account-page-light .review-form-score-option:has(input[type="radio"]:checked) {
+  background: var(--color-rose-bronze);
+  color: #1a0f0a;
+}
+
+.member-shell .account-page-light .review-form-score-label {
+  color: rgba(35, 31, 39, 0.72);
+}
+
+.member-shell .account-page-light .review-form-comment-counter {
+  color: rgba(35, 31, 39, 0.55);
+}
+
+.member-shell .account-page-light .review-form-comment-counter-out {
+  color: #b03050;
+}
