@@ -559,6 +559,7 @@ export type TravellerInquirySummary = {
   createdAt: string;
   updatedAt: string;
   nextStep: string;
+  unreadMessageCount?: number;         // Pass I — populated only after status=accepted
 };
 
 export type TravellerInquiryDetail = TravellerInquirySummary & {
@@ -861,6 +862,7 @@ export type CompanionInquirySummary = {
   receivedAt: string;
   nextStep: string;
   privacyNote: string;
+  unreadMessageCount?: number;         // Pass I — populated only after status=accepted
 };
 
 export type CompanionSessionDetail = CompanionInquirySummary & {
@@ -1074,6 +1076,63 @@ export type CompanionReviewsResponse = {
   companionId: string;
   aggregate: CompanionRatingAggregate;
   reviews: ReviewSummary[];   // capped at 25, newest first
+};
+
+/**
+ * Pass I — Booking-thread messaging.
+ *
+ * Per-booking chat thread that unlocks once status reaches "accepted"
+ * and stays open through session_completed. Both parties post freely;
+ * messages are immutable in v1. Polling-backed (3-5s cadence reuses
+ * the H2/H3 pattern). Author shown by role label, never email/name —
+ * privacy by default (matches the H6 review PII stance).
+ */
+
+/** Author identity on a chat message. Always role-labeled, never PII. */
+export type ChatAuthorRole = "traveller" | "companion";
+
+/** One message in a booking thread. Immutable in v1. */
+export type ChatMessage = {
+  id: string;                          // msg_{uuid}
+  threadId: string;                    // matches BookingRecord.id
+  authorRole: ChatAuthorRole;
+  authorLabel: string;                 // "Traveller" or "{companionDisplayName}"
+  content: string;                     // 1-2000 chars after trim
+  createdAt: string;                   // ISO UTC
+};
+
+/** Traveller or companion sends a message. */
+export type SendMessageRequest = {
+  content: string;                     // 1-2000 chars; server trims + validates
+};
+
+/** Response when sending — returns the just-created message. */
+export type SendMessageResponse = {
+  message: ChatMessage;
+};
+
+/**
+ * Full thread fetch. Includes the message list + the current user's
+ * lastReadAt (so the client can compute unread count locally) +
+ * the unreadCount (server pre-computes for convenience).
+ */
+export type ChatThreadResponse = {
+  threadId: string;
+  messages: ChatMessage[];             // capped 200, oldest first
+  lastReadAt?: string;                 // current user's last read timestamp (undefined if never read)
+  unreadCount: number;                 // messages from the OTHER party after lastReadAt
+};
+
+/** Mark-as-read request — server sets lastReadAt to now for the current user. */
+export type MarkThreadReadRequest = {
+  // Reserved for future fields (e.g. read up to specific message ID).
+};
+
+/** Mark-as-read response — server returns the new lastReadAt + recomputed unread (always 0). */
+export type MarkThreadReadResponse = {
+  threadId: string;
+  lastReadAt: string;
+  unreadCount: 0;
 };
 
 export type PaymentProviderSummary = {
