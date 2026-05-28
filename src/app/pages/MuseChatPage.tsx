@@ -433,26 +433,26 @@ export function MuseChatPage() {
           aria-hidden="true"
         />
 
-        <aside className="muse-secure-card" aria-label="Secure channel status">
-          <p className="eyebrow muse-status-label" aria-live="polite">
-            <span>Initializing Muse</span>
-            <i aria-hidden="true" />
-            <i aria-hidden="true" />
-            <i aria-hidden="true" />
-          </p>
-          <div className="muse-orbit-map" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="muse-progress-row">
-            <span>Private channel ready</span>
-            <strong>{lastResponse?.agentMode === "external" ? "Live" : museStatus}</strong>
-          </div>
-          <div className="muse-progress-track" aria-hidden="true">
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          {progress < 100 && (
+        {progress < 100 && (
+          <aside className="muse-secure-card" aria-label="Secure channel status">
+            <p className="eyebrow muse-status-label" aria-live="polite">
+              <span>{progress < 90 ? "Initializing Muse" : "Channel ready"}</span>
+              <i aria-hidden="true" />
+              <i aria-hidden="true" />
+              <i aria-hidden="true" />
+            </p>
+            <div className="muse-orbit-map" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="muse-progress-row">
+              <span>Private channel ready</span>
+              <strong>{lastResponse?.agentMode === "external" ? "Live" : museStatus}</strong>
+            </div>
+            <div className="muse-progress-track" aria-hidden="true">
+              <span style={{ width: `${progress}%` }} />
+            </div>
             <p className="muse-progress-note">
               {progress < 40
                 ? "Tuning the frequency..."
@@ -460,8 +460,8 @@ export function MuseChatPage() {
                 ? "Locking in privacy anchors..."
                 : "Almost there, tuning to your boundaries..."}
             </p>
-          )}
-        </aside>
+          </aside>
+        )}
 
         <div className="muse-chat-panel" aria-label="Muse chat">
           <div className="muse-chat-header" data-testid="muse-chat-panel">
