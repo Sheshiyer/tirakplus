@@ -15,8 +15,8 @@
 export const AssetRegistry = {
   // Brand assets
   brand: {
-    logoPrimary: '/assets/brand/logo-primary.svg',
-    logoWhite: '/assets/brand/logo-white.svg',
+    logoPrimary: '/assets/brand/tirakplus-muse-icon-192.png',
+    logoWhite: '/assets/brand/tirakplus-muse-icon-192.png',
     appIcon: '/assets/brand/app-icon.png',
     museMark: '/assets/brand/muse-mark.png',
     tirakPlusMuseAppIcon: '/assets/brand/tirakplus-muse-app-icon.png',
