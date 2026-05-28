@@ -2650,6 +2650,44 @@ p {
   gap: 24px;
 }
 
+/* Dark-surface theming for the shared field primitives on companion editor
+   pages. The Input/Select/Textarea/Checkbox CSS defaults to the light pearl
+   theme (styles.css ~1476-1524); the bare dark override (~397) loses the
+   cascade to that later same-specificity base rule. These container-scoped
+   selectors (0,2,0) win regardless of source order and leave the light
+   account context untouched — fixing the white input boxes and the
+   invisible dark-on-dark labels on Profile Manager / Onboarding / Availability. */
+.companion-form .field-input,
+.companion-form .field-select,
+.companion-form .code-input,
+.availability-form .field-input,
+.availability-form .field-select,
+.availability-form .code-input {
+  color: #fff8f1;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.companion-form .field-input::placeholder,
+.availability-form .field-input::placeholder {
+  color: rgba(247, 239, 231, 0.45);
+}
+
+.companion-form .field-label,
+.availability-form .field-label {
+  color: #f7efe7;
+}
+
+.companion-form .field-helper,
+.availability-form .field-helper {
+  color: rgba(247, 239, 231, 0.62);
+}
+
+.companion-form .select-arrow,
+.availability-form .select-arrow {
+  color: rgba(247, 239, 231, 0.55);
+}
+
 .companion-form-section {
   display: grid;
   gap: 18px;
