@@ -4,6 +4,7 @@ import { BottomNav } from "../components/navigation/BottomNav";
 import { LayoutDashboardIcon, CompassIcon, CalendarIcon, MailIcon, ShieldIcon } from "../components/navigation/Icons";
 import { RoleChip } from "../components/navigation/RoleChip";
 import { FloatingMuseTrigger } from "../components/muse/FloatingMuseTrigger";
+import { InstallPrompt } from "../components/pwa/InstallPrompt";
 
 export function TravellerShell() {
   // Navigation for a logged-in traveller
@@ -38,6 +39,7 @@ export function TravellerShell() {
         <Outlet />
       </main>
       <FloatingMuseTrigger />
+      <InstallPrompt />
     </div>
   );
 }

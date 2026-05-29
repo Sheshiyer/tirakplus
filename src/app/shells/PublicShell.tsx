@@ -4,6 +4,7 @@ import { BottomNav } from "../components/navigation/BottomNav";
 import { Button } from "../components/ui/Button";
 import { CompassIcon, MuseIcon, ShieldIcon, UserIcon } from "../components/navigation/Icons";
 import { AssetRegistry } from "../registry/assets";
+import { InstallPrompt } from "../components/pwa/InstallPrompt";
 
 export function PublicShell() {
   const location = useLocation();
@@ -65,6 +66,7 @@ export function PublicShell() {
           </nav>
         </footer>
       )}
+      <InstallPrompt />
     </div>
   );
 }

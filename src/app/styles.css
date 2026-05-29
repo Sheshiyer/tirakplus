@@ -10198,3 +10198,78 @@ p {
   display: flex;
   justify-content: center;
 }
+
+/* PWA add-to-home-screen prompt. Bottom-anchored dark pill, left of the
+   floating Muse trigger (bottom-right) so the two never overlap. */
+.install-prompt {
+  position: fixed;
+  left: clamp(16px, 3vw, 28px);
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 49;
+  width: min(360px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(8, 11, 20, 0.92);
+  border: 1px solid rgba(247, 239, 231, 0.12);
+  box-shadow: var(--shadow-elevation, 0 18px 48px rgba(0, 0, 0, 0.45));
+  color: var(--color-porcelain-canvas, #f7efe7);
+  backdrop-filter: blur(10px);
+}
+
+.install-prompt__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.install-prompt__title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.install-prompt__text {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(247, 239, 231, 0.72);
+}
+
+.install-prompt__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.install-prompt__install {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #1a0f0c;
+  background: var(--color-coral, rgb(255, 125, 107));
+  transition: background 150ms ease-out;
+}
+
+.install-prompt__install:hover {
+  background: var(--color-coral-active, rgb(240, 104, 86));
+}
+
+.install-prompt__dismiss {
+  border: none;
+  background: none;
+  padding: 4px;
+  font-size: 0.74rem;
+  cursor: pointer;
+  color: rgba(247, 239, 231, 0.6);
+}
+
+.install-prompt__dismiss:hover {
+  color: rgba(247, 239, 231, 0.9);
+}
