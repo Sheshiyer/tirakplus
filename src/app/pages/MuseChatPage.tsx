@@ -301,6 +301,7 @@ export function MuseChatPage() {
       setConversationId(restored.conversationId);
       setStage(restored.stage);
       setMessages(restored.messages);
+      setProgress(100); // skip init sequence — conversation is already live
       setIsChatActive(true);
     }
 
@@ -463,7 +464,7 @@ export function MuseChatPage() {
           </aside>
         )}
 
-        <div className="muse-chat-panel" aria-label="Muse chat">
+        {progress >= 100 && <div className="muse-chat-panel" aria-label="Muse chat">
           <div className="muse-chat-header" data-testid="muse-chat-panel">
             <div>
               <p className="eyebrow">Muse</p>
@@ -600,9 +601,9 @@ export function MuseChatPage() {
               </div>
             </div>
           ) : null}
-        </div>
+        </div>}
 
-        
+
 
         <aside className="muse-context-panel" aria-label="Muse context state">
           {/* "Your thread" eyebrow removed 2026-05-26 — duplicated the
