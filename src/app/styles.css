@@ -8909,3 +8909,418 @@ p {
  * high-value surface; the global indicator can land in a later pass
  * once we decide on the aggregate-fetch story.
  */
+
+/* ---- Inquiry composer primitives (P2.T3) ----
+ * Baseline, standalone styling for the 6 presentational composer pieces
+ * (CompanionInquiryCard, InlineCalendar, TimeSlotChips, ExperienceChipGroup,
+ * LocationField, DiscreetByDesignCard). Dark glass surfaces on the plum
+ * composer background, coral selection states. The holistic 3-col → 1-col
+ * page layout is T6's job — these rules size each piece to look good on its
+ * own, not to position them on the page.
+ *
+ * Shared tokens: pearl tint = rgba(247, 239, 231, x); coral selection =
+ * var(--color-coral). Glass surface mirrors .auth-card-shell.
+ */
+
+.composer-glass-surface,
+.composer-companion-card,
+.composer-calendar,
+.composer-discreet-card {
+  border-radius: 18px;
+  border: 1px solid rgba(247, 239, 231, 0.16);
+  background: rgba(8, 11, 20, 0.56);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(247, 239, 231, 0.07);
+  backdrop-filter: blur(18px);
+  color: #f7efe7;
+}
+
+/* --- 1. CompanionInquiryCard --- */
+.composer-companion-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.composer-companion-card__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.composer-companion-card__avatar {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(247, 239, 231, 0.08);
+  border: 1px solid rgba(247, 239, 231, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.composer-companion-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.composer-companion-card__initials {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(247, 239, 231, 0.78);
+}
+
+.composer-companion-card__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.composer-companion-card__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-card-title-size);
+  line-height: var(--text-card-title-line);
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+.composer-companion-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.composer-companion-card__tone {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(247, 239, 231, 0.74);
+}
+
+/* --- 2. InlineCalendar --- */
+.composer-calendar {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.composer-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.composer-calendar__month {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff8f1;
+  letter-spacing: 0.01em;
+}
+
+.composer-calendar__nav {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(247, 239, 231, 0.16);
+  background: rgba(247, 239, 231, 0.06);
+  color: rgba(247, 239, 231, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.composer-calendar__nav svg {
+  width: 16px;
+  height: 16px;
+}
+
+.composer-calendar__nav:hover {
+  background: rgba(247, 239, 231, 0.12);
+  border-color: rgba(247, 239, 231, 0.28);
+}
+
+.composer-calendar__weekdays,
+.composer-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.composer-calendar__weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.45);
+  padding-bottom: 2px;
+}
+
+.composer-calendar__blank {
+  aspect-ratio: 1 / 1;
+}
+
+.composer-calendar__day {
+  aspect-ratio: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(247, 239, 231, 0.9);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.composer-calendar__day.is-available:hover {
+  background: rgba(255, 125, 107, 0.16);
+  color: #fff8f1;
+}
+
+.composer-calendar__day.is-disabled {
+  color: rgba(247, 239, 231, 0.24);
+  cursor: not-allowed;
+}
+
+.composer-calendar__day.is-today {
+  border-color: rgba(247, 239, 231, 0.45);
+}
+
+.composer-calendar__day.is-selected,
+.composer-calendar__day.is-selected.is-available:hover {
+  background: var(--color-coral);
+  border-color: var(--color-coral);
+  color: #1a0810;
+  font-weight: 700;
+}
+
+.composer-calendar__day.is-selected.is-today {
+  border-color: #fff8f1;
+}
+
+.composer-calendar__empty {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+/* --- 3. TimeSlotChips --- */
+.composer-time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.composer-time-slots.is-disabled,
+.composer-time-slots.is-empty {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(247, 239, 231, 0.16);
+  background: rgba(247, 239, 231, 0.03);
+}
+
+.composer-time-slots__hint {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+.composer-time-slot-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 239, 231, 0.18);
+  background: rgba(247, 239, 231, 0.06);
+  color: rgba(247, 239, 231, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.composer-time-slot-chip:hover {
+  background: rgba(255, 125, 107, 0.14);
+  border-color: rgba(255, 125, 107, 0.4);
+}
+
+.composer-time-slot-chip.is-selected {
+  background: var(--color-coral);
+  border-color: var(--color-coral);
+  color: #1a0810;
+}
+
+/* --- 4. ExperienceChipGroup --- */
+.composer-experience-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.composer-experience-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 239, 231, 0.18);
+  background: rgba(247, 239, 231, 0.06);
+  color: rgba(247, 239, 231, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.composer-experience-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: rgba(247, 239, 231, 0.7);
+}
+
+.composer-experience-chip__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.composer-experience-chip:hover {
+  background: rgba(255, 125, 107, 0.12);
+  border-color: rgba(255, 125, 107, 0.38);
+}
+
+.composer-experience-chip.is-selected {
+  background: var(--color-coral);
+  border-color: var(--color-coral);
+  color: #1a0810;
+}
+
+.composer-experience-chip.is-selected .composer-experience-chip__icon {
+  color: #1a0810;
+}
+
+/* --- 5. LocationField --- */
+.composer-location-field {
+  width: 100%;
+}
+
+.composer-location-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.composer-location-field__icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 125, 107, 0.85);
+  pointer-events: none;
+}
+
+.composer-location-field__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.composer-location-field__input.field-input {
+  width: 100%;
+  padding: 14px 16px 14px 42px;
+  border-radius: 14px;
+  background: rgba(8, 11, 20, 0.6);
+  border: 1px solid rgba(247, 239, 231, 0.18);
+  color: #f7efe7;
+}
+
+.composer-location-field__input.field-input:focus {
+  outline: none;
+  border-color: rgba(255, 125, 107, 0.55);
+}
+
+.composer-location-field__control.is-disabled {
+  opacity: 0.55;
+}
+
+.composer-location-field__count {
+  margin-top: 6px;
+  text-align: right;
+  font-size: 11px;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+.composer-location-field__count.is-near-limit {
+  color: var(--color-coral);
+}
+
+/* --- 6. DiscreetByDesignCard --- */
+.composer-discreet-card {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.composer-discreet-card__icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-coral);
+}
+
+.composer-discreet-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.composer-discreet-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.composer-discreet-card__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+.composer-discreet-card__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(247, 239, 231, 0.72);
+}
