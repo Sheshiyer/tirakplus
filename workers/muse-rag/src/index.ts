@@ -3,7 +3,7 @@ import { createEvolutionCandidate } from "./evolution";
 import { detectPromptInjection, extractMessage, inferSignals, resolveRoleIntent } from "./intent";
 import { nextAction } from "./next-action";
 import { createChatCompletion } from "./nvidia";
-import { evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, refusalForSafety, sanitizeMuseCopy } from "./policy";
+import { draftingSystemInstructions, evaluateMuseCopy, MUSE_POLICY_VERSION, museSystemInstructions, refusalForSafety, sanitizeMuseCopy } from "./policy";
 import { formatContext, ingestCorpus, searchCorpus } from "./retrieve";
 import { classifySafety } from "./safety";
 import { inferStage, suggestedPrompts } from "./stage";
@@ -69,6 +69,43 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
   if (!(await isAuthorizedRequest(env, request, appId))) return json({ error: "Unauthorized" }, 401);
 
   const appConfig = await getEnabledAppConfig(env, appId);
+
+  // Draft-assist short-circuit: MuseAssistedTextarea sends responseMode=draft to
+  // ghost-write a traveller→companion first-contact message. Skip stage inference,
+  // corpus retrieval, and Muse's conversational system prompt — all built for
+  // discovery intake, not ghostwriting. Use a dedicated drafting prompt instead.
+  if (body.responseMode === "draft") {
+    const nameMatch = message.match(/I can send to (\w+) about/i);
+    const companionName = nameMatch?.[1] ?? "you";
+    const experienceLabels: Record<string, string> = {
+      nightlife: "evening out",
+      "island-explorer": "island day",
+      "muay-thai-night": "Muay Thai evening",
+      "private-dining": "private dinner",
+      "local-guidance": "local day",
+    };
+    const experienceLabel = (body.clientContext?.experience && experienceLabels[body.clientContext.experience]) ?? "experience";
+    const rawDraft = await createChatCompletion(env, appConfig.chatModel, [
+      { role: "system", content: draftingSystemInstructions(companionName, experienceLabel) },
+      { role: "user", content: message },
+    ], { maxTokens: 160, temperature: 0.5 });
+    const content = sanitizeMuseCopy(rawDraft || `Hi ${companionName}, I came across your profile and would love to connect for a ${experienceLabel}. Would you be open to it?`);
+    const conversationId = body.conversationId ?? `muse_${crypto.randomUUID()}`;
+    return json({
+      conversationId,
+      stage: "recommendation_ready",
+      roleIntent: "traveller",
+      contractVersion: "muse-response-v2",
+      policyVersion: MUSE_POLICY_VERSION,
+      reply: { id: `msg_${crypto.randomUUID()}`, role: "muse", content, createdAt: new Date().toISOString() },
+      suggestedPrompts: [],
+      profileSignals: { birthContext: { confidence: "none" }, travelContext: { experienceHints: [] }, desireVector: [], boundarySignals: [], routingHints: { requiresAuth: true } },
+      nextAction: { label: "Continue with Muse", href: "/", kind: "continue" },
+      agentMode: "external",
+      quality: { leakagePass: true, safetyPass: true, voicePass: true, retrievalPass: false, injectionPass: true, notes: [] },
+    });
+  }
+
   // Authoritative role resolution: client-context > routeKind > message inference.
   // This is the fix for the 2026-05-26 issue where Muse was asking the
   // user (a traveller) about a *companion's* birth date — it had collapsed

@@ -145,6 +145,7 @@ export type MuseChatRequest = {
   conversationId?: string;
   message: string;
   stage?: MuseConversationStage;
+  responseMode?: "fast" | "draft";
   profileSignals?: MuseProfileSignals;
   clientContext?: MuseClientContext;
 };

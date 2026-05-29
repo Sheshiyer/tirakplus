@@ -113,13 +113,11 @@ export function MuseAssistedTextarea({
 
     const experienceLabel = experience ? EXPERIENCE_LABEL[experience] : "experience";
     const whenClause = scheduledForLabel ? `on ${scheduledForLabel}` : "";
-    const instruction =
-      `Draft a short, warm, respectful first-contact message (2-4 sentences, ` +
-      `under 400 characters) I can send to ${companionName} about a ` +
-      `${experienceLabel} ${whenClause}. Return ONLY the message text, no preamble.`.replace(
-        /\s+/g,
-        " ",
-      ).trim();
+    // Keep the instruction free of Muse's intake trigger words (e.g. "off-limits",
+    // "boundaries") — those cause stage misclassification and produce Muse's own
+    // interview voice instead of a traveller→companion draft. responseMode: "draft"
+    // is the primary guard; clean phrasing is the defence-in-depth.
+    const instruction = `I can send to ${companionName} about a ${experienceLabel}${whenClause ? ` ${whenClause}` : ""}.`.trim();
 
     // Mirror MuseChatPage's clientContext shape. Browser timezone resolved
     // defensively (some embedded runtimes lack Intl).
@@ -133,6 +131,7 @@ export function MuseAssistedTextarea({
     try {
       const response = await MuseService.chat({
         message: instruction,
+        responseMode: "draft",
         clientContext: {
           timezone,
           source: "floating-trigger",

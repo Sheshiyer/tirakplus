@@ -1655,12 +1655,31 @@ async function callExternalMuseAgent(body: MuseChatRequest, env: WorkerEnv): Pro
 
 function createStagedMuseChatResponse(body: MuseChatRequest): MuseChatResponse {
   const message = body.message.trim();
+  const conversationId = body.conversationId?.trim() || `muse_${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+
+  // Draft-assist short-circuit: MuseAssistedTextarea calls with responseMode=draft
+  // to ghost-write a traveller→companion first-contact message. Skip the full
+  // stage/signal pipeline — it was built for conversational Muse, not ghostwriting,
+  // and produces internal intake voice (guardrails, birth date) instead of a draft.
+  if (body.responseMode === "draft") {
+    const reply = selectStagedMuseDraftReply(message, body.clientContext);
+    return {
+      conversationId,
+      stage: "recommendation_ready",
+      reply: { id: `msg_${crypto.randomUUID()}`, role: "muse", content: reply, createdAt: now },
+      suggestedPrompts: [],
+      profileSignals: inferMuseClientContextSignals(body.clientContext),
+      nextAction: { label: "Continue with Muse", href: "/", kind: "continue" },
+      agentMode: "staged",
+      chart: travellerMuseChart,
+    };
+  }
+
   const contextSignals = inferMuseClientContextSignals(body.clientContext);
   const seedSignals = body.profileSignals ? mergeMuseProfileSignals(contextSignals, body.profileSignals) : contextSignals;
   const signals = mergeMuseProfileSignals(seedSignals, inferMuseProfileSignals(message));
   const stage = inferNextMuseStage(body.stage ?? "arrival", signals, message);
-  const conversationId = body.conversationId?.trim() || `muse_${crypto.randomUUID()}`;
-  const now = new Date().toISOString();
   const reply = selectStagedMuseReply(stage, signals, message, body.clientContext);
 
   return {
@@ -1877,6 +1896,29 @@ function inferNextMuseStage(
   return "recommendation_ready";
 }
 
+// Staged draft reply for responseMode=draft (MuseAssistedTextarea ghost-writing path).
+// Extracts companion name + experience from the instruction message and returns
+// a natural traveller→companion first-contact message. No Muse intake voice.
+function selectStagedMuseDraftReply(
+  message: string,
+  clientContext: MuseChatRequest["clientContext"],
+): string {
+  const nameMatch = message.match(/I can send to (\w+) about/i);
+  const companionName = nameMatch?.[1] ?? "you";
+  const experienceLabels: Record<string, string> = {
+    nightlife: "evening out",
+    "island-explorer": "island day",
+    "muay-thai-night": "Muay Thai evening",
+    "private-dining": "private dinner",
+    "local-guidance": "local day",
+  };
+  const experienceLabel = (clientContext?.experience && experienceLabels[clientContext.experience]) ?? "experience";
+  const dateMatch = message.match(/on ([A-Za-z]+ \d+[^,]*(?:, \d+:\d+)?)/i);
+  const datePart = dateMatch ? `, ${dateMatch[1]}` : "";
+
+  return `Hi ${companionName}, I came across your profile on Tirak Plus and would love to connect for a ${experienceLabel}${datePart}. I am looking for something warm and unhurried — your profile felt like the right fit. Would you be open to connecting?`;
+}
+
 function selectStagedMuseReply(
   stage: MuseConversationStage,
   signals: MuseProfileSignals,
@@ -1885,22 +1927,22 @@ function selectStagedMuseReply(
 ): string {
   const contextPrefix = museContextPrefix(clientContext);
   if (stage === "birth_context") {
-    return `${contextPrefix}I can start there. Give me your birth date, birth place, and if you know it, the time. I will keep the details private and turn it into a useful read, not a lecture.`;
+    return `${contextPrefix}Share your birth date, birth place, and the time if you know it. I keep the method private and translate it into timing, temperament, and fit — not a lecture.`;
   }
   if (stage === "travel_context") {
-    return `${contextPrefix}Good. Now tell me where Thailand enters the story: Bangkok, Phuket, Samui, Phangan, or a moving target? Add the window too. I am looking for rhythm, not a checklist.`;
+    return `${contextPrefix}Good. Where does Thailand enter the picture: Bangkok, Phuket, Samui, Phangan, or somewhere moving? Add the window too. I am looking for rhythm, not a checklist.`;
   }
   if (stage === "desire_mapping") {
-    return `${contextPrefix}I am picking up the shape of it. Say the quiet part plainly: do you want warmth, wit, calm privacy, sharp nightlife energy, local guidance, or someone who can make the evening feel less improvised?`;
+    return `${contextPrefix}Say the quiet part plainly: warmth, wit, calm privacy, sharp nightlife energy, local guidance, or someone who can make the evening feel less improvised?`;
   }
   if (stage === "safety_boundaries") {
-    return `${contextPrefix}Before I show anything, give me the guardrails. What feels absolutely off-limits, what pace feels comfortable, and how visible do you want this to be?`;
+    return `${contextPrefix}Before anything is shown: what stays completely private, what pace works for you, and what should stay off the table? Take your time.`;
   }
   if (stage === "recommendation_ready") {
     const city = signals.travelContext.city ? signals.travelContext.city.replace("-", " ") : "your first city";
-    return `${contextPrefix}I have enough to sketch a discreet path for ${city}. I will keep it private, filter for tone and safety first, then show options only when the fit is clean.`;
+    return `${contextPrefix}I have enough to shape a discreet path for ${city}. Keeping it private — tone and fit first, then options when the match is clean.`;
   }
-  return `${contextPrefix}Tell me what brings you here in one line. I will make the next question sharper than "${message.slice(0, 48)}" deserves.`;
+  return `${contextPrefix}Tell me what brings you here in one line.`;
 }
 
 function museContextPrefix(clientContext: MuseChatRequest["clientContext"]): string {

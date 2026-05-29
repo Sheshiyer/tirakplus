@@ -47,7 +47,7 @@ export type MuseChatRequest = {
   roleIntent?: MuseRoleIntent;
   clientContext?: MuseClientContextLite;
   appId?: string;
-  responseMode?: "fast" | "best";
+  responseMode?: "fast" | "best" | "draft";
   input?: {
     conversationId?: string;
     message?: string;

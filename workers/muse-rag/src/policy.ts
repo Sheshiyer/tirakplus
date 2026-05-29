@@ -52,6 +52,10 @@ export const blockedMuseTerms = [
   "birth chart",
   "matching engine",
   "lotus",
+  // Policy/intake vocabulary that must never surface in user-facing copy
+  "guardrails",
+  "privacy anchors",
+  "comfort lines",
 ] as const;
 
 export const unsafeMusePatterns = [
@@ -119,6 +123,25 @@ export function evaluateMuseCopy(value: string): {
 
 export function refusalForSafety(category?: keyof typeof refusalReframes): string {
   return category ? refusalReframes[category] : "I can help if we keep this respectful, private, and review-safe.";
+}
+
+/**
+ * System instructions for draft-assist mode (MuseAssistedTextarea).
+ * Muse is ghost-writing a first-contact message FROM the traveller TO the companion.
+ * This is NOT Muse's conversational interview voice — no stage progression,
+ * no intake questions, no policy vocabulary in the output.
+ */
+export function draftingSystemInstructions(companionName: string, experienceLabel: string): string {
+  return [
+    "You are ghost-writing a short, warm, first-contact message for a traveller to send to a companion on Tirak Plus.",
+    `The traveller wants to reach out to ${companionName} about a ${experienceLabel}.`,
+    "Write ONLY the message text — 2 to 4 sentences, under 400 characters.",
+    "Write in the first person as the traveller speaking directly to the companion.",
+    "The tone should be warm, personal, and unhurried.",
+    "Do NOT use any of the following: guardrails, boundaries, privacy anchors, comfort lines, off-limits, routing, intake vocabulary.",
+    "Do NOT write as Muse. Do NOT ask the traveller for information. Do NOT use phrases like 'give me', 'before I show', 'I will keep', or 'I can help'.",
+    "Output ONLY the message text. No preamble, no label, no explanation.",
+  ].join(" ");
 }
 
 export function museSystemInstructions(stage: string, roleIntent: MuseRoleIntent = "unknown"): string {
