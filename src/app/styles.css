@@ -6346,93 +6346,6 @@ p {
   color: rgba(35, 31, 39, 0.82);
 }
 
-/* ===== InquiryFormSheet (Pass H1.Task 8) =====
-   Native <dialog> styled as a bottom-sheet on mobile. Pass J will replace
-   the wrapper with the BottomSheet primitive and add slide-up animation.
-   For now: Night Plum surface, Porcelain copy, padding matches
-   .account-control-body, top corners rounded to suggest the sheet shape. */
-
-.inquiry-form-sheet {
-  width: 100%;
-  max-width: 520px;
-  margin: auto auto 0;
-  padding: 0;
-  border: none;
-  border-radius: 16px 16px 0 0;
-  background: var(--color-night-plum);
-  color: #f7efe7;
-  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
-}
-
-.inquiry-form-sheet::backdrop {
-  background: rgba(9, 13, 23, 0.62);
-  backdrop-filter: blur(4px);
-}
-
-.inquiry-form-sheet-header {
-  padding: 22px 18px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.inquiry-form-sheet-header .eyebrow {
-  margin: 0 0 6px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-rose-bronze);
-}
-
-.inquiry-form-sheet-header h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  line-height: 1.25;
-  color: #fff8f1;
-}
-
-.inquiry-form-sheet-header p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.70);
-  font-size: var(--text-caption-size, 13px);
-  line-height: var(--text-caption-line, 1.45);
-}
-
-.inquiry-form-sheet-body {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-}
-
-.inquiry-form-sheet-body .field {
-  margin: 0;
-}
-
-.inquiry-form-sheet-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  padding-top: 4px;
-}
-
-.inquiry-form-sheet-status {
-  margin: 0;
-  font-size: var(--text-caption-size, 13px);
-  line-height: var(--text-caption-line, 1.4);
-  color: rgba(255, 255, 255, 0.70);
-}
-
-.inquiry-form-sheet-status-error {
-  color: #f7b9c2;
-}
-
-/* Tablet+: lift the sheet off the bottom edge and center it like a
-   regular dialog. Bottom-anchored vibe stays on mobile. */
-@media (min-width: 720px) {
-  .inquiry-form-sheet {
-    margin: auto;
-    border-radius: 16px;
-  }
-}
 
 /* ===== Companion decision panel (Pass H2.Task 6) =====
    Accept / Decline UI on CompanionInquiryDetailPage. Pattern-matches
@@ -10028,4 +9941,82 @@ p {
       minmax(264px, 0.94fr);
     gap: clamp(28px, 2.2vw, 44px);
   }
+}
+
+/* ===== Inquiry composer — conversational ("Muse-led") presentation =====
+   Reuses the shared .muse-message bubble vocabulary for the thread; the active
+   step's inputs render inside an affordance card that matches the inspiration
+   card surface. This is a presentation of the same composer state — no new
+   data flow, no new security surface. */
+.inquiry-composer-convo {
+  width: min(640px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: clamp(32px, 5vw, 56px);
+}
+
+.inquiry-composer-convo__progress {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.55);
+}
+
+.inquiry-composer-convo__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inquiry-composer-convo__affordance {
+  margin-top: 4px;
+  padding: clamp(16px, 3vw, 22px);
+  border-radius: 20px;
+  background: rgba(8, 11, 20, 0.56);
+  border: 1px solid rgba(247, 239, 231, 0.1);
+  box-shadow: inset 0 1px 0 rgba(247, 239, 231, 0.06);
+}
+
+.inquiry-composer-convo__privacy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inquiry-composer-convo__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.inquiry-composer-convo__switch,
+.inquiry-composer-mode-switch__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: rgba(247, 239, 231, 0.62);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.inquiry-composer-convo__switch:hover,
+.inquiry-composer-mode-switch__btn:hover {
+  color: rgb(255, 125, 107);
+}
+
+.inquiry-composer-mode-switch {
+  width: min(720px, 100%);
+  margin: 0 auto 18px;
+  display: flex;
+  justify-content: center;
 }

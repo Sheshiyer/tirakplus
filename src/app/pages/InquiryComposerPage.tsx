@@ -27,7 +27,7 @@
 //   date + slot selected (→ scheduledFor)
 //   privacyAcknowledged === true
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type {
   CompanionProfile,
@@ -60,6 +60,41 @@ const CALENDAR_HORIZON_DAYS = 60;
 const MESSAGE_MIN = 24;
 const MESSAGE_MAX = 500;
 const LOCATION_MAX = 200;
+
+// Conversational ("Muse-led") presentation. The page DEFAULTS to a guided chat
+// that collects the SAME fields one at a time, reusing the exact same primitives
+// + field state + submit path as the structured form. The form is the always-
+// available fallback ("switch to the full form"). No new endpoint or Muse-agent
+// conversation is introduced — message drafting still flows through the bounded
+// one-shot MuseAssistedTextarea, so the anti-injection gate is untouched.
+const CONVO_STEPS = ["when", "experience", "where", "message", "privacy"] as const;
+type ConvoStep = (typeof CONVO_STEPS)[number];
+type Presentation = "conversation" | "form";
+
+// Human labels per experience slug, used in the conversation's answer-recap
+// bubble (the chip group renders its own labels in the affordance).
+const EXPERIENCE_LABELS: Record<ExperienceSlug, string> = {
+  nightlife: "A night out",
+  "island-explorer": "An island day",
+  "muay-thai-night": "A Muay Thai evening",
+  "private-dining": "A private dinner",
+  "local-guidance": "A local-guidance day",
+};
+
+function museAsk(step: ConvoStep, companionName: string): string {
+  switch (step) {
+    case "when":
+      return `Let's plan your time with ${companionName}. When would you like to meet? Pick a date and a start time.`;
+    case "experience":
+      return "What kind of time together are you hoping for?";
+    case "where":
+      return "Where feels right to meet? Somewhere public and easy — a hotel lobby or a well-known café works well.";
+    case "message":
+      return `Tell ${companionName} what makes this trip meaningful and what you're hoping for — I can help you draft it.`;
+    case "privacy":
+      return "One last thing — this inquiry stays private until the companion accepts. Acknowledge below and I'll send it.";
+  }
+}
 
 type LoadState =
   | { status: "loading"; profile?: undefined; message?: undefined; unavailable?: undefined }
@@ -146,6 +181,12 @@ export function InquiryComposerPage() {
   const [location, setLocation] = useState("");
   const [message, setMessage] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+
+  // Presentation: Muse-led conversation (default) vs the full structured form
+  // (fallback). Both write to the SAME field state above and submit via the
+  // SAME handleSubmit, so switching presentation never loses entries.
+  const [presentation, setPresentation] = useState<Presentation>("conversation");
+  const [convoStep, setConvoStep] = useState(0);
 
   // Submit state.
   const [submitting, setSubmitting] = useState(false);
@@ -286,6 +327,228 @@ export function InquiryComposerPage() {
     }
   };
 
+  // --- Conversation-mode helpers. All read the shared field state above. ---
+  const stepComplete = (step: ConvoStep): boolean => {
+    switch (step) {
+      case "when":
+        return Boolean(selectedDate && selectedSlot);
+      case "experience":
+        return Boolean(experience);
+      case "where":
+        return trimmedLocation.length >= 1 && trimmedLocation.length <= LOCATION_MAX;
+      case "message":
+        return trimmedMessage.length >= MESSAGE_MIN;
+      case "privacy":
+        return privacyAcknowledged;
+    }
+  };
+
+  // First step the traveller hasn't satisfied yet — used when switching back
+  // from the form so they resume rather than re-answering filled steps.
+  const firstIncompleteStep = (): number => {
+    const idx = CONVO_STEPS.findIndex((step) => !stepComplete(step));
+    return idx === -1 ? CONVO_STEPS.length - 1 : idx;
+  };
+
+  const advanceConvo = () => {
+    // Read the index inside the updater so a rapid double-click can't overshoot
+    // past the final step (each click would otherwise stack on a stale index).
+    setConvoStep((i) => (i < CONVO_STEPS.length - 1 && stepComplete(CONVO_STEPS[i]) ? i + 1 : i));
+  };
+
+  const goToForm = () => setPresentation("form");
+  const goToConversation = () => {
+    setConvoStep(firstIncompleteStep());
+    setPresentation("conversation");
+  };
+
+  const answerSummary = (step: ConvoStep): string => {
+    switch (step) {
+      case "when":
+        return whenLabel ? `${whenLabel} · Bangkok` : "—";
+      case "experience":
+        return experience ? EXPERIENCE_LABELS[experience] : "—";
+      case "where":
+        return trimmedLocation || "—";
+      case "message":
+        return trimmedMessage.length > 90 ? `${trimmedMessage.slice(0, 90)}…` : trimmedMessage;
+      case "privacy":
+        return "I understand — please send it.";
+    }
+  };
+
+  // The active step's input affordance — the SAME primitives the form uses,
+  // surfaced one at a time.
+  const renderConvoAffordance = (step: ConvoStep) => {
+    switch (step) {
+      case "when":
+        return (
+          <>
+            <InlineCalendar
+              availableDates={availableDates}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+            />
+            <div className="inquiry-composer-slots">
+              <p className="field-label">Preferred start time</p>
+              <TimeSlotChips
+                slots={PRESET_TIME_SLOTS}
+                selectedSlot={selectedSlot}
+                onSelectSlot={(slot) => {
+                  setSelectedSlot(slot);
+                  if (fieldErrors.scheduledFor) clearFieldError("scheduledFor");
+                }}
+                disabled={!selectedDate}
+              />
+              {whenLabel ? (
+                <p className="inquiry-composer-when-summary" aria-live="polite">
+                  {whenLabel} · Bangkok local time
+                </p>
+              ) : null}
+            </div>
+            {fieldErrors.scheduledFor ? (
+              <p className="field-error" role="alert">{fieldErrors.scheduledFor}</p>
+            ) : null}
+          </>
+        );
+      case "experience":
+        return (
+          <>
+            <ExperienceChipGroup
+              selected={experience}
+              onSelect={(slug) => {
+                setExperience(slug);
+                if (fieldErrors.experience) clearFieldError("experience");
+              }}
+            />
+            {fieldErrors.experience ? (
+              <p className="field-error" role="alert">{fieldErrors.experience}</p>
+            ) : null}
+          </>
+        );
+      case "where":
+        return (
+          <>
+            <LocationField
+              value={location}
+              onChange={(next) => {
+                setLocation(next);
+                if (fieldErrors.location) clearFieldError("location");
+              }}
+              maxLength={LOCATION_MAX}
+            />
+            {fieldErrors.location ? (
+              <p className="field-error" role="alert">{fieldErrors.location}</p>
+            ) : null}
+          </>
+        );
+      case "message":
+        return (
+          <>
+            <MuseAssistedTextarea
+              value={message}
+              onChange={(next) => {
+                setMessage(next);
+                if (fieldErrors.message) clearFieldError("message");
+              }}
+              companionName={profile.displayName}
+              companionId={profile.id}
+              experience={experience}
+              scheduledForLabel={whenLabel}
+              maxLength={MESSAGE_MAX}
+            />
+            {trimmedMessage.length > 0 && trimmedMessage.length < MESSAGE_MIN ? (
+              <p className="inquiry-composer-hint" aria-live="polite">
+                Add at least {MESSAGE_MIN - trimmedMessage.length} more character
+                {MESSAGE_MIN - trimmedMessage.length === 1 ? "" : "s"} so {profile.displayName} has context.
+              </p>
+            ) : null}
+            {fieldErrors.message ? (
+              <p className="field-error" role="alert">{fieldErrors.message}</p>
+            ) : null}
+          </>
+        );
+      case "privacy":
+        return (
+          <div className="inquiry-composer-convo__privacy">
+            <label className="inquiry-composer-privacy">
+              <input
+                type="checkbox"
+                checked={privacyAcknowledged}
+                onChange={(event) => {
+                  setPrivacyAcknowledged(event.target.checked);
+                  if (fieldErrors.privacyAcknowledged) clearFieldError("privacyAcknowledged");
+                }}
+              />
+              <span>
+                I'll keep this discreet and respectful. Details are shared only after {profile.displayName} accepts.
+              </span>
+            </label>
+            {fieldErrors.privacyAcknowledged ? (
+              <p className="field-error" role="alert">{fieldErrors.privacyAcknowledged}</p>
+            ) : null}
+            {submitError ? (
+              <p className="inquiry-composer-submit-error" role="alert">{submitError}</p>
+            ) : null}
+          </div>
+        );
+    }
+  };
+
+  const activeStep = CONVO_STEPS[convoStep];
+  const isFinalStep = activeStep === "privacy";
+
+  const conversationView = (
+    <div className="inquiry-composer-convo">
+      <p className="inquiry-composer-convo__progress" aria-live="polite">
+        {isFinalStep ? "Final step" : `Step ${convoStep + 1} of ${CONVO_STEPS.length}`}
+      </p>
+      <div className="inquiry-composer-convo__thread">
+        {CONVO_STEPS.slice(0, convoStep + 1).map((stepId, i) => (
+          <Fragment key={stepId}>
+            <article className="muse-message muse-message-muse">
+              <p>{museAsk(stepId, profile.displayName)}</p>
+            </article>
+            {i < convoStep ? (
+              <article className="muse-message muse-message-user">
+                <p>{answerSummary(stepId)}</p>
+              </article>
+            ) : (
+              <div className="inquiry-composer-convo__affordance">{renderConvoAffordance(stepId)}</div>
+            )}
+          </Fragment>
+        ))}
+      </div>
+      <div className="inquiry-composer-convo__actions">
+        {isFinalStep ? (
+          <Button
+            type="button"
+            variant="coral"
+            fullWidth
+            onClick={() => void handleSubmit()}
+            disabled={!canSubmit}
+          >
+            {submitting ? "Sending…" : "Send Inquiry"}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="coral"
+            fullWidth
+            onClick={advanceConvo}
+            disabled={!stepComplete(activeStep)}
+          >
+            Continue
+          </Button>
+        )}
+        <button type="button" className="inquiry-composer-convo__switch" onClick={goToForm}>
+          Switch to the full form
+        </button>
+      </div>
+      <p className="inquiry-composer-submit-footnote">Your inquiry is private and confidential</p>
+    </div>
+  );
+
   return (
     <section className="inquiry-composer-page" aria-labelledby="inquiry-composer-title">
       <header className="inquiry-composer-topbar">
@@ -299,6 +562,15 @@ export function InquiryComposerPage() {
         <span className="inquiry-composer-topbar__spacer" aria-hidden="true" />
       </header>
 
+      {presentation === "conversation" ? (
+        conversationView
+      ) : (
+      <>
+      <div className="inquiry-composer-mode-switch">
+        <button type="button" className="inquiry-composer-mode-switch__btn" onClick={goToConversation}>
+          Prefer a guided chat? Talk it through with Muse
+        </button>
+      </div>
       <div className="inquiry-composer-layout">
         {/* Left/sidebar zone — who you're reaching + privacy reassurance. */}
         <aside className="inquiry-composer-rail inquiry-composer-rail--left" aria-label="Companion summary">
@@ -471,6 +743,8 @@ export function InquiryComposerPage() {
           Your inquiry is private and confidential
         </p>
       </div>
+      </>
+      )}
     </section>
   );
 }
