@@ -11,11 +11,39 @@ declare const Buffer: {
 
 type Buffer = Uint8Array;
 
+// On Cloudflare, MUSE_RAG is a service binding (a Fetcher). Vercel has no
+// service bindings, so we synthesize one from MUSE_RAG_URL: the worker calls
+// env.MUSE_RAG.fetch(new Request("https://muse-rag.internal/v1/chat", ...)),
+// and this shim rewrites that internal request onto the real RAG worker's
+// origin, preserving method/headers/body. Without MUSE_RAG_URL the binding is
+// undefined and the worker falls back to staged replies (same as before).
+const museRagUrl = process.env.MUSE_RAG_URL;
+const MUSE_RAG = museRagUrl
+  ? {
+      fetch: async (input: Request | string): Promise<Response> => {
+        const incoming = input instanceof Request ? input : new Request(input);
+        const internal = new URL(incoming.url);
+        const target = `${new URL(museRagUrl).origin}${internal.pathname}${internal.search}`;
+        const method = incoming.method;
+        return fetch(target, {
+          method,
+          headers: incoming.headers,
+          body: method === "GET" || method === "HEAD" ? undefined : await incoming.text(),
+        });
+      },
+    }
+  : undefined;
+
 const env = {
   ENVIRONMENT: process.env.ENVIRONMENT ?? "staging",
   PAYMENT_PROVIDER_MODE: process.env.PAYMENT_PROVIDER_MODE ?? "compliance_hold",
   MUSE_AGENT_MODE: process.env.MUSE_AGENT_MODE ?? "staged",
   MUSE_AGENT_CONFIG_KEY: process.env.MUSE_AGENT_CONFIG_KEY ?? "muse:agent-config",
+  MUSE_AGENT_API_KEY: process.env.MUSE_AGENT_API_KEY,
+  SELEMENE_ENGINE_API_KEY: process.env.SELEMENE_ENGINE_API_KEY,
+  MUSE_RAG,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  RESEND_FROM: process.env.RESEND_FROM,
   STRIPE_CHECKOUT_CURRENCY: process.env.STRIPE_CHECKOUT_CURRENCY,
   STRIPE_CHECKOUT_UNIT_AMOUNT: process.env.STRIPE_CHECKOUT_UNIT_AMOUNT,
   STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
