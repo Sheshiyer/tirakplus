@@ -5021,16 +5021,17 @@ p {
    user, guided mode active). Tells the user why they only see chips
    and how many guided turns remain before the auth gate. */
 .muse-guided-mode-hint {
+  /* Quiet one-line caption under the suggestion chips. Was a dashed 999px
+     pill that the chat-panel grid stretched into a tall empty "bubble";
+     align-self:start + no box keeps it a slim note. */
   margin: 0;
-  padding: clamp(8px, 1vw, 10px) clamp(12px, 1.2vw, 16px);
-  color: rgba(244, 231, 193, 0.72);
+  padding: 6px 4px;
+  align-self: start;
+  color: rgba(244, 231, 193, 0.62);
   font-size: clamp(11px, 0.82vw, 13px);
   font-style: italic;
   line-height: 1.45;
   text-align: center;
-  background: rgba(244, 231, 193, 0.04);
-  border: 1px dashed rgba(201, 163, 107, 0.32);
-  border-radius: 999px;
 }
 
 .muse-handoff-card a,
