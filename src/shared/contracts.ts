@@ -543,10 +543,14 @@ export type InquiryStatus =
 export type TravellerInquiryRequest = {
   companionId: string;
   city: CitySlug;
-  experience: ExperienceSlug;
-  preferredWindow: string;
+  experience: ExperienceSlug;        // now user-selected via composer chips (was a URL prop)
+  scheduledFor: string;              // P2 — ISO 8601 datetime, set at inquiry creation (replaces preferredWindow)
+  location: string;                  // P2 — traveller's preferred meeting place, 1-200 chars
   message: string;
   privacyAcknowledged: boolean;
+  // preferredWindow REMOVED (P2, 2026-05-28) — single-page composer picks one
+  // scheduledFor datetime instead of the H3 propose-pick-confirm window chain.
+  // durationMinutes is server-stamped (default 180), not carried on the request.
 };
 
 export type TravellerInquirySummary = {
@@ -576,12 +580,15 @@ export type TravellerInquiryDetail = TravellerInquirySummary & {
   };
   privacyNote: string;
   // H3 — Date negotiation fields, populated as the booking moves through
-  // accepted → date_pending → date_proposed → date_confirmed.
-  travellerWindows?: DateWindow[];                 // populated when traveller has submitted
-  companionSelectedWindow?: DateWindow;            // populated when companion has picked
-  scheduledFor?: string;                           // ISO UTC, set when date_confirmed
-  durationMinutes?: number;                        // set when date_confirmed
+  // accepted → date_pending → date_proposed → date_confirmed (H3 deprecated
+  // by P2; travellerWindows/companionSelectedWindow only present on legacy
+  // bookings).
+  travellerWindows?: DateWindow[];                 // H3 legacy: traveller's proposed windows
+  companionSelectedWindow?: DateWindow;            // H3 legacy: companion's picked window
+  scheduledFor?: string;                           // ISO UTC (P2: set at inquiry creation)
+  durationMinutes?: number;                        // P2: server-stamped 180 default at creation
   confirmedAt?: string;                            // ISO UTC, set when date_confirmed
+  location?: string;                               // P2 — traveller's preferred meeting place
   // H4-stub — Payment hold metadata (populated payment_held onward)
   paymentSessionId?: string;
   paymentStatus?: PaymentHoldStatus;
@@ -630,12 +637,16 @@ export type BookingRecord = {
   updatedAt: string;
   privacyAcknowledged: boolean;
 
-  // Date negotiation (populated H3)
-  travellerWindows?: DateWindow[];           // 2-3 windows the traveller proposes
-  companionSelectedWindow?: DateWindow;      // companion picks one
-  confirmedAt?: string;                      // when both parties confirmed
-  scheduledFor?: string;                     // ISO datetime, when session starts
-  durationMinutes?: number;                  // expected length
+  // Date negotiation (populated H3 — deprecated by P2; travellerWindows /
+  // companionSelectedWindow stay for back-compat with any live H3 bookings).
+  travellerWindows?: DateWindow[];           // H3: 2-3 windows the traveller proposed (no new writes in P2)
+  companionSelectedWindow?: DateWindow;      // H3: companion picked one (no new writes in P2)
+  confirmedAt?: string;                      // when the date was confirmed
+  scheduledFor?: string;                     // ISO datetime, when session starts (P2: set at inquiry creation)
+  durationMinutes?: number;                  // expected length (P2: server-stamped 180 default at creation)
+  location?: string;                         // P2 — traveller's PREFERRED meeting place from the composer.
+                                             // Distinct from H5's companion-set `meetingPoint` (the CONFIRMED
+                                             // point set day-of). Preference vs confirmed; they coexist.
 
   // Payment (populated H4)
   paymentSessionId?: string;                 // Stripe session ID
@@ -885,13 +896,14 @@ export type CompanionSessionDetail = CompanionInquirySummary & {
   declineReason?: CompanionDeclineReasonCategory;
   declineReasonLabel?: string;     // human-readable, e.g. "scheduling conflict"
   declineNotes?: string;
-  // H3 — Date negotiation fields, populated as the booking moves through
-  // accepted → date_pending → date_proposed → date_confirmed.
+  // H3 — Date negotiation fields (H3 deprecated by P2; windows only present
+  // on legacy bookings).
   travellerWindows?: DateWindow[];
   companionSelectedWindow?: DateWindow;
   scheduledFor?: string;
   durationMinutes?: number;
   confirmedAt?: string;
+  location?: string;               // P2 — traveller's preferred meeting place
   // H4-stub — Payment hold metadata (populated payment_held onward)
   paymentSessionId?: string;
   paymentStatus?: PaymentHoldStatus;

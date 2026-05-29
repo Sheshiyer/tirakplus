@@ -39,6 +39,13 @@ type BookingKv = KVNamespace | undefined;
 const INQUIRY_INDEX_LIMIT = 50;
 
 /**
+ * P2 (2026-05-28) — Default session length stamped on a booking at
+ * inquiry-creation time. Duration is server-controlled, not user-picked,
+ * in the single-page composer model. 180 min = 3h.
+ */
+const DEFAULT_SESSION_DURATION_MINUTES = 180;
+
+/**
  * H6 — Maximum number of reviews kept per companion in the KV index.
  * Older reviews fall off as new ones arrive. The exact list is the
  * source of truth for aggregate ratings — we recompute on read rather
@@ -89,10 +96,13 @@ export const TRANSITION_ALLOWLIST: readonly TransitionRule[] = [
   { from: "routed",            to: "accepted",          actor: "companion", note: "H2 endpoint" },
   { from: "routed",            to: "declined",          actor: "companion", note: "H2 endpoint" },
 
-  // H3 — Date negotiation
-  { from: "accepted",          to: "date_pending",      actor: "traveller", note: "H3" },
-  { from: "date_pending",      to: "date_proposed",     actor: "companion", note: "H3" },
-  { from: "date_proposed",     to: "date_confirmed",    actor: "traveller", note: "H3" },
+  // P2 (2026-05-28) — Date is set at inquiry-creation time (single-page
+  // composer), so the companion accept handler auto-advances straight to
+  // date_confirmed. The H3 propose-pick-confirm chain
+  // (accepted→date_pending→date_proposed→date_confirmed) is REMOVED.
+  // date_pending / date_proposed stay in the InquiryStatus enum for
+  // back-compat with any live H3 bookings, but get no new transitions in.
+  { from: "accepted",          to: "date_confirmed",    actor: "system",    note: "P2 — date set at inquiry time" },
 
   // H4 — Payment hold
   { from: "date_confirmed",    to: "payment_held",      actor: "traveller", note: "H4" },
@@ -292,6 +302,12 @@ export async function createBooking(
     createdAt: now,
     updatedAt: now,
     privacyAcknowledged: request.privacyAcknowledged === true,
+    // P2 (2026-05-28) — single-page composer sets the date + place at creation.
+    // durationMinutes is server-stamped (3h default); the companion accept
+    // handler auto-advances accepted → date_confirmed using these values.
+    scheduledFor: request.scheduledFor,
+    location: request.location.trim(),
+    durationMinutes: DEFAULT_SESSION_DURATION_MINUTES,
   };
   return writeBooking(kv, record);
 }
@@ -958,6 +974,8 @@ export function projectBookingToTravellerInquiryDetail(
     scheduledFor: booking.scheduledFor,
     durationMinutes: booking.durationMinutes,
     confirmedAt: booking.confirmedAt,
+    // P2 (2026-05-28) — traveller's preferred meeting place from the composer.
+    location: booking.location,
     // H4-stub (2026-05-27) — pass-through of payment-hold metadata. All
     // five fields stay undefined until status reaches payment_held.
     paymentSessionId: booking.paymentSessionId,
@@ -1136,14 +1154,16 @@ export function projectBookingToCompanionSessionDetail(
     declineReason: booking.declineReason,
     declineReasonLabel: booking.declineReason ? labelForDeclineReason(booking.declineReason) : undefined,
     declineNotes: booking.declineNotes,
-    // H3 (2026-05-27) — pass-through of date-negotiation state. All five
-    // fields are optional on CompanionSessionDetail and stay undefined
-    // until the corresponding stage runs.
+    // H3 (2026-05-27) — pass-through of date-negotiation state (H3
+    // deprecated by P2; windows present only on legacy bookings). scheduledFor
+    // / durationMinutes are now set at inquiry creation in the P2 composer.
     travellerWindows: booking.travellerWindows,
     companionSelectedWindow: booking.companionSelectedWindow,
     scheduledFor: booking.scheduledFor,
     durationMinutes: booking.durationMinutes,
     confirmedAt: booking.confirmedAt,
+    // P2 (2026-05-28) — traveller's preferred meeting place from the composer.
+    location: booking.location,
     // H4-stub (2026-05-27) — pass-through of payment-hold metadata. All
     // five fields stay undefined until status reaches payment_held.
     paymentSessionId: booking.paymentSessionId,

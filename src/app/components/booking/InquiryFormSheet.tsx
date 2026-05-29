@@ -1,8 +1,14 @@
 // InquiryFormSheet.tsx — Pass H1.Task 8.
 //
 // Modal that lets a traveller send a private inquiry to a specific companion.
-// Uses a native <dialog> for v1; Pass J will replace the wrapper with the
-// BottomSheet primitive but the form internals will stay the same.
+// Uses a native <dialog> for v1.
+//
+// P2.T1 (2026-05-28) — Migrated off the deprecated H3 free-text
+// `preferredWindow` to the single-date model: the traveller now picks one
+// `scheduledFor` datetime + a `location` at inquiry time (the companion accept
+// handler auto-advances accepted → date_confirmed). This is the MINIMAL
+// contract-compliant form; P2.T5 replaces this <dialog> with the full
+// InquiryComposerPage (availability-gated calendar, time chips, Muse assist).
 //
 // Lifecycle pattern mirrors the sub-card forms inside AccountSettings
 // (DataExportCard / DeletionCard / SafetyReportsCard): local useState for
@@ -39,7 +45,8 @@ export function InquiryFormSheet(props: InquiryFormSheetProps) {
   const { open, companionId, companionDisplayName, city, experience, onClose, onSubmitted } = props;
 
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [preferredWindow, setPreferredWindow] = useState("");
+  const [scheduledFor, setScheduledFor] = useState("");
+  const [location, setLocation] = useState("");
   const [message, setMessage] = useState("");
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
   const [actionState, setActionState] = useState<ActionState>("idle");
@@ -62,7 +69,8 @@ export function InquiryFormSheet(props: InquiryFormSheetProps) {
   // doesn't leak into the next inquiry.
   useEffect(() => {
     if (open) {
-      setPreferredWindow("");
+      setScheduledFor("");
+      setLocation("");
       setMessage("");
       setPrivacyAcknowledged(false);
       setActionState("idle");
@@ -91,8 +99,11 @@ export function InquiryFormSheet(props: InquiryFormSheetProps) {
     // Local validation first — avoid a round trip if we already know
     // required fields are missing. Server validates min length too.
     const nextErrors: Record<string, string> = {};
-    if (preferredWindow.trim().length === 0) {
-      nextErrors.preferredWindow = "Tell Tirak when works for you.";
+    if (scheduledFor.trim().length === 0) {
+      nextErrors.scheduledFor = "Pick a date and time.";
+    }
+    if (location.trim().length === 0) {
+      nextErrors.location = "Add a preferred meeting place.";
     }
     if (message.trim().length < MIN_MESSAGE_LENGTH) {
       nextErrors.message = `Share at least ${MIN_MESSAGE_LENGTH} characters about this trip.`;
@@ -115,7 +126,8 @@ export function InquiryFormSheet(props: InquiryFormSheetProps) {
       companionId,
       city,
       experience,
-      preferredWindow: preferredWindow.trim(),
+      scheduledFor: scheduledFor.trim(),
+      location: location.trim(),
       message: message.trim(),
       privacyAcknowledged: true,
     };
@@ -148,13 +160,24 @@ export function InquiryFormSheet(props: InquiryFormSheetProps) {
 
       <form className="inquiry-form-sheet-body" onSubmit={submit} noValidate>
         <Input
-          label="Preferred window"
-          value={preferredWindow}
-          onChange={(event) => setPreferredWindow(event.target.value)}
-          placeholder="weekend evening"
-          helperText="When works for you? Tirak shares this with the companion if approved."
-          error={fieldErrors.preferredWindow}
+          label="Date and time"
+          type="datetime-local"
+          value={scheduledFor}
+          onChange={(event) => setScheduledFor(event.target.value)}
+          helperText="Pick when you'd like to meet — at least 2 hours from now."
+          error={fieldErrors.scheduledFor}
+          disabled={submitting}
+        />
+
+        <Input
+          label="Preferred meeting place"
+          value={location}
+          onChange={(event) => setLocation(event.target.value)}
+          placeholder="e.g. a hotel lobby or a well-known cafe"
+          helperText="Where would you like to meet? Tirak shares this with the companion if approved."
+          error={fieldErrors.location}
           autoComplete="off"
+          maxLength={200}
           disabled={submitting}
         />
 
