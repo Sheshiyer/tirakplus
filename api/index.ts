@@ -34,6 +34,84 @@ const MUSE_RAG = museRagUrl
     }
   : undefined;
 
+// Cloudflare KV REST API shim — bridges the Vercel Node.js runtime to the
+// same KV namespaces that the Workers runtime accesses natively via bindings.
+// Requires CF_KV_API_TOKEN to be set; when absent the binding resolves to
+// undefined and every store gracefully no-ops (same as a missing Workers
+// binding). CF_ACCOUNT_ID defaults to the tirak.court@gmail.com account.
+//
+// Env vars to set in Vercel:
+//   CF_ACCOUNT_ID            — Cloudflare account ID (default: 2c0c96c68f0ee73b6d980054557bca5b)
+//   CF_KV_API_TOKEN          — CF API token with KV write access
+//   AUTH_OTPS_NAMESPACE_ID   — already created; ID: 2c16677830fb424aadd690f3e87106c6
+//   MUSE_AGENT_CONFIG_NAMESPACE_ID — already created; ID: 5c914cc2d3094278bfe2b6516739a9c7
+//   MUSE_CONVERSATIONS_NAMESPACE_ID — already created; ID: 442973720cba46129bc0118f96b0f4eb
+//   BOOKING_DATA_NAMESPACE_ID  — run: wrangler kv:namespace create BOOKING_DATA
+//   ACCOUNT_DATA_NAMESPACE_ID  — run: wrangler kv:namespace create ACCOUNT_DATA
+function makeKvHttpShim(accountId: string, namespaceId: string, apiToken: string) {
+  const base = `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}`;
+  const authHeader = { Authorization: `Bearer ${apiToken}` };
+
+  async function kvGet(key: string, options?: string | object): Promise<any> {
+    const type = typeof options === "string" ? options : (options as any)?.type;
+    const res = await fetch(`${base}/values/${encodeURIComponent(key)}`, { headers: authHeader });
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    if (type === "json") {
+      try { return await res.json(); } catch { return null; }
+    }
+    if (type === "arrayBuffer") return res.arrayBuffer();
+    if (type === "stream") return res.body;
+    return res.text();
+  }
+
+  return {
+    get: kvGet,
+    async put(key: string, value: string | ArrayBuffer | ReadableStream, options?: { expiration?: number; expirationTtl?: number }): Promise<void> {
+      const url = new URL(`${base}/values/${encodeURIComponent(key)}`);
+      if (options?.expiration) url.searchParams.set("expiration", String(options.expiration));
+      if (options?.expirationTtl) url.searchParams.set("expiration_ttl", String(options.expirationTtl));
+      await fetch(url.toString(), { method: "PUT", headers: authHeader, body: value as string });
+    },
+    async delete(key: string): Promise<void> {
+      await fetch(`${base}/values/${encodeURIComponent(key)}`, { method: "DELETE", headers: authHeader });
+    },
+    async list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<any> {
+      const url = new URL(`${base}/keys`);
+      if (options?.prefix) url.searchParams.set("prefix", options.prefix);
+      if (options?.limit) url.searchParams.set("limit", String(options.limit));
+      if (options?.cursor) url.searchParams.set("cursor", options.cursor);
+      const res = await fetch(url.toString(), { headers: authHeader });
+      if (!res.ok) return { keys: [], list_complete: true };
+      const data: any = await res.json();
+      return data.result ?? { keys: [], list_complete: true };
+    },
+    async getWithMetadata(key: string, type?: string): Promise<any> {
+      return { value: await kvGet(key, type), metadata: null };
+    },
+  };
+}
+
+const cfAccountId = process.env.CF_ACCOUNT_ID ?? "2c0c96c68f0ee73b6d980054557bca5b";
+const cfKvToken = process.env.CF_KV_API_TOKEN;
+
+function makeKv(namespaceId: string | undefined) {
+  if (!cfKvToken || !namespaceId) return undefined;
+  return makeKvHttpShim(cfAccountId, namespaceId, cfKvToken);
+}
+
+// Three already-provisioned namespaces — IDs are stable; override via env if needed.
+// Use || (not ??) so an empty-string env var falls back to the hardcoded default
+// rather than passing "" to makeKv and getting undefined back.
+const AUTH_OTPS = makeKv(process.env.AUTH_OTPS_NAMESPACE_ID || "2c16677830fb424aadd690f3e87106c6");
+const MUSE_AGENT_CONFIG = makeKv(process.env.MUSE_AGENT_CONFIG_NAMESPACE_ID || "5c914cc2d3094278bfe2b6516739a9c7");
+const MUSE_CONVERSATIONS = makeKv(process.env.MUSE_CONVERSATIONS_NAMESPACE_ID || "442973720cba46129bc0118f96b0f4eb");
+// Two provisioned namespaces — IDs set via Vercel env vars (BOOKING_DATA_NAMESPACE_ID,
+// ACCOUNT_DATA_NAMESPACE_ID). When absent the binding resolves to undefined and the
+// store gracefully no-ops (fixture fallback serves demo content).
+const ACCOUNT_DATA = makeKv(process.env.ACCOUNT_DATA_NAMESPACE_ID);
+const BOOKING_DATA = makeKv(process.env.BOOKING_DATA_NAMESPACE_ID);
+
 const env = {
   ENVIRONMENT: process.env.ENVIRONMENT ?? "staging",
   PAYMENT_PROVIDER_MODE: process.env.PAYMENT_PROVIDER_MODE ?? "compliance_hold",
@@ -48,6 +126,11 @@ const env = {
   STRIPE_CHECKOUT_UNIT_AMOUNT: process.env.STRIPE_CHECKOUT_UNIT_AMOUNT,
   STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+  AUTH_OTPS,
+  MUSE_AGENT_CONFIG,
+  MUSE_CONVERSATIONS,
+  ACCOUNT_DATA,
+  BOOKING_DATA,
 };
 
 export default async function handler(req: any, res: any) {

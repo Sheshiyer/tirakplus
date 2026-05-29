@@ -15,3 +15,8 @@ generated/
 
 # Local agent / worktree config
 .claude/
+
+# Playwright
+playwright-report/
+test-results/
+tests/e2e/screenshots/

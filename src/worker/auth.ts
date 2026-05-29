@@ -185,7 +185,13 @@ export async function routeAuth(request: Request, pathname: string, requestId?: 
     const roleParam = url.searchParams.get("role");
     const role: Extract<UserRole, "traveller" | "companion"> =
       roleParam === "companion" ? "companion" : "traveller";
-    const fixedEmail = role === "companion" ? "dev.companion@tirak.app" : "dev.traveller@tirak.app";
+    // Allow ?email= override in dev so E2E tests can log in as a specific
+    // synthetic companion email (e.g. companion-cmp-aura@tirak.app) to match
+    // the booking index key. Only accepted in non-production.
+    const emailOverride = url.searchParams.get("email")?.trim().toLowerCase();
+    const fixedEmail = emailOverride
+      ? emailOverride
+      : role === "companion" ? "dev.companion@tirak.app" : "dev.traveller@tirak.app";
     const session = createSession(fixedEmail, role);
     const dashboard = role === "companion" ? "/companion" : "/traveller";
     console.log(`[dev/login] role=${role} → ${fixedEmail} → ${dashboard}`);
