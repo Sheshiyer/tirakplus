@@ -9933,16 +9933,18 @@ p {
    ===================================================================== */
 
 /* Mobile (<=860px) — the .bottom-nav is visible here, so lift the fixed
-   submit bar above it (mirrors .profile-sticky-cta). The page already
-   reserves bottom padding; bump it for the bar + nav stack. */
+   submit bar above it (mirrors .profile-sticky-cta). The shell reserves
+   88px for the nav (see .public-shell padding-bottom), so the bar must
+   clear 88px — not 68px — or the nav clips the "private + confidential"
+   footnote at the bottom of the bar (P2.T7 fix). */
 @media (max-width: 860px) {
   .inquiry-composer-submit-bar {
-    bottom: calc(68px + env(safe-area-inset-bottom));
+    bottom: calc(88px + env(safe-area-inset-bottom));
     padding-bottom: 14px;
   }
 
   .inquiry-composer-page {
-    padding-bottom: calc(220px + env(safe-area-inset-bottom));
+    padding-bottom: calc(248px + env(safe-area-inset-bottom));
   }
 
   /* Compact the left rail's profile card on the smallest frames so the
@@ -9953,16 +9955,18 @@ p {
 }
 
 /* Tablet (>=768px) — 2 columns: profile+discreet rail | form. Matches the
-   board's tablet frame. Right rail stays hidden until desktop. */
+   board's tablet frame. Right rail stays hidden until desktop. P2.T7 nudge:
+   the form column gets more dominance (was feeling wide-mobile-narrow) and
+   the calendar widens so the grid reads as a true 2-col tablet. */
 @media (min-width: 768px) {
   .inquiry-composer-layout {
-    grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.6fr);
+    grid-template-columns: minmax(196px, 0.62fr) minmax(0, 1.9fr);
     gap: clamp(22px, 3vw, 32px);
   }
 
-  /* Calendar can breathe a touch wider inside the form column at tablet+. */
+  /* Calendar can breathe wider inside the form column at tablet+. */
   .inquiry-composer-block .composer-calendar {
-    max-width: 360px;
+    max-width: 420px;
   }
 }
 

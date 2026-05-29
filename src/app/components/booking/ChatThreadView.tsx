@@ -168,7 +168,21 @@ export function ChatThreadView(props: ChatThreadViewProps) {
   // Initial fetch on mount (and whenever inquiryId changes). On error we
   // surface a placeholder; polling won't start until canPost is true so
   // the error path keeps the surface readable without retry storms.
+  //
+  // P2.T7 fix: gate the initial fetch on canPost. The server returns 409
+  // THREAD_LOCKED for bookings outside MATCHED_STATUSES (routed/submitted),
+  // so an unconditional mount fetch logged a 409 console error on every
+  // detail page for a not-yet-matched booking. When the booking later
+  // advances into a matched state, canPost flips true and this effect
+  // re-fires to load the thread.
   useEffect(() => {
+    if (!canPost) {
+      setMessages([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -196,7 +210,7 @@ export function ChatThreadView(props: ChatThreadViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [inquiryId]);
+  }, [inquiryId, canPost]);
 
   // 5s polling — only while the booking is in a matched state. Skips
   // when the tab is hidden so a backgrounded page doesn't burn API
