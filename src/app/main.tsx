@@ -18,6 +18,7 @@ import { AccountSettings } from "./pages/AccountSettings";
 import { TravellerDashboardPage } from "./pages/TravellerDashboardPage";
 import { TravellerDiscovery } from "./pages/TravellerDiscovery";
 import { CompanionProfilePage } from "./pages/CompanionProfilePage";
+import { InquiryComposerPage } from "./pages/InquiryComposerPage";
 import { TravellerInquiriesPage } from "./pages/TravellerInquiriesPage";
 import { TravellerInquiryDetailPage } from "./pages/TravellerInquiryDetailPage";
 import { TravellerSessionsPage } from "./pages/TravellerSessionsPage";
@@ -85,6 +86,7 @@ const router = createBrowserRouter([
           { path: "dashboard", element: <TravellerDashboardPage /> },
           { path: "discovery", element: <TravellerDiscovery /> },
           { path: "companions/:companionId", element: <CompanionProfilePage /> },
+          { path: "companions/:companionId/inquire", element: <InquiryComposerPage /> },
           { path: "inbox", element: <TravellerInquiriesPage /> },
           { path: "inbox/:inquiryId", element: <TravellerInquiryDetailPage /> },
           { path: "inquiries/:inquiryId", element: <TravellerInquiryDetailPage /> },

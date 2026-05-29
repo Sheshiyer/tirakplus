@@ -22,7 +22,7 @@
 // removed from MuseChatPage on 2026-05-27).
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type {
   CompanionProfile,
   CompanionRatingAggregate,
@@ -31,7 +31,6 @@ import type {
 import { BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { AssetRegistry } from "../registry/assets";
-import { InquiryFormSheet } from "../components/booking/InquiryFormSheet";
 import { Button } from "../components/ui/Button";
 import { Chip } from "../components/ui/Chip";
 import { FeedbackState } from "../components/ui/FeedbackState";
@@ -49,10 +48,9 @@ type ReviewsState =
 
 export function CompanionProfilePage() {
   const { companionId } = useParams();
+  const navigate = useNavigate();
   const [state, setState] = useState<ProfileState>({ status: "loading" });
   const [reviewsState, setReviewsState] = useState<ReviewsState>({ status: "loading" });
-  const [inquiryOpen, setInquiryOpen] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companionId) {
@@ -318,15 +316,15 @@ export function CompanionProfilePage() {
         </section>
       )}
 
-      {statusMessage && (
-        <p className="profile-status-message-v2" role="status">
-          {statusMessage}
-        </p>
-      )}
-
       {/* Sticky bottom CTA — pinned to viewport, dark backdrop with blur.
           Hidden when the profile can't take inquiries so we don't dangle a
-          dead button (visibilityState !== "public" or no experience tags). */}
+          dead button (visibilityState !== "public" or no experience tags).
+
+          P2.T5 — the CTA now routes to the full-page InquiryComposerPage
+          (/traveller/companions/:id/inquire) instead of opening the old
+          InquiryFormSheet / InquiryConversation <dialog>. The composer owns
+          date/time/experience/location/message + submit; this page no longer
+          hosts the inquiry modal. */}
       {canSendInquiry && (
         <div className="profile-sticky-cta" role="region" aria-label="Send inquiry">
           <p className="profile-sticky-cta-microcopy">Private inquiry</p>
@@ -334,26 +332,11 @@ export function CompanionProfilePage() {
             type="button"
             variant="coral"
             fullWidth
-            onClick={() => setInquiryOpen(true)}
+            onClick={() => navigate(`/traveller/companions/${profile.id}/inquire`)}
           >
             Inquire
           </Button>
         </div>
-      )}
-
-      {canSendInquiry && primaryExperience && (
-        <InquiryFormSheet
-          open={inquiryOpen}
-          companionId={profile.id}
-          companionDisplayName={profile.displayName}
-          city={profile.city}
-          experience={primaryExperience}
-          onClose={() => setInquiryOpen(false)}
-          onSubmitted={() => {
-            setInquiryOpen(false);
-            setStatusMessage(`Inquiry sent to ${profile.displayName}. Check your inbox.`);
-          }}
-        />
       )}
     </section>
   );

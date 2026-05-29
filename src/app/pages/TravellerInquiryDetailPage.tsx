@@ -202,9 +202,13 @@ export function TravellerInquiryDetailPage() {
       Date.now() >=
         Date.parse(inquiry.scheduledFor) - ITINERARY_UNLOCK_HOURS * 60 * 60 * 1000,
   );
+  // P2.T5 — gate on scheduledFor (the P2 source of truth). New P2 bookings
+  // carry scheduledFor + durationMinutes but never companionSelectedWindow
+  // (the H3 field). The window the itinerary needs is synthesized from
+  // scheduledFor below (windowFromSchedule), so a legacy companionSelectedWindow
+  // is no longer required to render the surface.
   const showItinerary = Boolean(
-    inquiry.companionSelectedWindow &&
-      inquiry.scheduledFor &&
+    inquiry.scheduledFor &&
       (inquiry.status === "session_live" ||
         inquiry.status === "session_completed" ||
         (inquiry.status === "session_scheduled" && itineraryUnlocked) ||
@@ -348,10 +352,10 @@ export function TravellerInquiryDetailPage() {
           </section>
         )}
 
-        {inquiry.status === "date_confirmed" && inquiry.companionSelectedWindow && (
+        {inquiry.status === "date_confirmed" && inquiry.scheduledFor && (
           <section className="plan-stage-confirmed" aria-label="Plan confirmed">
             <p className="eyebrow">Plan confirmed</p>
-            <h2>{formatWindowLabel(inquiry.companionSelectedWindow)}</h2>
+            <h2>{formatScheduleLabel(inquiry.scheduledFor, inquiry.durationMinutes)}</h2>
             <p>
               Bangkok local time
               {typeof inquiry.durationMinutes === "number"
@@ -393,11 +397,11 @@ export function TravellerInquiryDetailPage() {
             until the Stripe webhook fires. In dev/staging the bridge skips
             straight to session_scheduled, so this panel is rarely seen — but
             we still render it so the prod path has a coherent surface. */}
-        {inquiry.status === "payment_held" && inquiry.companionSelectedWindow && (
+        {inquiry.status === "payment_held" && inquiry.scheduledFor && (
           <section className="plan-stage-confirmed" aria-label="Booking held">
             <p className="eyebrow">Booking held</p>
             <h2>Your hold is in place.</h2>
-            <p>{formatWindowLabel(inquiry.companionSelectedWindow)} (Bangkok local time)</p>
+            <p>{formatScheduleLabel(inquiry.scheduledFor, inquiry.durationMinutes)} (Bangkok local time)</p>
             {inquiry.heldAt && <p>Held on {formatDate(inquiry.heldAt)}.</p>}
             <p>Tirak will share day-of details closer to the session.</p>
           </section>
@@ -406,10 +410,10 @@ export function TravellerInquiryDetailPage() {
         {/* H4-stub — session_scheduled panel. Terminal state for H4-stub. H5
             will replace this with the real day-of itinerary view (meeting
             point, contact number, safety checklist). */}
-        {inquiry.status === "session_scheduled" && inquiry.companionSelectedWindow && (
+        {inquiry.status === "session_scheduled" && inquiry.scheduledFor && (
           <section className="plan-stage-confirmed plan-stage-scheduled" aria-label="Session scheduled">
             <p className="eyebrow">Session scheduled</p>
-            <h2>{formatWindowLabel(inquiry.companionSelectedWindow)}</h2>
+            <h2>{formatScheduleLabel(inquiry.scheduledFor, inquiry.durationMinutes)}</h2>
             <p>
               Bangkok local time
               {typeof inquiry.durationMinutes === "number"
@@ -450,11 +454,14 @@ export function TravellerInquiryDetailPage() {
             the JSX so TS can drop the undefined branch. perspective is
             "traveller" so the contact + notes cards read as
             "Companion contact" / "Notes from your companion". */}
-        {showItinerary && inquiry.companionSelectedWindow && inquiry.scheduledFor && (
+        {showItinerary && inquiry.scheduledFor && (
           <SessionItinerary
             scheduledFor={inquiry.scheduledFor}
             durationMinutes={inquiry.durationMinutes}
-            selectedWindow={inquiry.companionSelectedWindow}
+            selectedWindow={
+              inquiry.companionSelectedWindow ??
+              windowFromSchedule(inquiry.scheduledFor, inquiry.durationMinutes)
+            }
             meetingPoint={inquiry.meetingPoint}
             contactNumber={inquiry.contactNumber}
             dayOfNotes={inquiry.dayOfNotes}
@@ -560,12 +567,19 @@ export function TravellerInquiryDetailPage() {
   );
 }
 
-// formatWindowLabel renders the confirmed window in Asia/Bangkok local time
-// for the date_confirmed+ panels below. Still duplicated with the companion
-// detail page + SessionItinerary; the H3 sibling components that also carried
-// it were deleted in P2.T2. Extract to shared/booking-utils.ts in a future
-// polish pass.
-function formatWindowLabel(window: DateWindow): string {
+// P2.T5 — Default session length when durationMinutes is absent. Mirrors the
+// server-stamped default (180 min / 3h) so a booking that somehow lacks the
+// field still renders a coherent end time.
+const DEFAULT_DURATION_MINUTES = 180;
+
+// P2.T5 — Render a confirmed slot as "Sat, 14 June · 18:00–21:00" in
+// Asia/Bangkok local time, derived from the P2 scheduledFor + durationMinutes
+// (the H3 companionSelectedWindow is no longer the source of truth). Same
+// output shape as formatWindowLabel so the date_confirmed+ panels read
+// identically whether the data came from a legacy window or the new fields.
+function formatScheduleLabel(scheduledFor: string, durationMinutes?: number): string {
+  const start = new Date(scheduledFor);
+  const end = new Date(start.getTime() + (durationMinutes ?? DEFAULT_DURATION_MINUTES) * 60 * 1000);
   const startFmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Bangkok",
     weekday: "short",
@@ -581,8 +595,8 @@ function formatWindowLabel(window: DateWindow): string {
     minute: "2-digit",
     hour12: false,
   });
-  const startParts = startFmt.formatToParts(new Date(window.start));
-  const endParts = endFmt.formatToParts(new Date(window.end));
+  const startParts = startFmt.formatToParts(start);
+  const endParts = endFmt.formatToParts(end);
   const get = (parts: Intl.DateTimeFormatPart[], type: string) =>
     parts.find((p) => p.type === type)?.value ?? "";
   const weekday = get(startParts, "weekday");
@@ -591,6 +605,16 @@ function formatWindowLabel(window: DateWindow): string {
   const startTime = `${get(startParts, "hour")}:${get(startParts, "minute")}`;
   const endTime = `${get(endParts, "hour")}:${get(endParts, "minute")}`;
   return `${weekday}, ${day} ${month} · ${startTime}–${endTime}`;
+}
+
+// P2.T5 — Synthesize a DateWindow from scheduledFor + durationMinutes for the
+// SessionItinerary surface, which still takes a required selectedWindow prop.
+// New P2 bookings never set companionSelectedWindow, so we build an equivalent
+// window on the fly; legacy bookings keep using their stored window.
+function windowFromSchedule(scheduledFor: string, durationMinutes?: number): DateWindow {
+  const start = new Date(scheduledFor);
+  const end = new Date(start.getTime() + (durationMinutes ?? DEFAULT_DURATION_MINUTES) * 60 * 1000);
+  return { start: start.toISOString(), end: end.toISOString() };
 }
 
 // Mirrors AccountSettings.tsx's ISO → human date helper so confirmedAt /
