@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { CompanionDashboardResponse, CompanionReviewStatus } from "../../shared/contracts";
 import { CompanionService } from "../api/companion";
 import { MuseChartPanel } from "../components/muse/MuseChartPanel";
-import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
 
@@ -91,15 +90,19 @@ export function CompanionDashboardPage() {
 
       <div className="companion-action-grid">
         {panels.map((panel) => (
-          <article key={panel.href} className="companion-action-card">
-            <div>
+          <Link key={panel.href} to={panel.href} className="companion-action-card">
+            <span className="companion-action-card-icon" aria-hidden="true">
+              {actionIcon(panel.href)}
+            </span>
+            <div className="companion-action-card-body">
               <h2>{panel.title}</h2>
               <p>{panel.description}</p>
             </div>
-            <Button as={Link} to={panel.href} variant="secondary">
+            <span className="companion-action-card-cta">
               Open
-            </Button>
-          </article>
+              <ArrowIcon />
+            </span>
+          </Link>
         ))}
       </div>
 
@@ -111,7 +114,10 @@ export function CompanionDashboardPage() {
         <div className="review-state-grid">
           {reviewStates.map((state) => (
             <article key={state.status} className={`review-state-card review-state-card-${state.status}`}>
-              <p className="meta">{state.status.replace(/_/g, " ")}</p>
+              <p className="meta">
+                <span className={`review-state-dot review-state-dot-${state.status}`} aria-hidden="true" />
+                {state.status.replace(/_/g, " ")}
+              </p>
               <h3>{state.label}</h3>
               <p>{state.description}</p>
               <p className="review-action">{state.action}</p>
@@ -137,4 +143,48 @@ export function CompanionDashboardPage() {
 
 function statusLabel(status: CompanionReviewStatus): string {
   return status.replace(/_/g, " ");
+}
+
+// Route-mapped line icons for the action cards. Inline SVG mirrors the
+// CompanionProfilePage icon pattern (stroke=currentColor) so the dashboard
+// speaks the same visual vocabulary without a new icon dependency.
+function actionIcon(href: string): ReactNode {
+  if (href.includes("/plans") || href.includes("/availability")) return <CalendarIcon />;
+  if (href.includes("/inbox") || href.includes("/inquir")) return <InboxIcon />;
+  return <ProfileIcon />;
+}
+
+function ProfileIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <circle cx="12" cy="8.5" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5 19.5c0-3.4 3.1-5.5 7-5.5s7 2.1 7 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CalendarIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <rect x="4" y="5.5" width="16" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M4 9.5h16M8.5 3.5v4M15.5 3.5v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function InboxIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+      <path d="M4 6.5h16v11H4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M4 12.5h4l1.5 2.5h5l1.5-2.5h4" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ArrowIcon(): ReactNode {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true">
+      <path d="M4.5 10h10M10.5 5.5 15 10l-4.5 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
