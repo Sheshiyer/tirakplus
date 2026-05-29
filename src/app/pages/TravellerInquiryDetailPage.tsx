@@ -4,8 +4,6 @@ import type { DateWindow, PaymentProviderSummary, TravellerInquiryDetail } from 
 import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
 import { ChatThreadView } from "../components/booking/ChatThreadView";
-import { ConfirmPlanView } from "../components/booking/ConfirmPlanView";
-import { DateWindowPicker } from "../components/booking/DateWindowPicker";
 import { ReviewFormSheet } from "../components/booking/ReviewFormSheet";
 import { SessionItinerary } from "../components/booking/SessionItinerary";
 import { Button } from "../components/ui/Button";
@@ -34,17 +32,6 @@ export function TravellerInquiryDetailPage() {
   const [checkoutState, setCheckoutState] = useState<"idle" | "creating">("idle");
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const isPollingRef = useRef(false);
-
-  // H3.T7 — Stage-aware plan UI toggles.
-  //   showWindowPicker: drives the "accepted → propose dates" CTA → inline
-  //     DateWindowPicker pattern. Closed by default so the page first reads
-  //     as a calm status panel; the traveller opts in to the form.
-  //   showConfirmForm: open by default when the page is sitting on
-  //     date_proposed (the companion has picked; confirming is the only
-  //     productive next move). Cancel collapses it into a smaller CTA card
-  //     for the "I'll confirm later" path, with a button to re-open.
-  const [showWindowPicker, setShowWindowPicker] = useState(false);
-  const [showConfirmForm, setShowConfirmForm] = useState(true);
 
   // H4-stub — Hold-booking action state. Drives the "Hold your booking" CTA
   // that sits below the date_confirmed summary. submitting disables the
@@ -340,84 +327,25 @@ export function TravellerInquiryDetailPage() {
 
         <p className="privacy-note">{inquiry.privacyNote}</p>
 
-        {/* H3.T7 — Stage-aware plan UI. Renders different surfaces
-            depending on inquiry.status so the same detail page carries the
-            traveller through propose → wait → confirm → confirmed without
-            a route change. Statuses outside this chain (submitted /
-            under_review / routed / declined / cancelled / payment / etc.)
-            fall through with no extra UI; the existing detail surface and
-            future H4-H6 panels cover them. */}
-        {inquiry.status === "accepted" && !showWindowPicker && (
-          <section className="plan-stage-cta" aria-label="Propose dates">
-            <p className="eyebrow">Plan</p>
-            <h2>{inquiry.companionDisplayName} accepted your inquiry.</h2>
-            <p>Suggest 2 or 3 times that work. Your companion will pick one.</p>
+        {/* P2.T2 — Legacy reschedule fallback. The H3 propose → pick →
+            confirm chain (DateWindowPicker / ConfirmPlanView) was removed in
+            P2: new inquiries carry a single scheduledFor from the composer
+            and auto-advance accepted → date_confirmed server-side. Only
+            bookings created BEFORE the P2.T1 migration can still be sitting
+            in date_pending / date_proposed. Rather than crash on the deleted
+            pickers, surface a neutral "start over" card pointing back to
+            discovery. New bookings never hit this branch. */}
+        {(inquiry.status === "date_pending" || inquiry.status === "date_proposed") && (
+          <section className="plan-stage-cta" aria-label="Reschedule needed">
+            <p className="eyebrow">Reschedule needed</p>
+            <h2>This plan used an older scheduling flow.</h2>
+            <p>Please start a new inquiry with your preferred date.</p>
             <div className="plan-stage-actions">
-              <Button type="button" variant="primary" onClick={() => setShowWindowPicker(true)}>
-                Propose dates
+              <Button as={Link} to="/traveller/discovery" variant="primary">
+                Open discovery
               </Button>
             </div>
           </section>
-        )}
-
-        {inquiry.status === "accepted" && showWindowPicker && (
-          <DateWindowPicker
-            inquiryId={inquiry.id}
-            initialWindows={inquiry.travellerWindows}
-            onSubmitted={(next) => {
-              setShowWindowPicker(false);
-              setState({ status: "ready", inquiry: next });
-            }}
-            onCancel={() => setShowWindowPicker(false)}
-          />
-        )}
-
-        {inquiry.status === "date_pending" && (
-          <section className="plan-stage-cta" aria-label="Waiting on companion">
-            <p className="eyebrow">Plan</p>
-            <h2>
-              Waiting for {inquiry.companionDisplayName} to pick a window.
-            </h2>
-            <p>You proposed:</p>
-            {inquiry.travellerWindows && inquiry.travellerWindows.length > 0 && (
-              <ul className="plan-window-readonly-list">
-                {inquiry.travellerWindows.map((window, index) => (
-                  <li key={index}>
-                    <p className="label">{formatWindowLabel(window)}</p>
-                    {window.note && <p className="note">{window.note}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-
-        {inquiry.status === "date_proposed" && inquiry.companionSelectedWindow && (
-          <>
-            {showConfirmForm ? (
-              <ConfirmPlanView
-                inquiryId={inquiry.id}
-                companionSelectedWindow={inquiry.companionSelectedWindow}
-                companionDisplayName={inquiry.companionDisplayName}
-                onSubmitted={(next) => {
-                  setShowConfirmForm(false);
-                  setState({ status: "ready", inquiry: next });
-                }}
-                onCancel={() => setShowConfirmForm(false)}
-              />
-            ) : (
-              <section className="plan-stage-cta" aria-label="Confirm the picked window">
-                <p className="eyebrow">Plan</p>
-                <h2>{inquiry.companionDisplayName} picked a window.</h2>
-                <p>Confirm to lock the plan — they can't proceed until you do.</p>
-                <div className="plan-stage-actions">
-                  <Button type="button" variant="primary" onClick={() => setShowConfirmForm(true)}>
-                    Open confirm form
-                  </Button>
-                </div>
-              </section>
-            )}
-          </>
         )}
 
         {inquiry.status === "date_confirmed" && inquiry.companionSelectedWindow && (
@@ -632,11 +560,11 @@ export function TravellerInquiryDetailPage() {
   );
 }
 
-// TODO(H3-followup): formatWindowLabel is duplicated across
-// DateWindowPicker, WindowSelectionView, ConfirmPlanView, and now this page.
-// Extract to shared/booking-utils.ts in a future polish pass — the sibling
-// components all carry the same flag and v1 keeps the local copy on
-// purpose to avoid expanding T7's surface area.
+// formatWindowLabel renders the confirmed window in Asia/Bangkok local time
+// for the date_confirmed+ panels below. Still duplicated with the companion
+// detail page + SessionItinerary; the H3 sibling components that also carried
+// it were deleted in P2.T2. Extract to shared/booking-utils.ts in a future
+// polish pass.
 function formatWindowLabel(window: DateWindow): string {
   const startFmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Bangkok",

@@ -11,7 +11,6 @@ import { MuseChartPanel } from "../components/muse/MuseChartPanel";
 import { ChatThreadView } from "../components/booking/ChatThreadView";
 import { SetDayOfDetailsForm } from "../components/booking/SetDayOfDetailsForm";
 import { SessionItinerary } from "../components/booking/SessionItinerary";
-import { WindowSelectionView } from "../components/booking/WindowSelectionView";
 import { Button } from "../components/ui/Button";
 import { FeedbackState } from "../components/ui/FeedbackState";
 import { SkeletonCard } from "../components/ui/Skeleton";
@@ -57,15 +56,6 @@ export function CompanionInquiryDetailPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusVariant, setStatusVariant] = useState<"info" | "error">("info");
-
-  // H3.T8 — Stage-aware plan UI toggle.
-  //   showWindowSelection: drives the "date_pending → pick a window" CTA →
-  //     inline WindowSelectionView pattern. Defaults OPEN because once the
-  //     traveller has proposed, picking is the only productive next move
-  //     for the companion. Cancel collapses it into a smaller CTA card
-  //     with a button to re-open. Mirrors showConfirmForm on the traveller
-  //     side (H3.T7).
-  const [showWindowSelection, setShowWindowSelection] = useState(true);
 
   // H5.T5 — Day-of details form toggle. Defaults CLOSED so the companion
   // sees the "Set day-of details" / "Edit details" CTA first and only
@@ -514,47 +504,27 @@ export function CompanionInquiryDetailPage() {
         </section>
       )}
 
-      {data.status === "date_pending" && data.travellerWindows && data.travellerWindows.length > 0 && (
-        showWindowSelection ? (
-          <WindowSelectionView
-            inquiryId={data.id}
-            travellerWindows={data.travellerWindows}
-            onSubmitted={(next) => {
-              setShowWindowSelection(false);
-              setState({ status: "ready", data: next });
-            }}
-            onCancel={() => setShowWindowSelection(false)}
-          />
-        ) : (
-          <section className="plan-stage-cta" aria-label="Pick a window">
-            <p className="eyebrow">Plan</p>
-            <h2>
-              The traveller proposed {data.travellerWindows.length} window
-              {data.travellerWindows.length === 1 ? "" : "s"}.
-            </h2>
-            <p>Pick the one that works best for you.</p>
-            <div className="plan-stage-actions">
-              <Button type="button" variant="primary" onClick={() => setShowWindowSelection(true)}>
-                Pick a window
-              </Button>
-            </div>
-          </section>
-        )
-      )}
-
-      {data.status === "date_proposed" && data.companionSelectedWindow && (
-        <section className="plan-stage-cta" aria-label="Waiting for traveller to confirm">
-          <p className="eyebrow">Plan</p>
-          <h2>Waiting for {data.travellerLabel} to confirm.</h2>
-          <p>You picked:</p>
-          <ul className="plan-window-readonly-list">
-            <li>
-              <p className="label">{formatWindowLabel(data.companionSelectedWindow)}</p>
-              {data.companionSelectedWindow.note && (
-                <p className="note">{data.companionSelectedWindow.note}</p>
-              )}
-            </li>
-          </ul>
+      {/* P2.T2 — Legacy reschedule fallback. The H3 companion-side window
+          pick (WindowSelectionView) was removed in P2: new inquiries arrive
+          with a single scheduledFor from the composer and auto-advance
+          accepted → date_confirmed server-side, so the companion never picks
+          a window. Only bookings created BEFORE the P2.T1 migration can still
+          be sitting in date_pending / date_proposed. Surface a neutral card
+          instead of crashing on the deleted picker. New bookings never reach
+          this branch. */}
+      {(data.status === "date_pending" || data.status === "date_proposed") && (
+        <section className="plan-stage-cta" aria-label="Reschedule needed">
+          <p className="eyebrow">Reschedule needed</p>
+          <h2>This plan used an older scheduling flow.</h2>
+          <p>
+            Ask {data.travellerLabel} to start a new inquiry with their preferred
+            date.
+          </p>
+          <div className="plan-stage-actions">
+            <Button as={Link} to="/companion/inbox" variant="primary">
+              Back to inbox
+            </Button>
+          </div>
         </section>
       )}
 
@@ -728,12 +698,12 @@ export function CompanionInquiryDetailPage() {
   );
 }
 
-// TODO(H3-followup): formatWindowLabel / formatDate / formatDurationHours
-// are duplicated across DateWindowPicker, WindowSelectionView,
-// ConfirmPlanView, TravellerInquiryDetailPage, and now this page. Extract
-// to shared/booking-utils.ts in a future polish pass — the sibling
-// components all carry the same flag and v1 keeps the local copy on
-// purpose to avoid expanding T8's surface area.
+// formatWindowLabel / formatDate / formatDurationHours render the confirmed
+// window + timestamps for the date_confirmed+ panels below. Still duplicated
+// with the traveller detail page + SessionItinerary; the H3 sibling
+// components that also carried these (DateWindowPicker / WindowSelectionView /
+// ConfirmPlanView) were deleted in P2.T2. Extract to shared/booking-utils.ts
+// in a future polish pass.
 function formatWindowLabel(window: DateWindow): string {
   const startFmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Bangkok",

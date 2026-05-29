@@ -968,36 +968,6 @@ export type CompanionInquiryDecisionResponse = {
 };
 
 /**
- * H3 — Date negotiation request types.
- *
- * Window negotiation has 3 stages, each its own endpoint:
- *   1. Traveller submits 2-3 candidate windows  (PlanWindowsRequest)
- *   2. Companion picks exactly one              (PlanWindowSelectionRequest)
- *   3. Traveller confirms the picked window     (PlanConfirmRequest)
- *
- * Windows are stored UTC, displayed Asia/Bangkok in the UI for v1.
- */
-
-/** Traveller proposes 2-3 candidate windows. */
-export type PlanWindowsRequest = {
-  windows: DateWindow[];                          // 2 ≤ length ≤ 3
-};
-
-/** Companion picks exactly one of the traveller's proposed windows. */
-export type PlanWindowSelectionRequest = {
-  selectedWindow: DateWindow;                     // must structurally match one of the proposed
-};
-
-/**
- * Traveller confirms the selected window. No body fields today — the
- * inquiry ID is the URL parameter. Type exists for future expansion
- * (e.g., adding contact-preference or special-request fields).
- */
-export type PlanConfirmRequest = {
-  // Reserved for future fields. Pass an empty object {} from the client.
-};
-
-/**
  * Traveller's request to place a payment hold on a confirmed plan.
  *
  * For H4-stub (current): empty body — server transitions
@@ -1030,18 +1000,14 @@ export type DayOfDetailsResponse = {
 };
 
 /**
- * Response shape for all 3 plan endpoints (traveller side). Returns the
- * updated inquiry in traveller-facing shape plus a confirmation message
- * suitable for surfacing in the UI.
+ * Response shape for the traveller-side plan hold endpoint (/hold). Returns
+ * the updated inquiry in traveller-facing shape plus a confirmation message
+ * suitable for surfacing in the UI. (The H3 propose/select/confirm endpoints
+ * that also used this shape were removed in P2; /hold is the sole remaining
+ * consumer.)
  */
 export type PlanTravellerResponse = {
   inquiry: TravellerInquiryDetail;
-  message: string;
-};
-
-/** Response shape for the companion-side plan endpoint (/select-window). */
-export type PlanCompanionResponse = {
-  inquiry: CompanionSessionDetail;
   message: string;
 };
 
