@@ -398,6 +398,43 @@ export function InquiryComposerPage() {
             ) : null}
           </section>
         </div>
+
+        {/* Right rail — session recap + privacy/safety. Only rendered at the
+            desktop/wide widths the board shows it (CSS hides it <1024px); the
+            same details live in the form + sticky bar on smaller frames. */}
+        <aside className="inquiry-composer-rail inquiry-composer-rail--right" aria-label="Session summary and privacy">
+          <div className="inquiry-composer-aside-card">
+            <p className="eyebrow">Session</p>
+            <h3>Your plan so far</h3>
+            <dl>
+              <div className="inquiry-composer-session-row">
+                <dt>When</dt>
+                <dd className={whenLabel ? undefined : "is-empty"}>
+                  {whenLabel ? whenLabel : "Pick a date & time"}
+                </dd>
+              </div>
+              <div className="inquiry-composer-session-row">
+                <dt>Duration</dt>
+                <dd>3 hours</dd>
+              </div>
+              <div className="inquiry-composer-session-row">
+                <dt>Where</dt>
+                <dd className={trimmedLocation ? undefined : "is-empty"}>
+                  {trimmedLocation ? trimmedLocation : "Add a meeting place"}
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div className="inquiry-composer-aside-card">
+            <p className="eyebrow">Privacy &amp; safety</p>
+            <h3>Discreet by design</h3>
+            <p>
+              Your contact details and exact meeting point stay hidden until
+              {" "}{profile.displayName} accepts. Inquiries are private and
+              confidential.
+            </p>
+          </div>
+        </aside>
       </div>
 
       {/* Sticky submit bar — coral primary CTA + explicit privacy confirm. */}
@@ -430,6 +467,9 @@ export function InquiryComposerPage() {
         >
           {submitting ? "Sending…" : "Send Inquiry"}
         </Button>
+        <p className="inquiry-composer-submit-footnote">
+          Your inquiry is private and confidential
+        </p>
       </div>
     </section>
   );

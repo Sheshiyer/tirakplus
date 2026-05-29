@@ -9556,3 +9556,472 @@ p {
   background: rgba(247, 239, 231, 0.12);
   border-color: rgba(247, 239, 231, 0.32);
 }
+
+/* ---- InquiryComposerPage layout (P2.T6) -------------------------------
+ * Page-level holistic responsive layout for the single-page inquiry
+ * composer at /traveller/companions/:companionId/inquire. Builds ON TOP of
+ * the P2.T3 composer primitives (.composer-*) and the P2.T4
+ * MuseAssistedTextarea — this section owns ONLY the page grid, section
+ * rhythm, dark surface, top bar, the two side rails, and the submit bar.
+ * The primitives keep their own internal styling (T3/T4 own those).
+ *
+ * Reference board (4 frames): generated/web-reference-boards/gpt-image-2/
+ *   inquiry-flow-responsive-board.png
+ *   Mobile 390  → single column, sticky coral CTA above the bottom-nav
+ *   Tablet 768  → 2 columns (profile+discreet rail | form)
+ *   Desktop 1280 / Wide 1440 → 3 columns (left rail | form | right rail)
+ *
+ * The page renders inside .member-shell → .member-main, so it inherits the
+ * dark member backdrop + the bottom-nav. We layer the composer's own focused
+ * plum/aubergine wash on top so the surface reads like the age-consent gate
+ * and the companion-profile-v2 dark surfaces (shared glass language). Coral
+ * primary action via --color-coral; glass surfaces mirror .auth-card-shell.
+ * ====================================================================== */
+
+.inquiry-composer-page {
+  position: relative;
+  width: min(100% - 32px, 1320px);
+  margin: 0 auto;
+  /* Bottom padding clears the fixed submit bar so the last field/section is
+     never hidden behind it. Desktop bar ~96px; the mobile media query below
+     adds extra room for the bar + the .bottom-nav stack. */
+  padding: clamp(16px, 3vw, 32px) 0 calc(140px + env(safe-area-inset-bottom));
+  color: #f7efe7;
+}
+
+/* Focused plum/aubergine wash for the composer surface — same family as the
+   age-consent gate + companion-profile-v2, pulled full-bleed behind the
+   centered content column via a pseudo-element so the grid stays max-width. */
+.inquiry-composer-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 26% 14%, rgba(120, 60, 110, 0.26) 0%, transparent 58%),
+    radial-gradient(ellipse at 78% 82%, rgba(60, 30, 80, 0.3) 0%, transparent 62%),
+    linear-gradient(160deg, #0a0814 0%, #16101e 52%, #1a1024 100%);
+}
+
+.inquiry-composer-page--loading,
+.inquiry-composer-page--error {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+/* --- Top bar: back chevron + "Private inquiry" lock chip + title --- */
+.inquiry-composer-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: clamp(18px, 3vw, 28px);
+}
+
+.inquiry-composer-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 239, 231, 0.18);
+  background: rgba(8, 11, 20, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #f7efe7;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.inquiry-composer-back:hover {
+  background: rgba(8, 11, 20, 0.72);
+  border-color: rgba(247, 239, 231, 0.32);
+}
+
+.inquiry-composer-back:focus-visible {
+  outline: none;
+  border-color: var(--color-coral);
+  box-shadow: 0 0 0 3px var(--color-coral-soft);
+}
+
+.inquiry-composer-back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.inquiry-composer-topbar__title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* "Private inquiry" eyebrow gets a small lock glyph rendered inline so the
+   chip reads as a privacy badge (board shows the lock). */
+.inquiry-composer-topbar__title .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: rgba(247, 239, 231, 0.62);
+}
+
+.inquiry-composer-topbar__title .eyebrow::before {
+  content: "";
+  width: 11px;
+  height: 13px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  /* Inline padlock glyph as a mask so it inherits the eyebrow colour
+     (mirrors the file's existing inline data:image/svg+xml convention). */
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='11' width='18' height='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='11' width='18' height='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/></svg>") center / contain no-repeat;
+}
+
+.inquiry-composer-topbar__title h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3.4vw, 28px);
+  line-height: 1.18;
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+.inquiry-composer-topbar__spacer {
+  width: 44px;
+  height: 1px;
+}
+
+/* --- The responsive grid -------------------------------------------------
+   Mobile-first: single column. Tablet (≥768) → 2 columns (rail | form).
+   Desktop (≥1024) + Wide (≥1280) → 3 columns (left rail | form | right rail).
+   The right rail (.inquiry-composer-rail--right) is hidden below 1024 — its
+   session recap + privacy content only appears at the widths the board shows
+   it, so nothing is lost on smaller frames (the same info lives in the form
+   and the sticky bar). */
+.inquiry-composer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 32px);
+  align-items: start;
+}
+
+.inquiry-composer-rail {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2vw, 20px);
+  min-width: 0;
+}
+
+.inquiry-composer-rail--right {
+  display: none;
+}
+
+/* On mobile the left rail collapses to a compact profile header that sits
+   above the form. The DiscreetByDesignCard inside it stays visible but the
+   rail itself doesn't reserve a column. */
+.inquiry-composer-main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 28px);
+  min-width: 0;
+}
+
+/* --- Section blocks: label + rhythm --- */
+.inquiry-composer-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(16px, 2.2vw, 22px);
+  border-radius: 18px;
+  border: 1px solid rgba(247, 239, 231, 0.12);
+  background: rgba(8, 11, 20, 0.4);
+  box-shadow: inset 0 1px 0 rgba(247, 239, 231, 0.05);
+  min-width: 0;
+}
+
+.inquiry-composer-block .eyebrow {
+  margin: 0;
+  color: rgba(247, 239, 231, 0.6);
+}
+
+.inquiry-composer-block h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: 1.25;
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+/* Availability guidance note beside the calendar. */
+.inquiry-composer-availability {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(247, 239, 231, 0.68);
+}
+
+.inquiry-composer-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.inquiry-composer-slots .field-label {
+  margin: 0;
+  color: rgba(247, 239, 231, 0.82);
+}
+
+.inquiry-composer-when-summary {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-coral);
+}
+
+.inquiry-composer-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(247, 239, 231, 0.6);
+}
+
+/* --- Right rail: Session recap + Privacy & safety panels --- */
+.inquiry-composer-aside-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(247, 239, 231, 0.16);
+  background: rgba(8, 11, 20, 0.56);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(247, 239, 231, 0.07);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.inquiry-composer-aside-card .eyebrow {
+  margin: 0;
+  color: rgba(247, 239, 231, 0.6);
+}
+
+.inquiry-composer-aside-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff8f1;
+}
+
+.inquiry-composer-session-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(247, 239, 231, 0.08);
+}
+
+.inquiry-composer-session-row:last-child {
+  border-bottom: none;
+}
+
+.inquiry-composer-session-row dt {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+.inquiry-composer-session-row dd {
+  margin: 0;
+  text-align: right;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f7efe7;
+}
+
+.inquiry-composer-session-row dd.is-empty {
+  color: rgba(247, 239, 231, 0.42);
+  font-weight: 500;
+}
+
+.inquiry-composer-aside-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(247, 239, 231, 0.72);
+}
+
+/* --- Submit bar: fixed on mobile, inline-at-end on desktop --- */
+.inquiry-composer-submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding:
+    14px clamp(16px, 4vw, 28px)
+    calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(9, 13, 23, 0.72) 0%, rgba(9, 13, 23, 0.94) 60%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(247, 239, 231, 0.1);
+}
+
+/* Constrain the submit bar's inner content to the page column width and
+   center it so the fixed full-bleed bar still aligns with the layout. */
+.inquiry-composer-submit-bar > * {
+  width: min(100% - 0px, 560px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.inquiry-composer-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(247, 239, 231, 0.78);
+  cursor: pointer;
+}
+
+.inquiry-composer-privacy input[type="checkbox"] {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--color-coral);
+  cursor: pointer;
+}
+
+.inquiry-composer-submit-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffb4a6;
+}
+
+/* The private/confidential footer microcopy under the CTA. */
+.inquiry-composer-submit-footnote {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 231, 0.5);
+}
+
+/* =====================================================================
+   Breakpoints
+   ===================================================================== */
+
+/* Mobile (<=860px) — the .bottom-nav is visible here, so lift the fixed
+   submit bar above it (mirrors .profile-sticky-cta). The page already
+   reserves bottom padding; bump it for the bar + nav stack. */
+@media (max-width: 860px) {
+  .inquiry-composer-submit-bar {
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    padding-bottom: 14px;
+  }
+
+  .inquiry-composer-page {
+    padding-bottom: calc(220px + env(safe-area-inset-bottom));
+  }
+
+  /* Compact the left rail's profile card on the smallest frames so the
+     "compact profile header" reads as a header strip, not a tall card. */
+  .inquiry-composer-rail--left .composer-companion-card {
+    padding: 14px 16px;
+  }
+}
+
+/* Tablet (>=768px) — 2 columns: profile+discreet rail | form. Matches the
+   board's tablet frame. Right rail stays hidden until desktop. */
+@media (min-width: 768px) {
+  .inquiry-composer-layout {
+    grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.6fr);
+    gap: clamp(22px, 3vw, 32px);
+  }
+
+  /* Calendar can breathe a touch wider inside the form column at tablet+. */
+  .inquiry-composer-block .composer-calendar {
+    max-width: 360px;
+  }
+}
+
+/* Desktop (>=1024px) — 3 columns: left rail | form | right rail. The right
+   rail (session recap + privacy) appears here per the board's desktop+wide
+   frames. The submit bar leaves the fixed treatment and sits inline at the
+   end of the center column. */
+@media (min-width: 1024px) {
+  .inquiry-composer-layout {
+    grid-template-columns:
+      minmax(220px, 0.82fr)
+      minmax(0, 1.5fr)
+      minmax(240px, 0.9fr);
+    gap: clamp(24px, 2.4vw, 36px);
+  }
+
+  .inquiry-composer-rail--right {
+    display: flex;
+  }
+
+  /* Inline submit bar: drop the fixed positioning and fold it into the
+     center column's flow as a glass card. It becomes the third grid child's
+     sibling via the page's source order (the bar lives after .layout), so we
+     re-anchor it under the center column by spanning the middle track. */
+  .inquiry-composer-submit-bar {
+    position: static;
+    z-index: auto;
+    margin: 4px auto 0;
+    width: 100%;
+    max-width: none;
+    border-radius: 18px;
+    border: 1px solid rgba(247, 239, 231, 0.16);
+    border-top: 1px solid rgba(247, 239, 231, 0.16);
+    background: rgba(8, 11, 20, 0.56);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 rgba(247, 239, 231, 0.07);
+    padding: 18px;
+  }
+
+  .inquiry-composer-submit-bar > * {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* With the bar inline, the page no longer needs to reserve fixed-bar
+     clearance — trim the bottom padding back to a normal page gutter. */
+  .inquiry-composer-page {
+    padding-bottom: clamp(48px, 6vw, 88px);
+  }
+}
+
+/* Wide (>=1280px) — more generous rails + gap, matching the 1440 frame. */
+@media (min-width: 1280px) {
+  .inquiry-composer-layout {
+    grid-template-columns:
+      minmax(248px, 0.86fr)
+      minmax(0, 1.5fr)
+      minmax(264px, 0.94fr);
+    gap: clamp(28px, 2.2vw, 44px);
+  }
+}
