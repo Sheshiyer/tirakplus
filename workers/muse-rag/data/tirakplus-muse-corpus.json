@@ -49,7 +49,7 @@
       "audience": ["traveller", "companion", "unknown"],
       "tags": ["safety", "privacy", "payments"],
       "sensitivity": "public",
-      "content": "Tirak Plus routes inquiries and discovery through privacy and safety gates. No payment, off-platform contact, public exposure, or introduction should happen before review clears. Companion public fields stay separate from private review fields. Availability is planning context, not instant booking or public urgency. Visibility can pause discovery, city, availability, and inquiries independently."
+      "content": "Tirak Plus routes inquiries and discovery through privacy and safety gates. No payment, off-platform contact, public exposure, or introduction should happen before Tirak finishes reviewing. Companion public fields stay separate from private review fields. Availability is planning context, not instant booking or public urgency. Visibility can pause discovery, city, availability, and inquiries independently."
     },
     {
       "slug": "safety/refusal-reframe",
