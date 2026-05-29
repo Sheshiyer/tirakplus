@@ -98,7 +98,7 @@ export function TravellerInquiryDetailPage() {
   //   session_completed → system auto-advances to review_pending immediately
   //     so the traveller can leave a review; keep polling so that surface
   //     flips in without a manual reload.
-  //   review_pending    → the 7-day review window can auto-close to
+  //   review_pending    → the 7-day review period can auto-close to
   //     review_completed even without a submission; keep polling so the
   //     page surfaces the closed-window state when that fires.
   //
@@ -523,14 +523,14 @@ export function TravellerInquiryDetailPage() {
         )}
 
         {/* H6.T7 — Auto-completed-without-review case. The 7-day review
-            window can expire silently, in which case the inquiry advances
+            period can expire silently, in which case the inquiry advances
             to review_completed without a reviewScore. Show a brief notice
             so the page has SOMETHING here instead of a blank terminal
             state. Rare in practice — most reviews land within a day. */}
         {inquiry.status === "review_completed" && inquiry.reviewScore === undefined && (
-          <section className="plan-stage-cta" aria-label="Review window closed">
-            <p className="eyebrow">Review window closed</p>
-            <h2>The 7-day review window has passed.</h2>
+          <section className="plan-stage-cta" aria-label="Review period closed">
+            <p className="eyebrow">Review period closed</p>
+            <h2>The 7-day review period has passed.</h2>
             <p>Reviews need to land within a week of the session completing.</p>
           </section>
         )}

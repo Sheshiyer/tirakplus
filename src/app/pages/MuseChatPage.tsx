@@ -467,7 +467,7 @@ export function MuseChatPage() {
           <div className="muse-chat-header" data-testid="muse-chat-panel">
             <div>
               <p className="eyebrow">Muse</p>
-              <h2>{isChatActive ? "Private thread" : "Muse"}</h2>
+              <h2>{isChatActive ? "Direct messages" : "Muse"}</h2>
             </div>
             <div className="muse-chat-header-actions">
               <span data-testid="muse-stage">{stageLabel}</span>

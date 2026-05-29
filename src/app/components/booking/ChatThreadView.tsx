@@ -398,7 +398,7 @@ export function ChatThreadView(props: ChatThreadViewProps) {
   return (
     <section className={wrapperClass} aria-label="Booking thread">
       <header className="chat-thread-header">
-        <p className="eyebrow">Private thread</p>
+        <p className="eyebrow">Direct messages</p>
         {unreadCount > 0 ? (
           <span className="chat-thread-unread-pill" aria-label={`${unreadCount} unread`}>
             {unreadCount} new

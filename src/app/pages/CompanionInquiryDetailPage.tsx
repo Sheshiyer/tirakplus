@@ -679,9 +679,9 @@ export function CompanionInquiryDetailPage() {
         </section>
       )}
 
-      {/* Pass I.T7 — Private thread between companion and traveller.
+      {/* Pass I.T7 — Direct messages thread between companion and traveller.
           Mirror image of the traveller-side wire-up (Pass I.T6). The
-          component owns its own <section> with the "Private thread"
+          component owns its own <section> with the "Direct messages"
           header, polling cadence, optimistic send, mark-read, and
           composer gating (MATCHED_STATUSES); the page just hands it
           inquiryId + viewerRole + the live bookingStatus. Rendered for

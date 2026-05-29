@@ -201,7 +201,7 @@ export function CompanionOnboardingPage() {
             <p className="eyebrow">Welcome</p>
             <h2>You control what becomes public</h2>
             <p>
-              Draft information stays private until Tirak's review clears it. Visibility, availability, and inquiry
+              Draft information stays private until Tirak finishes reviewing your profile. Visibility, availability, and inquiry
               controls remain closed while your profile is prepared.
             </p>
           </section>
