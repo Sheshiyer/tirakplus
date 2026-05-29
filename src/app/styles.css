@@ -9324,3 +9324,235 @@ p {
   line-height: 1.45;
   color: rgba(247, 239, 231, 0.72);
 }
+
+/* ---- MuseAssistedTextarea (P2.T4) ----
+ *
+ * The composer's message field + live Muse-assist affordance. Dark-glass
+ * textarea matching the T3 primitives above (same rgba ink, coral focus),
+ * a coral "Ask Muse" ghost button, and a Muse-tinted suggestion card
+ * (rose/lavender border) for the drafted reply.
+ */
+.composer-muse-field {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+}
+
+/* Override the base light-surface .field-label (charcoal ink) for the dark
+ * composer; mirrors how the location field re-skins inherited field classes. */
+.composer-muse-field__label.field-label {
+  color: #fff8f1;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.composer-muse-field__helper {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(247, 239, 231, 0.6);
+}
+
+.composer-muse-field__control {
+  position: relative;
+}
+
+.composer-muse-field__textarea.field-input {
+  width: 100%;
+  min-height: 132px;
+  max-height: 320px;
+  padding: 14px 16px 30px;
+  border-radius: 14px;
+  background: rgba(8, 11, 20, 0.6);
+  border: 1px solid rgba(247, 239, 231, 0.18);
+  color: #f7efe7;
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  field-sizing: content; /* auto-grow where supported; rows={6} is the floor */
+}
+
+.composer-muse-field__textarea.field-input::placeholder {
+  color: rgba(247, 239, 231, 0.4);
+}
+
+.composer-muse-field__textarea.field-input:focus {
+  outline: none;
+  border-color: rgba(255, 125, 107, 0.55);
+  box-shadow: 0 0 0 3px var(--color-coral-soft);
+}
+
+.composer-muse-field__textarea.field-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.composer-muse-field__count {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(247, 239, 231, 0.45);
+  pointer-events: none;
+  transition: color 0.15s ease;
+}
+
+.composer-muse-field__count.is-near-limit {
+  color: #e6b566; /* muted amber past 450 */
+}
+
+.composer-muse-field__count.is-over-limit {
+  color: var(--color-coral); /* red-leaning coral at the 500 cap */
+}
+
+.composer-muse-field__assist-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.composer-muse-assist-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 125, 107, 0.45);
+  background: rgba(255, 125, 107, 0.1);
+  color: var(--color-coral);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.composer-muse-assist-button:hover:not(:disabled) {
+  background: rgba(255, 125, 107, 0.18);
+  border-color: rgba(255, 125, 107, 0.6);
+}
+
+.composer-muse-assist-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.composer-muse-assist-button[aria-busy="true"] {
+  cursor: progress;
+}
+
+.composer-muse-assist-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.composer-muse-assist-button__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.composer-muse-field__note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(247, 239, 231, 0.55);
+}
+
+/* Suggestion card — Muse-tinted rose/lavender border + soft glass fill. */
+.composer-muse-suggestion {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(183, 166, 216, 0.4); /* lavender-mark, softened */
+  background:
+    linear-gradient(180deg, rgba(185, 111, 125, 0.12) 0%, rgba(183, 166, 216, 0.08) 100%),
+    rgba(12, 15, 25, 0.6);
+  display: grid;
+  gap: 10px;
+}
+
+.composer-muse-suggestion__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-lavender-mark);
+}
+
+.composer-muse-suggestion__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.composer-muse-suggestion__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.composer-muse-suggestion__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #f7efe7;
+  white-space: pre-wrap;
+}
+
+.composer-muse-suggestion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.composer-muse-suggestion__use {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-coral);
+  background: var(--color-coral);
+  color: #1a0810;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.composer-muse-suggestion__use:hover {
+  background: var(--color-coral-active);
+  border-color: var(--color-coral-active);
+}
+
+.composer-muse-suggestion__secondary {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 239, 231, 0.22);
+  background: rgba(247, 239, 231, 0.06);
+  color: rgba(247, 239, 231, 0.88);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.composer-muse-suggestion__secondary:hover {
+  background: rgba(247, 239, 231, 0.12);
+  border-color: rgba(247, 239, 231, 0.32);
+}
