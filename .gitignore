@@ -12,3 +12,6 @@ generated/
 
 # macOS metadata
 **/.DS_Store
+
+# Local agent / worktree config
+.claude/
