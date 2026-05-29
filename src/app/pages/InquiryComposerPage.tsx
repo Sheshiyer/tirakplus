@@ -315,7 +315,10 @@ export function InquiryComposerPage() {
 
     try {
       const response = await BookingService.createInquiry(payload);
-      navigate(`/traveller/inbox/${response.inquiry.id}`);
+      // Pass the full inquiry through location state so TravellerInquiryDetailPage
+      // can render immediately without a KV round-trip. The detail page falls back
+      // to its own API fetch if state is missing (e.g. hard refresh, direct link).
+      navigate(`/traveller/inbox/${response.inquiry.id}`, { state: { inquiry: response.inquiry } });
     } catch (error) {
       if (error instanceof BookingApiError) {
         setSubmitError(error.message || "We couldn't send your inquiry. Try again.");

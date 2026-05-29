@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import type { DateWindow, PaymentProviderSummary, TravellerInquiryDetail } from "../../shared/contracts";
 import { BookingApiError, BookingService } from "../api/booking";
 import { ApiRequestError, TravellerService } from "../api/traveller";
@@ -27,7 +27,13 @@ type LoadState =
 export function TravellerInquiryDetailPage() {
   const { inquiryId } = useParams();
   const [searchParams] = useSearchParams();
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const location = useLocation();
+  // Seed from location state when navigating directly from the composer —
+  // avoids a KV round-trip that races the write (and fails when KV is unbound).
+  const seedInquiry = (location.state as { inquiry?: TravellerInquiryDetail } | null)?.inquiry;
+  const [state, setState] = useState<LoadState>(
+    seedInquiry ? { status: "ready", inquiry: seedInquiry } : { status: "loading" },
+  );
   const [paymentProviders, setPaymentProviders] = useState<PaymentProviderSummary[]>([]);
   const [checkoutState, setCheckoutState] = useState<"idle" | "creating">("idle");
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
@@ -51,6 +57,11 @@ export function TravellerInquiryDetailPage() {
       return;
     }
 
+    // Skip the initial fetch when the composer already gave us the inquiry via
+    // location.state — the data is fresh and a round-trip would only 404 if
+    // the KV write hasn't propagated yet (or the namespace isn't bound).
+    if (seedInquiry) return;
+
     let cancelled = false;
     setState({ status: "loading" });
 
@@ -70,7 +81,7 @@ export function TravellerInquiryDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [inquiryId]);
+  }, [inquiryId, seedInquiry]);
 
   // H2.T8 / H3.T7 / H4-stub / H5.T6 / H6.T7 — Mirror the inbox list poll for
   // the detail page. While the viewed inquiry sits in any non-terminal
