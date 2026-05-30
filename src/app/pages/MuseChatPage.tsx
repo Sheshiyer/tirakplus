@@ -402,9 +402,9 @@ export function MuseChatPage() {
       onPointerLeave={() => setParallax({ x: 0, y: 0 })}
       style={sceneStyle}
     >
-      <img className="muse-scene-backdrop" src={AssetRegistry.muse.scene.backdrop} alt="" aria-hidden="true" />
-      <div className="muse-scene-vignette" aria-hidden="true" />
-      <div className="muse-scene-ambient" aria-hidden="true" />
+      {/* Scene backdrop, vignette, and ambient removed 2026-05-30 —
+          the body:has(.muse-entry-page) dark noise + plum gradient
+          is the canonical background across all surfaces. */}
 
       <div className="muse-entry-shell">
         <header className="muse-entry-brand" aria-label="Muse">
