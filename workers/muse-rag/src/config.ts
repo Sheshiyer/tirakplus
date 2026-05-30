@@ -15,6 +15,10 @@ export type Env = {
   APP_INDEX: KVNamespace;
   NVIDIA_API_KEY?: string;
   ENVIRONMENT?: string;
+  // Vercel AI Gateway fallback — used when NVIDIA_API_KEY is absent or NIM
+  // returns a non-OK response. Set via `wrangler secret put VERCEL_OIDC_TOKEN`.
+  // Free-tier model: google/gemini-2.0-flash.
+  VERCEL_OIDC_TOKEN?: string;
 };
 
 type AuthRecord = {

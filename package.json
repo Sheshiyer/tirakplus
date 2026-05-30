@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
+    "ai": "^6.0.193",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.15.0",
