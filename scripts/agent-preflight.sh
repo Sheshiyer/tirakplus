@@ -46,7 +46,7 @@ if [ "$fail" -eq 1 ]; then
   red ""
   red "STOP — you are NOT in the tirakplus repo."
   yellow "Recover with:"
-  echo  "    cd /Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/standalone-repos/tirakplus"
+  echo  "    cd /Volumes/madara/2026/Projects/thoughtseed/tirak/standalone-repos/tirakplus"
   exit 1
 fi
 

@@ -492,7 +492,7 @@ Started on 2026-05-19:
 
 ## Execution Notes
 
-- Active implementation repo: `/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/standalone-repos/tirakplus`.
+- Active implementation repo: `/Volumes/madara/2026/Projects/thoughtseed/tirak/standalone-repos/tirakplus`.
 - Target GitHub repo: `Sheshiyer/tirakplus`.
 - Keep public web routes intact; this wave is scoped to protected traveller and companion app views.
 

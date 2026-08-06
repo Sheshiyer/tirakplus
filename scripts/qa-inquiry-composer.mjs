@@ -12,7 +12,7 @@ import { join } from "path";
 
 const BASE_URL = "http://localhost:8787";
 const SCREENSHOTS_DIR =
-  "/Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/standalone-repos/tirakplus/generated/qa-screenshots/inquiry-composer";
+  "/Volumes/madara/2026/Projects/thoughtseed/tirak/standalone-repos/tirakplus/generated/qa-screenshots/inquiry-composer";
 const COMPANION_ID = "cmp-aura";
 
 const results = {

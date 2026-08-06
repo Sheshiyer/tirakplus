@@ -258,7 +258,7 @@ export type ReviewSummary = {
 **Step 3:** Run TypeScript check.
 
 ```bash
-cd /Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/standalone-repos/tirakplus && npx tsc --noEmit
+cd /Volumes/madara/2026/Projects/thoughtseed/tirak/standalone-repos/tirakplus && npx tsc --noEmit
 ```
 Expected: PASS (or fail only at uses of removed `payment_review` — those should error and need handling in Task 2)
 

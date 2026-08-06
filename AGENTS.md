@@ -24,7 +24,7 @@ makes the same check before any commit lands.
 
 If your shell `cd` gets reset (zoxide config quirk on this machine
 sends bare `cd` calls to the wrong tirakplus), always use absolute
-paths in `Bash` tool calls: `cd /Volumes/madara/2026/twc-vault/01-Projects/thoughtseed/Tirak/standalone-repos/tirakplus && ...`
+paths in `Bash` tool calls: `cd /Volumes/madara/2026/Projects/thoughtseed/tirak/standalone-repos/tirakplus && ...`
 
 <!-- SPECKIT START -->
 Primary spec-kit plan:
